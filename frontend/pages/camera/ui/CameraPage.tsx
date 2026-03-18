@@ -6,12 +6,17 @@ import { useTakePhoto } from "@/features/take_photo/model/useTakePhoto";
 import { PhotoPreview } from "@/features/take_photo/ui/PhotoPreview";
 import { useToggleFacing } from "@/features/camera_controls/model/useToggleFacing";
 import { ToggleFacingButton } from "@/features/camera_controls/ui/ToggleFacingButton";
-import { useChangeBodyFrame } from "@/features/camera_controls/model/useSelectLayout";
+import { BodyFrameEnum, useChangeBodyFrame } from "@/features/camera_controls/model/useSelectLayout";
 import { SelectLayoutButton } from "@/features/camera_controls/ui/SelectLayoutButton";
 import TakePhotoButton from "@/features/take_photo/ui/TakePhotoButton";
 import { useCountdown } from "@/shared/lib/hooks/useCountdown";
-import CameraLayout from "@/widgets/camera_layout/ui/CameraLayout";
+import PhotoView from "@/features/take_photo/ui/PhotoView";
 
+const MESSAGE: Record<BodyFrameEnum, string> = {
+    [BodyFrameEnum.TOP_BODY]: 'please put your top on the frame',
+    [BodyFrameEnum.BOTTOM_BODY]: 'please put your bottom on the frame',
+    [BodyFrameEnum.FULL_BODY]: 'please put your full body on the frame',
+  }
 
 
 export const CameraPage = () => {
@@ -45,7 +50,7 @@ export const CameraPage = () => {
             <CameraView ref={cameraRef} facing={facing} responsiveOrientationWhenOrientationLocked style={styles.cameraView}>
                 <ToggleFacingButton toggleFacing={toggleFacing} />
                 <SelectLayoutButton currentLayout={currentLayout} changeLayout={changeLayout} />
-                <CameraLayout mode={currentLayout} isCountingDown={countDown > 0} countDown={countDown} />
+                <PhotoView message={MESSAGE[currentLayout as keyof typeof MESSAGE] ?? ''} isCountingDown={countDown > 0} countDown={countDown} />
                 <TakePhotoButton triggerCountdown={triggerCountdown} />
             </CameraView>
          )}

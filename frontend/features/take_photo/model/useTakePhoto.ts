@@ -1,7 +1,7 @@
 import { useState, useCallback, RefObject } from "react";
+import { Image } from "react-native";
 import { CameraView } from "expo-camera";
 import { Photo } from "@/entities/media/model/types";
-import { validateClothingInFrame, ValidateResult } from "./validateClothingInFrame";
 import { useImageQualityCheck } from "@/shared/lib/hooks/useImageQualityCheck";
 import { SaveFormat, ImageManipulator } from "expo-image-manipulator";
 

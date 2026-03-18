@@ -3,15 +3,16 @@ import { View, StyleSheet } from 'react-native'
 import Svg, { Rect } from 'react-native-svg'
 
 interface CameraLayoutProps {
-  children: React.ReactNode
   strokeColor?: string
   opacity?: number
+  children?: React.ReactNode
 }
+// 이곳에서 카메라 레이아웃의 크기를 저장할 필요가 있을 거 같아
 
 const CameraLayout = ({
-  children,
   strokeColor,
   opacity,
+  children,
 }: CameraLayoutProps) => {
   const [layoutSize, setLayoutSize] = useState({ width: 0, height: 0 })
   // 세로로 긴 직사각형: 화면 가로의 70%, 세로의 58% (중앙 정렬)
@@ -35,7 +36,7 @@ const CameraLayout = ({
             width={frameW}
             height={frameH}
             fill="transparent"
-            stroke={strokeColor}
+            stroke={strokeColor ?? '#FFFFFF'}
             strokeWidth={2.5}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -48,16 +49,26 @@ const CameraLayout = ({
             width={frameW}
             height={frameH}
             fill={strokeColor}
-            fillOpacity={opacity}
+            fillOpacity={0.06}
             stroke="none"
           />
         </Svg>
-
-        {children}
       </View>
+
+      {children ? <View style={[styles.countDownWrap, { top: layoutSize.height * 0.05}]}>
+          {children}
+        </View> : null}
+
     </View>
   </>
   )
 }
+
+const styles = StyleSheet.create({
+  countDownWrap: {
+    position: 'absolute',
+    width: '100%',
+  },
+})
 
 export default CameraLayout

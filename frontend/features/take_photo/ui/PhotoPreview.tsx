@@ -45,10 +45,12 @@ export const PhotoPreview = ({
       )}
 
       {validationStatus === 'valid' && (
+        <>
         <View style={styles.actions}>
           <Button title="Confirm Photo" onPress={onConfirm} />
           <Button title="Take another picture" onPress={onClear} />
         </View>
+        </>
       )}
     </View>
   )
