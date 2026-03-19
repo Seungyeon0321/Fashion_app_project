@@ -1,7 +1,9 @@
-import { Button, Image, View, Text, ActivityIndicator, StyleSheet } from 'react-native'
+import { Button, Image, View, Text, ActivityIndicator, StyleSheet, useWindowDimensions } from 'react-native'
 import { Photo } from '@/entities/media/model/types'
 import type { ValidationStatus } from '@/features/take_photo/model/useTakePhoto'
 import { CameraType } from 'expo-camera'
+import { useCameraFrame } from '../model/useCameraFrame'
+import Svg, { Path, Rect } from 'react-native-svg'
 
 type PhotoPreviewProps = {
   photo: Photo | null
@@ -22,8 +24,16 @@ export const PhotoPreview = ({
   validationStatus = null,
   validationMessage = null,
 }: PhotoPreviewProps) => {
+  const { getFrameRect } = useCameraFrame()
+  const { width, height } = useWindowDimensions()
+  const frameRect = getFrameRect()
   const isInvalid = validationStatus === 'invalid'
   const isPending = validationStatus === 'pending'
+
+  const outerPath = `M0,0 H${width} V${height} H0 V0 Z`;
+  const innerPath = frameRect
+  ? `M${frameRect.left},${frameRect.top} H${frameRect.left + frameRect.width} V${frameRect.top + frameRect.height} H${frameRect.left} Z`
+  : ''
 
   return (
     <View style={styles.container}>
@@ -46,6 +56,9 @@ export const PhotoPreview = ({
 
       {validationStatus === 'valid' && (
         <>
+        <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
+          <Path d={`${outerPath} ${innerPath}`} fillRule="evenodd" fill="rgba(0, 0, 0, 0.5)" />
+        </Svg>
         <View style={styles.actions}>
           <Button title="Confirm Photo" onPress={onConfirm} />
           <Button title="Take another picture" onPress={onClear} />

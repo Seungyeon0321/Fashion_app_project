@@ -1,5 +1,5 @@
 import { RefObject, useEffect, useRef } from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView } from "expo-camera";
 import { useTakePhoto } from "@/features/take_photo/model/useTakePhoto";
@@ -10,7 +10,7 @@ import { BodyFrameEnum, useChangeBodyFrame } from "@/features/camera_controls/mo
 import { SelectLayoutButton } from "@/features/camera_controls/ui/SelectLayoutButton";
 import TakePhotoButton from "@/features/take_photo/ui/TakePhotoButton";
 import { useCountdown } from "@/shared/lib/hooks/useCountdown";
-import PhotoView from "@/features/take_photo/ui/PhotoView";
+import PhotoView from "@/features/take_photo/ui/CameraScreen";
 
 const MESSAGE: Record<BodyFrameEnum, string> = {
     [BodyFrameEnum.TOP_BODY]: 'please put your top on the frame',

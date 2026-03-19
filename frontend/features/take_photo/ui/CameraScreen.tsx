@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
-import { View, Text, StyleSheet } from 'react-native'
-import { BodyFrameEnum, BodyFrameType } from '@/features/camera_controls/model/useSelectLayout';
+import React from 'react'
+import { Text, StyleSheet } from 'react-native'
+import { BodyFrameType } from '@/features/camera_controls/model/useSelectLayout';
 import { TextBox } from '@/shared/ui/TextBox';
-import CameraLayout from '@/shared/ui/CameraLayout'
+import CameraLayout from '@/features/take_photo/ui/CameraLayout'
 
 interface CameraLayoutProps {
   mode?: BodyFrameType
@@ -13,8 +13,6 @@ interface CameraLayoutProps {
   opacity?: number
 }
 
-
-
 const PhotoView = ({
   message,
   isCountingDown,
@@ -23,7 +21,7 @@ const PhotoView = ({
 
   return (
     <>
-        <CameraLayout >
+        <CameraLayout>
                 {isCountingDown && <Text style={styles.countDownText}>{countDown}</Text>}
         </CameraLayout>
     <TextBox text={message}  />

@@ -11,7 +11,7 @@ export type NormalizedFrameRect = {
 type CameraFrameStore = {
   /** 현재 카메라 레이아웃 프레임 (정규화). null이면 크롭하지 않음 */
   frameRect: NormalizedFrameRect | null
-  setFrameRect: (rect: NormalizedFrameRect | null) => void
+  setFrameRect: (size: NormalizedFrameRect | null) => void
 }
 
 export const useCameraFrameStore = create<CameraFrameStore>((set) => ({
