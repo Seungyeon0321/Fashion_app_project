@@ -21,9 +21,6 @@ const CameraLayout = ({
   const { updateFrame } = useCameraFrame()
   const viewRef = useRef<View>(null)
 
-  
-
-  // 세로로 긴 직사각형: 화면 가로의 70%, 세로의 58% (중앙 정렬)
   const frameW = layoutSize.width * 0.90
   const frameH = layoutSize.height * 0.95
   const left = (layoutSize.width - frameW) / 2
@@ -37,7 +34,6 @@ const CameraLayout = ({
     const fH = height * 0.95
 
     viewRef.current?.measure((x, y, w, h, pageX, pageY) => {
-      console.log(pageX, pageY, 'pageX, pageY')
       updateFrame({
         left: pageX + (width - fW) / 2,
         top: pageY + (height - fH) / 2,
