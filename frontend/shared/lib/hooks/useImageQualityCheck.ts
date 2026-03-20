@@ -34,16 +34,27 @@ export const useImageQualityCheck = () => {
 
   const extractPixels = useCallback(async (uri: string): Promise<number[]> => {
     // convert the image to PNG to get the pixels
-    const resized = await ImageManipulator.manipulateAsync(
-      uri,
-      [{ resize: { width: SAMPLE_SIZE, height: SAMPLE_SIZE } }],
-      { format: SaveFormat.PNG, base64: true }
-    )
+    // edit mode
+    const context = await ImageManipulator.manipulate(
+      uri)
 
-    const base64 = resized.base64
+    // start editing the image
+    context.resize({ width: SAMPLE_SIZE, height: SAMPLE_SIZE })
+
+    // apply the changes to the image
+    const rendered = await context.renderAsync()
+
+    // save the image
+    const result = await rendered.saveAsync({
+      format: SaveFormat.PNG,
+      compress: 0.85,
+    })
+   
+    // get the base64 of the image
+    const base64 = result.base64
     if (!base64) return []
 
-    // base64 디코딩
+    // decode the base64
     const binary = atob(base64)
     const bytes = new Uint8Array(binary.length)
     for (let i = 0; i < binary.length; i++) {
