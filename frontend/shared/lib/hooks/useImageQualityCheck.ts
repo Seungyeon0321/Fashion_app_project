@@ -1,4 +1,5 @@
 import { useCallback } from 'react'
+import { Buffer } from 'buffer'
 import { File } from 'expo-file-system'
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
 
@@ -54,12 +55,16 @@ export const useImageQualityCheck = () => {
     const base64 = result.base64
     if (!base64) return []
 
-    // decode the base64
-    const binary = atob(base64)
-    const bytes = new Uint8Array(binary.length)
-    for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i)
-    }
+    const bytes = Buffer.from(base64, 'base64')
+
+    // // decode the base64 -- the form of text to binary
+    // const binary = atob(base64)
+    // // convert the binary to bytes
+    // const bytes = new Uint8Array(binary.length)
+    // for (let i = 0; i < binary.length; i++) {
+    //   // 10진수로 변환 -> 수학적 계산 가능
+    //   bytes[i] = binary.charCodeAt(i)
+    // }
 
     // PNG 파일 구조: 8바이트 시그니처 + IHDR 청크(25바이트) 이후 IDAT(픽셀 데이터)
     // 직접 파싱이 복잡하므로, 간단한 휴리스틱으로 픽셀 영역 추출

@@ -8,7 +8,7 @@ import Svg, { Path, Rect } from 'react-native-svg'
 type PhotoPreviewProps = {
   photo: Photo | null
   onClear: () => void
-  onConfirm: () => void
+  onConfirm: (width: number, height: number) => void
   facing: CameraType
   validationStatus?: ValidationStatus | null
   validationMessage?: string | null
@@ -54,13 +54,13 @@ export const PhotoPreview = ({
         </View>
       )}
 
-      {validationStatus === 'valid' && (
+      {validationStatus === 'valid' && frameRect && (
         <>
         <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
           <Path d={`${outerPath} ${innerPath}`} fillRule="evenodd" fill="rgba(0, 0, 0, 0.5)" />
         </Svg>
         <View style={styles.actions}>
-          <Button title="Confirm Photo" onPress={onConfirm} />
+          <Button title="Confirm Photo" onPress={() => onConfirm(width, height)} />
           <Button title="Take another picture" onPress={onClear} />
         </View>
         </>

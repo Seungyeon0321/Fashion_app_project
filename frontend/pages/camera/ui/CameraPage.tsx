@@ -42,7 +42,7 @@ export const CameraPage = () => {
                 photo={photo ?? null}
                 facing={facing}
                 onClear={clearPhoto}
-                onConfirm={confirmPhoto}
+                onConfirm={(width: number, height: number) => confirmPhoto(width, height)}
                 validationStatus={validationStatus}
                 validationMessage={validationMessage}
             />

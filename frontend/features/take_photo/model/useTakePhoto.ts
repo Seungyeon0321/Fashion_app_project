@@ -1,9 +1,10 @@
 import { useState, useCallback, RefObject } from "react";
-import { Image } from "react-native";
 import { CameraView } from "expo-camera";
 import { Photo } from "@/entities/media/model/types";
 import { useImageQualityCheck } from "@/shared/lib/hooks/useImageQualityCheck";
 import { SaveFormat, ImageManipulator } from "expo-image-manipulator";
+import { useCameraFrame } from "./useCameraFrame";
+import { uploadPhoto } from "../api/uploadPhoto";
 
 export type ValidationStatus = "pending" | "valid" | "invalid";
 
@@ -19,6 +20,7 @@ export const useTakePhoto = (ref: RefObject<CameraView>) => {
     const [photo, setPhoto] = useState<Photo | null>(null);
     const [validationStatus, setValidationStatus] = useState<ValidationStatus | null>(null);
     const [validationMessage, setValidationMessage] = useState<string | null>(null);
+    const { getFrameRect } = useCameraFrame();
 
     const takePicture = useCallback(async () => {
         // trigger countdown
@@ -52,7 +54,7 @@ export const useTakePhoto = (ref: RefObject<CameraView>) => {
                 compress: 0.85,
             });
             console.log('saved', saved);
-            setPhoto({ uri: saved.uri });
+            setPhoto({ uri: saved.uri, width: saved.width, height: saved.height });
             setValidationStatus("valid");
         } catch (error) {
             setValidationStatus("invalid");
@@ -67,10 +69,49 @@ export const useTakePhoto = (ref: RefObject<CameraView>) => {
         setValidationMessage(null);
     }, []);
 
-    const confirmPhoto = useCallback(() => {
+    const confirmPhoto = useCallback(async (screenWidth: number, screenHeight: number) => {
+        if (!photo) return;
+
+        const frameRect = getFrameRect();
+        if (!frameRect) return;
+
+        const scaleX = photo.width / screenWidth;
+        const scaleY = photo.height / screenHeight;
+
+        const cropRegion = {
+            oringX : frameRect.left * scaleX,
+            oringY : frameRect.top * scaleY,
+            width : frameRect.width * scaleX,
+            height : frameRect.height * scaleY,
+        }
         // send photo to server
         // if success, show success message
         // if error, show error message
+        try {
+            setValidationStatus("pending");
+    
+            const context = ImageManipulator.manipulate(photo.uri);
+            context.crop({ originX: cropRegion.oringX, originY: cropRegion.oringY, width: cropRegion.width, height: cropRegion.height });
+            const rendered = await context.renderAsync();
+            const cropped = await rendered.saveAsync({
+                format: SaveFormat.JPEG,
+                compress: 0.85,
+            });
+    
+            // TODO: 서버 전송
+            const result = await uploadPhoto(cropped);
+            if (result) {
+                setValidationStatus("valid");
+                setValidationMessage("Photo uploaded successfully");
+            } else {
+                setValidationStatus("invalid");
+                setValidationMessage("Failed to upload photo");
+            }
+            clearPhoto();
+        } catch (error) {
+            setValidationStatus("invalid");
+            setValidationMessage("Failed to crop photo");
+        }
     }, []);
 
     return { photo, takePicture, clearPhoto, confirmPhoto, validationStatus, validationMessage };
