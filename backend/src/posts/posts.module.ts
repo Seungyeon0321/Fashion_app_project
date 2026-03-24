@@ -6,10 +6,11 @@ import { Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/c
 import { PostsController } from './posts.controller.js';
 import { PostsService } from './providers/posts.service.js';
 import { FileCheckMiddleware } from './middleware/posts.middleware.js';
+import { ClothingValidationService } from './clothing-class/clothing-validation.service.js';
 
 @Module({
     controllers: [PostsController],
-    providers: [PostsService],
+    providers: [PostsService, ClothingValidationService],
 })
 
 export class PostsModule implements NestModule {

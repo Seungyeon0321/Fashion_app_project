@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import * as ort from 'onnxruntime-node';
-import * as sharp from 'sharp';
+import sharp from 'sharp';
 import * as path from 'path';
 import { CLOTHING_CLASS_INDICES } from './clothing-classes.js';
 
@@ -9,14 +9,15 @@ export class ClothingValidationService implements OnModuleInit{
     private session: ort.InferenceSession;
 
     async onModuleInit() {
-        const modelPath = path.join(process.cwd(), 'models', 'mobilenetv4.onnx');
+      // cwd = current working directory
+        const modelPath = path.join(process.cwd(), 'models', 'model.onnx');
         this.session = await ort.InferenceSession.create(modelPath);
         console.log('MobileNetV4 model loaded successfully');
     }
 
     async validate(imageBuffer: Buffer): Promise<{valid: boolean, confidence: number, reason?: string}> {
         
-        const { data, info } = await sharp(imageBuffer).resize(224, 224).removalAlpha().raw().toBuffer({ resolveWithObject: true });
+        const { data, info } = await sharp(imageBuffer).resize(224, 224).removeAlpha().raw().toBuffer({ resolveWithObject: true });
         const mean = [0.485, 0.456, 0.406];
         const std  = [0.229, 0.224, 0.225];
         const tensor = new Float32Array(3 * 224 * 224);
