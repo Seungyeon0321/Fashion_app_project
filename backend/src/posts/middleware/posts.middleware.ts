@@ -7,7 +7,6 @@ export class FileCheckMiddleware implements NestMiddleware {
     // get the file size form req.headers
     const fileSize = parseInt(req.headers['content-length'] as string, 10);
     const maxFileSize = 10 * 1024 * 1024; // 10MB
-    console.log(req.headers)
 
     if (fileSize > maxFileSize) {
         return res.status(400).json({ message: 'File size exceeds the limit of 10MB.' });
@@ -18,7 +17,6 @@ export class FileCheckMiddleware implements NestMiddleware {
         return res.status(400).json({ message: 'Invalid content type. Expected multipart/form-data.' });
     }
 
-    console.log('File is passed the middleware');
     next(); // Continue processing the request if file size is within limit
     }
 }

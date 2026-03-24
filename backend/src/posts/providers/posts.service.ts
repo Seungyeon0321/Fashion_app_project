@@ -8,8 +8,7 @@ import { Injectable } from '@nestjs/common';
 // Return items created by the YOLO model
 // Do I need to do preprocessing?
 export class PostsService {
-    public postMyitems() {
-        return { message: "My items posted successfully!" }
+    public registerMyClothes(body: any) {
+        return { message: "My clothes registered successfully!" }
     }
-    
 }
