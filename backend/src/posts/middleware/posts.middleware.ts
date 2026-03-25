@@ -7,7 +7,7 @@ export class FileCheckMiddleware implements NestMiddleware {
     // get the file size form req.headers
     const fileSize = parseInt(req.headers['content-length'] as string, 10);
     const maxFileSize = 10 * 1024 * 1024; // 10MB
-
+    
     if (fileSize > maxFileSize) {
         return res.status(400).json({ message: 'File size exceeds the limit of 10MB.' });
     }

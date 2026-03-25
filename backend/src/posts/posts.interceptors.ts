@@ -1,7 +1,6 @@
 import { BadRequestException, CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { ClothingValidationService } from './clothing-class/clothing-validation.service.js';
-import { Multer } from 'multer';
 
 @Injectable()
 export class PostsInterceptor implements NestInterceptor {
@@ -10,11 +9,16 @@ export class PostsInterceptor implements NestInterceptor {
 
     async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
         const request = context.switchToHttp().getRequest();
-        const file = request.file as Multer.File;
+        const file = request.file as Express.Multer.File;
 
+        console.log('this is test to get file', request.file)
+
+        // check if file is uploaded
         if (!file) {
             throw new BadRequestException('No file uploaded');
         }
+
+        console.log('this is test to validate file', file)
 
         const validationResult = await this.clothingValidationService.validate(file.buffer);
         

@@ -6,8 +6,6 @@ import { Controller, Get, Param, Post, Query, Req, UseInterceptors, UploadedFile
 import { PostsService } from './providers/posts.service.js';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { PostsInterceptor } from './posts.interceptors.js';
-import { Request } from 'express';
-import { Multer } from 'multer';
 
 @Controller('posts')
 export class PostsController {
@@ -16,15 +14,17 @@ export class PostsController {
     constructor(private readonly postsService: PostsService) {}
 
     @Get('/registerMyClothes')
-    // public async getUploadURL(@Query('fileName') filename: string) {
-    //     return await this.postsService.registerMyClothes(filename);
-    // }
+    public async getUploadURL(@Query('fileName') filename: string) {
+        // return await this.postsService.registerMyClothes(filename);
+        console.log('this is test to get upload URL')
+    }
 
     @Post('/registerMyClothes')
     @UseInterceptors(FileInterceptor('image'), PostsInterceptor)
     public async registerMyClothes(
-        @UploadedFile() file: Multer.File, 
-        @Req() req: Request) {
+        @UploadedFile() file: Express.Multer.File, 
+        @Req() req: any) {
+            console.log('this is test to register my clothes')
             const validation = (req as any).clothingValidation;
 
             const result = await this.postsService.registerMyClothes(file, validation);

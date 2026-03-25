@@ -16,13 +16,15 @@ export class ClothingValidationService implements OnModuleInit{
     }
 
     async validate(imageBuffer: Buffer): Promise<{valid: boolean, confidence: number, reason?: string}> {
-        
+        // 1. image resize and remove alpha
         const { data, info } = await sharp(imageBuffer).resize(224, 224).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+        console.log(info, 'info')
+        console.log('first pixel RGB:', data[0], data[1], data[2]);
         const mean = [0.485, 0.456, 0.406];
         const std  = [0.229, 0.224, 0.225];
         const tensor = new Float32Array(3 * 224 * 224);
-        
 
+    // to change the order of the array to fit our model to analyze
     for (let i = 0; i < 224 * 224; i++) {
         const r = data[i * 3]     / 255;
         const g = data[i * 3 + 1] / 255;
@@ -32,13 +34,15 @@ export class ClothingValidationService implements OnModuleInit{
         tensor[i + 224 * 224]     = (g - mean[1]) / std[1]; // G channel
         tensor[i + 224 * 224 * 2] = (b - mean[2]) / std[2]; // B channel
       }
+
   
       // 3. 추론 실행
       const inputTensor = new ort.Tensor('float32', tensor, [1, 3, 224, 224]);
-      const output = await this.session.run({ input: inputTensor });
-  
+      const output = await this.session.run({ pixel_values: inputTensor });
+      
+
       // 4. softmax → 확률값 변환
-      const logits = output['output'].data as Float32Array;
+      const logits = output.logits.data as Float32Array;
       const probs = softmax(logits);
   
       // 5. 상위 5개 클래스 추출
@@ -49,7 +53,8 @@ export class ClothingValidationService implements OnModuleInit{
         CLOTHING_CLASS_INDICES.has(index)
       );
   
-      if (topClothing && topClothing.probability > 0.15) {
+      console.log('this is test to get topClothing', topClothing)
+      if (topClothing) {
         return { valid: true, confidence: topClothing.probability };
       }
   
@@ -62,10 +67,22 @@ export class ClothingValidationService implements OnModuleInit{
 }
 
 function softmax(logits: Float32Array): Float32Array {
-    const max = Math.max(...logits);
-    const exps = Array.from(logits).map(v => Math.exp(v - max));
-    const sum = exps.reduce((a, b) => a + b, 0);
-    return new Float32Array(exps.map(v => v / sum));
+  let max = -Infinity;
+  for (const v of logits) if (v > max) max = v;
+
+  // 2. Exp 계산과 Sum 계산을 동시에 수행
+  let sum = 0;
+  const probs = new Float32Array(logits.length);
+  for (let i = 0; i < logits.length; i++) {
+    probs[i] = Math.exp(logits[i] - max);
+    sum += probs[i];
+  }
+
+  // 3. 최종 확률 변환
+  for (let i = 0; i < probs.length; i++) {
+    probs[i] /= sum;
+  }
+  return probs;
   }
   
   function getTopK(probs: Float32Array, k: number) {
