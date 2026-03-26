@@ -16,6 +16,7 @@ export class S3Service {
     const secretAccessKey = this.getRequiredEnv('AWS_SECRET_ACCESS_KEY');
     this.bucket = this.getRequiredEnv('AWS_S3_BUCKET');
 
+    // create S3 client to connect to S3
     this.client = new S3Client({
       region: this.region,
       credentials: {
@@ -33,14 +34,15 @@ export class S3Service {
     const ext = mimeType.split('/')[1]; // jpeg, png 등
     const key = `clothing/${userId}/${randomUUID()}.${ext}`;
 
-    await this.client.send(
-      new PutObjectCommand({
-        Bucket: this.bucket,
-        Key: key,
-        Body: imageBuffer,
-        ContentType: mimeType,
-      }),
-    );
+    // 
+    const command = new PutObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+      Body: imageBuffer,
+      ContentType: mimeType,
+    });
+
+    await this.client.send(command);
 
     const url = `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
     return { key, url };
