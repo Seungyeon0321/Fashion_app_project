@@ -5,7 +5,7 @@ SegFormer-B2 래퍼 클래스
 모델: mattmdjaga/segformer_b2_clothes (HuggingFace)
 
 흐름:
-  PIL Image 입력
+  PIL Image 입력 (Python Image Library, 파이썬에서 이미지를 다루는 기본 도구, 지금은 Pillow라는 이름으로 유지보수 되고 있음)
       ↓
   SegFormer 추론 → 픽셀별 카테고리 분류
       ↓
@@ -16,7 +16,7 @@ SegFormer-B2 래퍼 클래스
 
 from PIL import Image
 import numpy as np
-import torch
+import torch #PyTourch라는 오픈소스 머신러닝 라이브러리를 호출하는 이름, 텐서 연산을 위한 파이썬 패키지#
 from transformers import SegformerImageProcessor, SegformerForSemanticSegmentation
 
 from app.core.config import settings
@@ -71,7 +71,7 @@ class SegFormerSegmenter:
 
     def _load_model(self):
         """
-        처음 한 번만 실행되는 모델 로드 함수.
+        처음 한 번만 실행되는 모델 로드 함수. __init__에서 모델을 로드하게 되면, 인스턴스 생성시 계속 400MB 모델을 로드하게 되므로, 필요할 때만 로드하도록 함.
         HuggingFace에서 다운로드 후 캐시에 저장됨 (~400MB, 첫 실행만 느림)
         """
         if self._model is not None:
@@ -127,11 +127,14 @@ class SegFormerSegmenter:
 
         original_size = image.size  # (width, height)
 
-        # 1. 이미지 → 모델 입력 텐서 변환
+        # 1. 이미지 → 모델 입력 텐서 변환 - 모델은 이미지 파일을 그대로 읽지 못하기 때문에, 이미지를 모델이 이해할 수 있는 형식으로 변환해야 함.
+        # return_tensors="pt"는 텐서 형식으로 변환하는 옵션, pt는 PyTorch 텐서 형식을 의미함. 이때 inputs는 평범한 파이썬 딕셔너리 형태가 된다
+        # 즉 단순히 숫자 배열만 있는 게 아니라, 모델이 요구하는 '키(kye)'와 함께 텐서가 저장됩니다.
         inputs = self._processor(images=image, return_tensors="pt")
+        # 파이썬의 dictionary comprehension문법이다. 딕셔너리 안에 있는 텐서들을 하나씩 꺼내서 GPU로 보내는 작업이다.
         inputs = {k: v.to(self._device) for k, v in inputs.items()}
 
-        # 2. 추론 실행 (gradient 계산 불필요 → no_grad로 메모리 절약)
+        # 2. 추론 실행 (gradient 계산 불필요 → no_grad로 메모리 절약) 지금 하는 게산은 학습용이 아니니, 나중에 미분하려고 계산 과정(Gradient)하지마! 라고 선언하는 것
         with torch.no_grad():
             outputs = self._model(**inputs)
 
@@ -145,6 +148,8 @@ class SegFormerSegmenter:
             mode="bilinear",
             align_corners=False,
         )
+
+        #여기서 logics는 17개의 카테고리에 대한 점수, argmax는 그 중 제일 높은 거 하나 고르기, mask는 특정 카테고리에 해당하는 픽셀 위치 지도
 
         # 4. 픽셀별로 가장 높은 확률의 카테고리 선택
         # argmax: 각 픽셀에서 17개 카테고리 중 점수가 가장 높은 인덱스
