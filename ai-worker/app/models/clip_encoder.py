@@ -22,6 +22,23 @@ from transformers import CLIPProcessor, CLIPModel
 from app.core.config import settings
 
 
+def _clip_image_features_to_tensor(image_features: torch.Tensor | object) -> torch.Tensor:
+    """
+    Transformers 5.x: get_image_features()가 BaseModelOutputWithPooling을 반환하고,
+    투영된 이미지 임베딩은 .pooler_output에 있음.
+    이전 버전: torch.Tensor를 그대로 반환.
+    """
+    if isinstance(image_features, torch.Tensor):
+        return image_features
+    pooler = getattr(image_features, "pooler_output", None)
+    if pooler is not None:
+        return pooler
+    raise TypeError(
+        f"Unexpected get_image_features return type: {type(image_features)}; "
+        "expected Tensor or object with pooler_output"
+    )
+
+
 class CLIPEncoder:
     """
     CLIP 모델을 감싼 클래스.
@@ -87,7 +104,8 @@ class CLIPEncoder:
         # 2. 비전 인코더만 실행 (텍스트 인코더는 사용 안 함)
         # get_image_features()는 이미지 → 벡터 변환만 수행
         with torch.no_grad():
-            image_features = self._model.get_image_features(**inputs)
+            raw = self._model.get_image_features(**inputs)
+        image_features = _clip_image_features_to_tensor(raw)
 
         # 3. 정규화 (L2 normalization)
         # 벡터 크기를 1로 맞춰줌 → 코사인 유사도 계산이 내적(dot product)으로 단순화됨
@@ -119,7 +137,8 @@ class CLIPEncoder:
         inputs = {k: v.to(self._device) for k, v in inputs.items()}
 
         with torch.no_grad():
-            image_features = self._model.get_image_features(**inputs)
+            raw = self._model.get_image_features(**inputs)
+        image_features = _clip_image_features_to_tensor(raw)
 
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
 

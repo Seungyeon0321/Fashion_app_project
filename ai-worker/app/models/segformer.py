@@ -169,12 +169,12 @@ class SegFormerSegmenter:
             if not mask.any():
                 continue
 
-            # 마스크 비율 계산 (너무 작은 영역은 노이즈일 수 있음)
+            # 마스크 비율 계산 (너무 작은 영역은 노이즈일 수 있음), 불확실성과 이미지 품질의 문제를 해결하기 위한 안전장치
             mask_ratio = mask.sum() / total_pixels
             if mask_ratio < 0.01:  # 전체의 1% 미만이면 스킵
                 continue
 
-            # 마스크 영역의 bounding box 계산
+            # 마스크 영역의 bounding box 계산, np.where은 벡터연산을 통해 행과 열의 인덱스를 찾는 함수, 시간이 그렇게 걸리지 않음
             rows = np.where(mask.any(axis=1))[0]
             cols = np.where(mask.any(axis=0))[0]
             top, bottom = int(rows.min()), int(rows.max())

@@ -16,12 +16,9 @@ class Settings(BaseSettings):
     """
 
     # ── PostgreSQL ──────────────────────────────────────────
-    # 기존 clothing_db 컨테이너 접속 정보
-    # 형식: postgresql://유저:비밀번호@호스트:포트/DB이름
-
-
+    # docker-compose clothing_db (호스트 포트 5433, compose의 POSTGRES_* 와 동일)
     DATABASE_URL: str = Field(
-        default="postgresql://postgres:password@localhost:5432/fashion_app"
+        default="postgresql://user:password@localhost:5433/clothing_db"
     )
 
     # ── Redis ───────────────────────────────────────────────
