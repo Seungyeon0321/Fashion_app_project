@@ -33,8 +33,8 @@ class Settings(BaseSettings):
     # .env 파일에 실제 값을 넣어야 함 (기본값 없음 → 없으면 에러)
     AWS_ACCESS_KEY_ID: str = Field(default="")
     AWS_SECRET_ACCESS_KEY: str = Field(default="")
-    AWS_REGION: str = Field(default="ap-northeast-2")
-    S3_BUCKET_NAME: str = Field(
+    AWS_REGION: str = Field(default="ca-central-1")
+    S3_BUCKET: str = Field(
         default="",
         validation_alias=AliasChoices("S3_BUCKET_NAME", "AWS_S3_BUCKET"),
     )

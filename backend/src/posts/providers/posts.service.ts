@@ -1,13 +1,33 @@
 /*
 https://docs.nestjs.com/providers#services
 */
+import { InjectQueue } from '@nestjs/bullmq';
+import { Injectable, BadRequestException } from '@nestjs/common';
+import { Queue } from 'bullmq';
+import { S3Service } from '../../s3/s3.service.js';
 
-import { Injectable } from '@nestjs/common';
 @Injectable()
 // Return items created by the YOLO model
 // Do I need to do preprocessing?
 export class PostsService {
-    public registerMyClothes(file: Express.Multer.File, validation: {valid: boolean, confidence: number, reason?: string}) {
-        return { message: "My clothes registered successfully!" }
+    constructor(@InjectQueue('clothing') private readonly clothingQueue: Queue, private readonly s3Service: S3Service) {}
+
+    public async registerMyClothes(file: Express.Multer.File, validation: {valid: boolean, confidence: number, reason?: string}) {
+        // check if the image is valid
+        if (!validation.valid) {
+            throw new BadRequestException('Invalid clothing image');
+        }
+
+        // upload the image to S3
+        const { key, url } = await this.s3Service.uploadClothingImage(file.buffer, 'seungyeon');
+        
+        // add the image to the queue
+        const job = await this.clothingQueue.add('analyze-clothing', {
+            job_id: `job-${Date.now()}`,
+            userId: 'userId',
+            s3Key: key,
+        });
+
+        return { success: true, JobId: job.id };
     }
 }

@@ -45,7 +45,7 @@ class ClothingPipeline:
         if self._s3 is None:
             self._s3 = boto3.client(
                 "s3",
-                region_name=settings.S3_REGION,
+                region_name=settings.AWS_REGION,
                 aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
                 aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
             )
@@ -54,8 +54,11 @@ class ClothingPipeline:
     def _download_from_s3(self, s3_key: str) -> Image.Image:
         """S3에서 이미지 다운로드 → PIL Image 변환."""
         s3 = self._get_s3()
+        # 이때 받는 response는 이미지 그 자체가 아니라, 이미지에 대한 정보와 데이터를 담고 있는 통로(Stream)같은 상태이다.
         response = s3.get_object(Bucket=settings.S3_BUCKET, Key=s3_key)
         image_bytes = response["Body"].read()
+        # 보통 이미지 파일을 열 때 Image.open("photo.jpg") 처럼 파일 경로를 넣어주지만 우리의 경우는 하드디스크에 파일이 있는게 아니라 메모리에 데이터가 있다.
+        # io.BytesIO는 메모리에 있는 데이터를 파일처럼 다룰 수 있게 해주는 파이썬 표준 라이브러리이다.
         return Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
     def run(

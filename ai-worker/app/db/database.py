@@ -5,6 +5,7 @@ DB 연결 + 테이블 정의
 위치: app/db/database.py
 """
 
+# PostgreSQL 데이터베이스에서 벡터 타입을 사용할 수 있게 해줍니다.
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     JSON,
@@ -17,6 +18,8 @@ from sqlalchemy import (
     func,
     text,
 )
+# DeclarativeBase는 우리 DB에 들어갈 옷 데이터의 구조를 정의하는 클래스이다.
+# Session은 우리 DB에 접근하는 클래스이다.
 from sqlalchemy.orm import DeclarativeBase, Session
 
 from app.core.config import settings
