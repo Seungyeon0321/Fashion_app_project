@@ -2,10 +2,12 @@
 https://docs.nestjs.com/controllers#controllers
 */
 
-import { Controller, Get, Param, Post, Query, Req, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Param, Post, Query, Req, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { PostsService } from './providers/posts.service.js';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { PostsInterceptor } from './posts.interceptors.js';
+import { ok } from '../common/utils/api-response.js';
+import { ApiResponseDto } from '../common/dto/api-response.dto.js';
 
 @Controller('posts')
 export class PostsController {
@@ -26,8 +28,18 @@ export class PostsController {
         @Req() req: any) {
             const validation = (req as any).clothingValidation;
 
-            const result = await this.postsService.registerMyClothes(file, validation)
+            const result = await this.postsService.registerMyClothes(req.user.id, file, validation)
 
-            return { success: true, data: result }
+            type RegisterMyClothesData = { jobId: string };
+            return ok<RegisterMyClothesData>({ jobId: String(result.JobId) });
+    }
+
+    @Get('/registerMyClothes/status/:jobId')
+    public async getStatus(
+        @Param('jobId') jobId: string,
+    ): Promise<ApiResponseDto<{ status: string }>> {
+        const status = await this.postsService.getRegisterStatus(jobId);
+        return ok(status);
     }
 }
+

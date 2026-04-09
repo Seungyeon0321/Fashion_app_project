@@ -28,7 +28,7 @@ export class S3Service {
 
   async uploadClothingImage(
     imageBuffer: Buffer,
-    userId: 'seungyeon',
+    userId: string,
     mimeType: string = 'image/jpeg',
   ): Promise<{ key: string; url: string }> {
     const ext = mimeType.split('/')[1]; // jpeg, png 등
