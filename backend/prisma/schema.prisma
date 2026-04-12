@@ -34,6 +34,22 @@ model User {
   updatedAt     DateTime @updatedAt
 }
 
+model ClothingItem {
+  id           Int          @id @default(autoincrement())
+  userId       Int
+
+  label        String
+  label_id     Int
+
+  sourceS3Key String? //원본 착용샷 s3 키
+  bbox       Json? // [x, y, w, h]
+  maskRatio  Float? // 0.374 등
+
+  embedding    Unsupported("vector(512)")? 
+  createdAt    DateTime     @default(now())
+  @@index([userId])
+}
+
 // ==========================================
 // 2. Closet Item - Core Table
 // ==========================================
@@ -55,7 +71,7 @@ model ClosetItem {
   isArchived   Boolean      @default(false) // 버렸거나 안 입는 옷 제외
   isWashing    Boolean      @default(false) // 세탁 중이라 오늘 못 입는 옷
 
-  embedding    Unsupported("vector(768)")? 
+  embedding    Unsupported("vector(512)")? 
   colors       String[]
   season       Season?
   brand        String?
@@ -87,7 +103,7 @@ model StyleReference {
   analysisResult   Json? 
   
   // Vector storing the overall mood of this style photo (Optional)
-  embedding        Unsupported("vector(768)")?
+  embedding        Unsupported("vector(512)")?
 
   // Relations
   wishlistItems    WishlistItem[] // Items recommended based on this style
@@ -157,7 +173,7 @@ model WishlistItem {
   purchaseUrl   String          // [수익 핵심] 제휴 마케팅 링크 (Affiliate Link)
 
   // AI 분석용 데이터 (이미 가지고 있는 옷과 비교하기 위함)
-  embedding     Unsupported("vector(768)")? 
+  embedding     Unsupported("vector(512)")? 
   category      Category
   subCategory   SubCategory
 

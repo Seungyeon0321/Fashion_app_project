@@ -21,7 +21,7 @@ WAIT_KEY   = f"bull:{QUEUE_NAME}:wait"
 ACTIVE_KEY = f"bull:{QUEUE_NAME}:active"
 FAILED_KEY = f"bull:{QUEUE_NAME}:failed"
 
-
+#job_id should be wait, active, failed key
 def get_job_key(job_id: str) -> str:
     return f"bull:{QUEUE_NAME}:{job_id}"
 
@@ -31,13 +31,15 @@ def process_job(r: redis_lib.Redis, pipeline: ClothingPipeline, raw: bytes) -> N
     raw: BLMOVE가 반환한 값 — BullMQ 버전에 따라
          단순 job ID 문자열이거나 JSON 직렬화된 job 객체일 수 있음.
     """
-
+    
     decoded = raw.decode("utf-8")
 
     # ── 케이스 A: 값 자체가 JSON job 객체 (구버전 BullMQ) ──────────────
+    # 목적: 안전한 데이터 추출과 실행
     try:
         # Redis에서 가져온 문자열을 파이썬 딕셔너리로 변환해 봅니다
         payload = json.loads(decoded)
+        # instance는 json.lads를 통해 변환된 payload 변수가 진짜 딕셔너리 ({}) 형태인지를 묻는 것이다. 
         if isinstance(payload, dict) and "data" in payload:
             s3_key  = payload["data"]["s3Key"]
             user_id = payload["data"].get("userId", "unknown")
@@ -76,12 +78,12 @@ def _run_pipeline(
     pipeline: ClothingPipeline,
     job_id: str,
     s3_key: str,
-    user_id: str,
+    user_id: int,
     raw: bytes,
 ) -> None:
     logger.info("처리 시작 | job_id=%s user_id=%s s3_key=%s", job_id, user_id, s3_key)
     try:
-        saved_ids = pipeline.run(s3_key=s3_key)
+        saved_ids = pipeline.run(s3_key=s3_key, user_id=user_id)
         logger.info(
             "처리 완료 | job_id=%s | 저장된 clothing_item ids: %s",
             job_id, saved_ids,
@@ -111,6 +113,7 @@ def run_worker() -> None:
     from app.db.database import init_db
     init_db()
 
+    #decode_responses는 데이터를 바이너리 상태 그대로 가져오겠다는 뜻임
     r = redis_lib.from_url(settings.REDIS_URL, decode_responses=False)
     pipeline = ClothingPipeline()
 
@@ -121,6 +124,8 @@ def run_worker() -> None:
         logger.info("종료 신호 수신 (sig=%s) — 현재 job 완료 후 종료", sig)
         shutdown["flag"] = True
 
+    # signal은 운영체제가 실행 중인 프로세스에게 보내는 짧은 메세지 입니다. 예를 들어, 사용자가 터미널에서 Ctrl+C를 누르면, 운영체제는 실행 중인 프로세스에게 SIGINT 신호를 보냅니다.
+    # 보통 프로그램은 시그널을 받으면 즉시 강제 종료되지만, 파이썬의 signal 라이브러리를 사용하면 이 신호가 받으면 내가 정함 함수를 실행해줘 라고 예약할 수 있다.
     signal.signal(signal.SIGINT,  _handle_signal)
     signal.signal(signal.SIGTERM, _handle_signal)
 

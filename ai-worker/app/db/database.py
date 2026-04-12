@@ -45,6 +45,9 @@ class ClothingItem(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
 
+    user_id = Column(Integer, nullable=False)
+
+
     # 어떤 옷인지
     label = Column(String, nullable=False)          # "Upper-clothes", "Pants" 등
     label_id = Column(Integer, nullable=False)       # 4, 6 등 (LABEL_MAP 인덱스)

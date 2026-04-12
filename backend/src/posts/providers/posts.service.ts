@@ -39,6 +39,13 @@ export class PostsService {
         }
 
         const state = await job.getState()
+
+        if (state === 'completed') {
+            const items = await this.clothingRepository.findBy({ jobId})
+            return { status: 'completed', items: items }
+
+        }
+
         return { status: state }
     }
 }
