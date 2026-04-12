@@ -12,14 +12,16 @@ import { S3Service } from '../../s3/s3.service.js';
 export class PostsService {
     constructor(@InjectQueue('clothing') private readonly clothingQueue: Queue, private readonly s3Service: S3Service) {}
 
-    public async registerMyClothes(userId: string, file: Express.Multer.File, validation: {valid: boolean, confidence: number, reason?: string}) {
+    public async registerMyClothes(userId: number, file: Express.Multer.File, validation: {valid: boolean, confidence: number, reason?: string}) {
         // check if the image is valid
         if (!validation.valid) {
             throw new BadRequestException('Invalid clothing image');
         }
 
         // upload the image to S3
-        const { key, url } = await this.s3Service.uploadClothingImage(file.buffer, userId);
+        const { key, url } = await this.s3Service.uploadClothingImage(file.buffer, userId.toString());
+
+        console.log('key', key);
         
         // add the image to the queue
         const job = await this.clothingQueue.add('analyze-clothing', {
@@ -27,6 +29,8 @@ export class PostsService {
             userId: userId,
             s3Key: key,
         });
+
+        console.log('job', job);
 
         return { success: true, JobId: job.id };
     }
@@ -41,8 +45,8 @@ export class PostsService {
         const state = await job.getState()
 
         if (state === 'completed') {
-            const items = await this.clothingRepository.findBy({ jobId})
-            return { status: 'completed', items: items }
+            // const items = await this.clothingRepository.findBy({ jobId})
+            // return { status: 'completed', items: items }
 
         }
 

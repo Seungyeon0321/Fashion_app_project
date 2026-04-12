@@ -8,16 +8,18 @@ import { S3Module } from './s3/s3.module.js';
 import { BullModule } from '@nestjs/bullmq';
 
 @Module({
-  imports: [PostsModule, ConfigModule, PrismaModule, S3Module, BullModule.forRoot({
-    connection: {
-      host: 'localhost',
-      port: 6379,
-    },
-  }),
-  BullModule.registerQueue({
-    name: 'clothing',
-  }),
-],
+  imports: [
+    BullModule.forRoot({
+      connection: {
+        host: 'localhost',
+        port: 6379,
+      },
+    }),
+    PostsModule,
+    ConfigModule,
+    PrismaModule,
+    S3Module,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

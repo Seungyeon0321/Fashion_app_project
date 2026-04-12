@@ -27,8 +27,9 @@ export class PostsController {
         @UploadedFile() file: Express.Multer.File, 
         @Req() req: any) {
             const validation = (req as any).clothingValidation;
+            const testUserId = 1;
 
-            const result = await this.postsService.registerMyClothes(req.user.id, file, validation)
+            const result = await this.postsService.registerMyClothes(testUserId, file, validation)
 
             type RegisterMyClothesData = { jobId: string };
             return ok<RegisterMyClothesData>({ jobId: String(result.JobId) });
