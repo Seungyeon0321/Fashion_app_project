@@ -5,7 +5,8 @@ const envSchema = z.object({
 })
 
 const _env = envSchema.safeParse({
-    BACKEND_API_URL: process.env.BACKEND_API_URL,
+    BACKEND_API_URL:
+        process.env.EXPO_PUBLIC_BACKEND_API_URL ?? process.env.BACKEND_API_URL,
 })
 
 if (!_env.success) {

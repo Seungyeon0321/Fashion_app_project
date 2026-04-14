@@ -1,7 +1,7 @@
-import { Controller, Post, Req, UseGuards, Body, Get, Param, Patch, Delete } from '@nestjs/common';
+import { Controller, Post, Req, UseGuards, Body, Get, Param, Patch, Delete, ParseIntPipe } from '@nestjs/common';
 // import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { ClosetService } from './closet.service.js';
-import { RegisterClosetItemDto } from './dtos/closet.dtos.js';
+import { RegisterClosetItemDto, UpdateClosetItemDto } from './dtos/closet.dtos.js';
 
 
 // @UseGuards(JwtAuthGuard)
@@ -36,4 +36,15 @@ export class ClosetController {
         const userId = 1;
         return this.closetService.remove(userId, closetItemId);
     }
+
+
+    // PATCH /closet/:id
+    @Patch(':id')
+    async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateClosetItemDto,
+    ) {
+    const userId = 1;
+    return this.closetService.update(userId, id, dto);
+}
 }

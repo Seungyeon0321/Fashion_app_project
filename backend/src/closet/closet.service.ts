@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { RegisterClosetItemDto } from './dtos/closet.dtos.js';
+import { RegisterClosetItemDto, UpdateClosetItemDto } from './dtos/closet.dtos.js';
 
 @Injectable()
 export class ClosetService {
@@ -42,6 +42,7 @@ export class ClosetService {
         });
     }
 
+    // PUT /closet/:id/archive
     async archive(userId: number, closetItemId: number) {
         const item = await this.prisma.closetItem.findUnique({
             where: { id: closetItemId, userId },
@@ -55,6 +56,7 @@ export class ClosetService {
         });
     }
 
+    // DELETE /closet/:id
     async remove(userId: number, closetItemId: number) {
         const item = await this.prisma.closetItem.findUnique({
             where: { id: closetItemId, userId },
@@ -66,4 +68,20 @@ export class ClosetService {
             where: { id: item.id },
         });
     }
+
+    // Patch /closet/:id
+    async update(userId: number, id: number, dto: UpdateClosetItemDto) {
+        const item = await this.prisma.closetItem.findUnique({
+          where: { id },
+        });
+      
+        if (!item || item.userId !== userId) {
+          throw new NotFoundException('Closet item not found');
+        }
+      
+        return this.prisma.closetItem.update({
+          where: { id },
+          data: { ...dto },
+        });
+      }
 }
