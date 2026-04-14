@@ -35,19 +35,24 @@ model User {
 }
 
 model ClothingItem {
-  id           Int          @id @default(autoincrement())
-  userId       Int
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  jobId       String?  @map("job_id")
 
-  label        String
-  label_id     Int
+  label       String
+  label_id    Int
 
-  sourceS3Key String? //원본 착용샷 s3 키
-  bbox       Json? // [x, y, w, h]
-  maskRatio  Float? // 0.374 등
+  sourceS3Key String?  @map("source_s3_key")
+  cropS3Key   String?  @map("crop_s3_key")
+  bbox        Json?
+  maskRatio   Float?   @map("mask_ratio")
 
-  embedding    Unsupported("vector(512)")? 
-  createdAt    DateTime     @default(now())
+  embedding   Unsupported("vector(512)")?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("clothing_items")
   @@index([userId])
+  @@index([jobId])
 }
 
 // ==========================================

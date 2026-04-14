@@ -30,19 +30,21 @@ export type OutfitItemAvgAggregateOutputType = {
   id: number | null
   outfitId: number | null
   closetItemId: number | null
+  wishlistItemId: number | null
 }
 
 export type OutfitItemSumAggregateOutputType = {
   id: number | null
   outfitId: number | null
   closetItemId: number | null
+  wishlistItemId: number | null
 }
 
 export type OutfitItemMinAggregateOutputType = {
   id: number | null
   outfitId: number | null
   closetItemId: number | null
-  shoppingItemUrl: string | null
+  wishlistItemId: number | null
   position: string | null
 }
 
@@ -50,7 +52,7 @@ export type OutfitItemMaxAggregateOutputType = {
   id: number | null
   outfitId: number | null
   closetItemId: number | null
-  shoppingItemUrl: string | null
+  wishlistItemId: number | null
   position: string | null
 }
 
@@ -58,7 +60,7 @@ export type OutfitItemCountAggregateOutputType = {
   id: number
   outfitId: number
   closetItemId: number
-  shoppingItemUrl: number
+  wishlistItemId: number
   position: number
   _all: number
 }
@@ -68,19 +70,21 @@ export type OutfitItemAvgAggregateInputType = {
   id?: true
   outfitId?: true
   closetItemId?: true
+  wishlistItemId?: true
 }
 
 export type OutfitItemSumAggregateInputType = {
   id?: true
   outfitId?: true
   closetItemId?: true
+  wishlistItemId?: true
 }
 
 export type OutfitItemMinAggregateInputType = {
   id?: true
   outfitId?: true
   closetItemId?: true
-  shoppingItemUrl?: true
+  wishlistItemId?: true
   position?: true
 }
 
@@ -88,7 +92,7 @@ export type OutfitItemMaxAggregateInputType = {
   id?: true
   outfitId?: true
   closetItemId?: true
-  shoppingItemUrl?: true
+  wishlistItemId?: true
   position?: true
 }
 
@@ -96,7 +100,7 @@ export type OutfitItemCountAggregateInputType = {
   id?: true
   outfitId?: true
   closetItemId?: true
-  shoppingItemUrl?: true
+  wishlistItemId?: true
   position?: true
   _all?: true
 }
@@ -191,7 +195,7 @@ export type OutfitItemGroupByOutputType = {
   id: number
   outfitId: number
   closetItemId: number | null
-  shoppingItemUrl: string | null
+  wishlistItemId: number | null
   position: string | null
   _count: OutfitItemCountAggregateOutputType | null
   _avg: OutfitItemAvgAggregateOutputType | null
@@ -222,20 +226,22 @@ export type OutfitItemWhereInput = {
   id?: Prisma.IntFilter<"OutfitItem"> | number
   outfitId?: Prisma.IntFilter<"OutfitItem"> | number
   closetItemId?: Prisma.IntNullableFilter<"OutfitItem"> | number | null
-  shoppingItemUrl?: Prisma.StringNullableFilter<"OutfitItem"> | string | null
+  wishlistItemId?: Prisma.IntNullableFilter<"OutfitItem"> | number | null
   position?: Prisma.StringNullableFilter<"OutfitItem"> | string | null
   outfit?: Prisma.XOR<Prisma.OutfitScalarRelationFilter, Prisma.OutfitWhereInput>
   closetItem?: Prisma.XOR<Prisma.ClosetItemNullableScalarRelationFilter, Prisma.ClosetItemWhereInput> | null
+  wishlistItem?: Prisma.XOR<Prisma.WishlistItemNullableScalarRelationFilter, Prisma.WishlistItemWhereInput> | null
 }
 
 export type OutfitItemOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   outfitId?: Prisma.SortOrder
   closetItemId?: Prisma.SortOrderInput | Prisma.SortOrder
-  shoppingItemUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  wishlistItemId?: Prisma.SortOrderInput | Prisma.SortOrder
   position?: Prisma.SortOrderInput | Prisma.SortOrder
   outfit?: Prisma.OutfitOrderByWithRelationInput
   closetItem?: Prisma.ClosetItemOrderByWithRelationInput
+  wishlistItem?: Prisma.WishlistItemOrderByWithRelationInput
 }
 
 export type OutfitItemWhereUniqueInput = Prisma.AtLeast<{
@@ -245,17 +251,18 @@ export type OutfitItemWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.OutfitItemWhereInput | Prisma.OutfitItemWhereInput[]
   outfitId?: Prisma.IntFilter<"OutfitItem"> | number
   closetItemId?: Prisma.IntNullableFilter<"OutfitItem"> | number | null
-  shoppingItemUrl?: Prisma.StringNullableFilter<"OutfitItem"> | string | null
+  wishlistItemId?: Prisma.IntNullableFilter<"OutfitItem"> | number | null
   position?: Prisma.StringNullableFilter<"OutfitItem"> | string | null
   outfit?: Prisma.XOR<Prisma.OutfitScalarRelationFilter, Prisma.OutfitWhereInput>
   closetItem?: Prisma.XOR<Prisma.ClosetItemNullableScalarRelationFilter, Prisma.ClosetItemWhereInput> | null
+  wishlistItem?: Prisma.XOR<Prisma.WishlistItemNullableScalarRelationFilter, Prisma.WishlistItemWhereInput> | null
 }, "id">
 
 export type OutfitItemOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   outfitId?: Prisma.SortOrder
   closetItemId?: Prisma.SortOrderInput | Prisma.SortOrder
-  shoppingItemUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  wishlistItemId?: Prisma.SortOrderInput | Prisma.SortOrder
   position?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.OutfitItemCountOrderByAggregateInput
   _avg?: Prisma.OutfitItemAvgOrderByAggregateInput
@@ -271,37 +278,37 @@ export type OutfitItemScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"OutfitItem"> | number
   outfitId?: Prisma.IntWithAggregatesFilter<"OutfitItem"> | number
   closetItemId?: Prisma.IntNullableWithAggregatesFilter<"OutfitItem"> | number | null
-  shoppingItemUrl?: Prisma.StringNullableWithAggregatesFilter<"OutfitItem"> | string | null
+  wishlistItemId?: Prisma.IntNullableWithAggregatesFilter<"OutfitItem"> | number | null
   position?: Prisma.StringNullableWithAggregatesFilter<"OutfitItem"> | string | null
 }
 
 export type OutfitItemCreateInput = {
-  shoppingItemUrl?: string | null
   position?: string | null
   outfit: Prisma.OutfitCreateNestedOneWithoutItemsInput
   closetItem?: Prisma.ClosetItemCreateNestedOneWithoutOutfitItemsInput
+  wishlistItem?: Prisma.WishlistItemCreateNestedOneWithoutOutfitItemsInput
 }
 
 export type OutfitItemUncheckedCreateInput = {
   id?: number
   outfitId: number
   closetItemId?: number | null
-  shoppingItemUrl?: string | null
+  wishlistItemId?: number | null
   position?: string | null
 }
 
 export type OutfitItemUpdateInput = {
-  shoppingItemUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   position?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   outfit?: Prisma.OutfitUpdateOneRequiredWithoutItemsNestedInput
   closetItem?: Prisma.ClosetItemUpdateOneWithoutOutfitItemsNestedInput
+  wishlistItem?: Prisma.WishlistItemUpdateOneWithoutOutfitItemsNestedInput
 }
 
 export type OutfitItemUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   outfitId?: Prisma.IntFieldUpdateOperationsInput | number
   closetItemId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  shoppingItemUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  wishlistItemId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -309,12 +316,11 @@ export type OutfitItemCreateManyInput = {
   id?: number
   outfitId: number
   closetItemId?: number | null
-  shoppingItemUrl?: string | null
+  wishlistItemId?: number | null
   position?: string | null
 }
 
 export type OutfitItemUpdateManyMutationInput = {
-  shoppingItemUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   position?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -322,7 +328,7 @@ export type OutfitItemUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   outfitId?: Prisma.IntFieldUpdateOperationsInput | number
   closetItemId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  shoppingItemUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  wishlistItemId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -340,7 +346,7 @@ export type OutfitItemCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   outfitId?: Prisma.SortOrder
   closetItemId?: Prisma.SortOrder
-  shoppingItemUrl?: Prisma.SortOrder
+  wishlistItemId?: Prisma.SortOrder
   position?: Prisma.SortOrder
 }
 
@@ -348,13 +354,14 @@ export type OutfitItemAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   outfitId?: Prisma.SortOrder
   closetItemId?: Prisma.SortOrder
+  wishlistItemId?: Prisma.SortOrder
 }
 
 export type OutfitItemMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   outfitId?: Prisma.SortOrder
   closetItemId?: Prisma.SortOrder
-  shoppingItemUrl?: Prisma.SortOrder
+  wishlistItemId?: Prisma.SortOrder
   position?: Prisma.SortOrder
 }
 
@@ -362,7 +369,7 @@ export type OutfitItemMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   outfitId?: Prisma.SortOrder
   closetItemId?: Prisma.SortOrder
-  shoppingItemUrl?: Prisma.SortOrder
+  wishlistItemId?: Prisma.SortOrder
   position?: Prisma.SortOrder
 }
 
@@ -370,6 +377,7 @@ export type OutfitItemSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   outfitId?: Prisma.SortOrder
   closetItemId?: Prisma.SortOrder
+  wishlistItemId?: Prisma.SortOrder
 }
 
 export type OutfitItemCreateNestedManyWithoutClosetItemInput = {
@@ -464,16 +472,58 @@ export type NullableIntFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type OutfitItemCreateNestedManyWithoutWishlistItemInput = {
+  create?: Prisma.XOR<Prisma.OutfitItemCreateWithoutWishlistItemInput, Prisma.OutfitItemUncheckedCreateWithoutWishlistItemInput> | Prisma.OutfitItemCreateWithoutWishlistItemInput[] | Prisma.OutfitItemUncheckedCreateWithoutWishlistItemInput[]
+  connectOrCreate?: Prisma.OutfitItemCreateOrConnectWithoutWishlistItemInput | Prisma.OutfitItemCreateOrConnectWithoutWishlistItemInput[]
+  createMany?: Prisma.OutfitItemCreateManyWishlistItemInputEnvelope
+  connect?: Prisma.OutfitItemWhereUniqueInput | Prisma.OutfitItemWhereUniqueInput[]
+}
+
+export type OutfitItemUncheckedCreateNestedManyWithoutWishlistItemInput = {
+  create?: Prisma.XOR<Prisma.OutfitItemCreateWithoutWishlistItemInput, Prisma.OutfitItemUncheckedCreateWithoutWishlistItemInput> | Prisma.OutfitItemCreateWithoutWishlistItemInput[] | Prisma.OutfitItemUncheckedCreateWithoutWishlistItemInput[]
+  connectOrCreate?: Prisma.OutfitItemCreateOrConnectWithoutWishlistItemInput | Prisma.OutfitItemCreateOrConnectWithoutWishlistItemInput[]
+  createMany?: Prisma.OutfitItemCreateManyWishlistItemInputEnvelope
+  connect?: Prisma.OutfitItemWhereUniqueInput | Prisma.OutfitItemWhereUniqueInput[]
+}
+
+export type OutfitItemUpdateManyWithoutWishlistItemNestedInput = {
+  create?: Prisma.XOR<Prisma.OutfitItemCreateWithoutWishlistItemInput, Prisma.OutfitItemUncheckedCreateWithoutWishlistItemInput> | Prisma.OutfitItemCreateWithoutWishlistItemInput[] | Prisma.OutfitItemUncheckedCreateWithoutWishlistItemInput[]
+  connectOrCreate?: Prisma.OutfitItemCreateOrConnectWithoutWishlistItemInput | Prisma.OutfitItemCreateOrConnectWithoutWishlistItemInput[]
+  upsert?: Prisma.OutfitItemUpsertWithWhereUniqueWithoutWishlistItemInput | Prisma.OutfitItemUpsertWithWhereUniqueWithoutWishlistItemInput[]
+  createMany?: Prisma.OutfitItemCreateManyWishlistItemInputEnvelope
+  set?: Prisma.OutfitItemWhereUniqueInput | Prisma.OutfitItemWhereUniqueInput[]
+  disconnect?: Prisma.OutfitItemWhereUniqueInput | Prisma.OutfitItemWhereUniqueInput[]
+  delete?: Prisma.OutfitItemWhereUniqueInput | Prisma.OutfitItemWhereUniqueInput[]
+  connect?: Prisma.OutfitItemWhereUniqueInput | Prisma.OutfitItemWhereUniqueInput[]
+  update?: Prisma.OutfitItemUpdateWithWhereUniqueWithoutWishlistItemInput | Prisma.OutfitItemUpdateWithWhereUniqueWithoutWishlistItemInput[]
+  updateMany?: Prisma.OutfitItemUpdateManyWithWhereWithoutWishlistItemInput | Prisma.OutfitItemUpdateManyWithWhereWithoutWishlistItemInput[]
+  deleteMany?: Prisma.OutfitItemScalarWhereInput | Prisma.OutfitItemScalarWhereInput[]
+}
+
+export type OutfitItemUncheckedUpdateManyWithoutWishlistItemNestedInput = {
+  create?: Prisma.XOR<Prisma.OutfitItemCreateWithoutWishlistItemInput, Prisma.OutfitItemUncheckedCreateWithoutWishlistItemInput> | Prisma.OutfitItemCreateWithoutWishlistItemInput[] | Prisma.OutfitItemUncheckedCreateWithoutWishlistItemInput[]
+  connectOrCreate?: Prisma.OutfitItemCreateOrConnectWithoutWishlistItemInput | Prisma.OutfitItemCreateOrConnectWithoutWishlistItemInput[]
+  upsert?: Prisma.OutfitItemUpsertWithWhereUniqueWithoutWishlistItemInput | Prisma.OutfitItemUpsertWithWhereUniqueWithoutWishlistItemInput[]
+  createMany?: Prisma.OutfitItemCreateManyWishlistItemInputEnvelope
+  set?: Prisma.OutfitItemWhereUniqueInput | Prisma.OutfitItemWhereUniqueInput[]
+  disconnect?: Prisma.OutfitItemWhereUniqueInput | Prisma.OutfitItemWhereUniqueInput[]
+  delete?: Prisma.OutfitItemWhereUniqueInput | Prisma.OutfitItemWhereUniqueInput[]
+  connect?: Prisma.OutfitItemWhereUniqueInput | Prisma.OutfitItemWhereUniqueInput[]
+  update?: Prisma.OutfitItemUpdateWithWhereUniqueWithoutWishlistItemInput | Prisma.OutfitItemUpdateWithWhereUniqueWithoutWishlistItemInput[]
+  updateMany?: Prisma.OutfitItemUpdateManyWithWhereWithoutWishlistItemInput | Prisma.OutfitItemUpdateManyWithWhereWithoutWishlistItemInput[]
+  deleteMany?: Prisma.OutfitItemScalarWhereInput | Prisma.OutfitItemScalarWhereInput[]
+}
+
 export type OutfitItemCreateWithoutClosetItemInput = {
-  shoppingItemUrl?: string | null
   position?: string | null
   outfit: Prisma.OutfitCreateNestedOneWithoutItemsInput
+  wishlistItem?: Prisma.WishlistItemCreateNestedOneWithoutOutfitItemsInput
 }
 
 export type OutfitItemUncheckedCreateWithoutClosetItemInput = {
   id?: number
   outfitId: number
-  shoppingItemUrl?: string | null
+  wishlistItemId?: number | null
   position?: string | null
 }
 
@@ -510,20 +560,20 @@ export type OutfitItemScalarWhereInput = {
   id?: Prisma.IntFilter<"OutfitItem"> | number
   outfitId?: Prisma.IntFilter<"OutfitItem"> | number
   closetItemId?: Prisma.IntNullableFilter<"OutfitItem"> | number | null
-  shoppingItemUrl?: Prisma.StringNullableFilter<"OutfitItem"> | string | null
+  wishlistItemId?: Prisma.IntNullableFilter<"OutfitItem"> | number | null
   position?: Prisma.StringNullableFilter<"OutfitItem"> | string | null
 }
 
 export type OutfitItemCreateWithoutOutfitInput = {
-  shoppingItemUrl?: string | null
   position?: string | null
   closetItem?: Prisma.ClosetItemCreateNestedOneWithoutOutfitItemsInput
+  wishlistItem?: Prisma.WishlistItemCreateNestedOneWithoutOutfitItemsInput
 }
 
 export type OutfitItemUncheckedCreateWithoutOutfitInput = {
   id?: number
   closetItemId?: number | null
-  shoppingItemUrl?: string | null
+  wishlistItemId?: number | null
   position?: string | null
 }
 
@@ -553,57 +603,123 @@ export type OutfitItemUpdateManyWithWhereWithoutOutfitInput = {
   data: Prisma.XOR<Prisma.OutfitItemUpdateManyMutationInput, Prisma.OutfitItemUncheckedUpdateManyWithoutOutfitInput>
 }
 
+export type OutfitItemCreateWithoutWishlistItemInput = {
+  position?: string | null
+  outfit: Prisma.OutfitCreateNestedOneWithoutItemsInput
+  closetItem?: Prisma.ClosetItemCreateNestedOneWithoutOutfitItemsInput
+}
+
+export type OutfitItemUncheckedCreateWithoutWishlistItemInput = {
+  id?: number
+  outfitId: number
+  closetItemId?: number | null
+  position?: string | null
+}
+
+export type OutfitItemCreateOrConnectWithoutWishlistItemInput = {
+  where: Prisma.OutfitItemWhereUniqueInput
+  create: Prisma.XOR<Prisma.OutfitItemCreateWithoutWishlistItemInput, Prisma.OutfitItemUncheckedCreateWithoutWishlistItemInput>
+}
+
+export type OutfitItemCreateManyWishlistItemInputEnvelope = {
+  data: Prisma.OutfitItemCreateManyWishlistItemInput | Prisma.OutfitItemCreateManyWishlistItemInput[]
+  skipDuplicates?: boolean
+}
+
+export type OutfitItemUpsertWithWhereUniqueWithoutWishlistItemInput = {
+  where: Prisma.OutfitItemWhereUniqueInput
+  update: Prisma.XOR<Prisma.OutfitItemUpdateWithoutWishlistItemInput, Prisma.OutfitItemUncheckedUpdateWithoutWishlistItemInput>
+  create: Prisma.XOR<Prisma.OutfitItemCreateWithoutWishlistItemInput, Prisma.OutfitItemUncheckedCreateWithoutWishlistItemInput>
+}
+
+export type OutfitItemUpdateWithWhereUniqueWithoutWishlistItemInput = {
+  where: Prisma.OutfitItemWhereUniqueInput
+  data: Prisma.XOR<Prisma.OutfitItemUpdateWithoutWishlistItemInput, Prisma.OutfitItemUncheckedUpdateWithoutWishlistItemInput>
+}
+
+export type OutfitItemUpdateManyWithWhereWithoutWishlistItemInput = {
+  where: Prisma.OutfitItemScalarWhereInput
+  data: Prisma.XOR<Prisma.OutfitItemUpdateManyMutationInput, Prisma.OutfitItemUncheckedUpdateManyWithoutWishlistItemInput>
+}
+
 export type OutfitItemCreateManyClosetItemInput = {
   id?: number
   outfitId: number
-  shoppingItemUrl?: string | null
+  wishlistItemId?: number | null
   position?: string | null
 }
 
 export type OutfitItemUpdateWithoutClosetItemInput = {
-  shoppingItemUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   position?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   outfit?: Prisma.OutfitUpdateOneRequiredWithoutItemsNestedInput
+  wishlistItem?: Prisma.WishlistItemUpdateOneWithoutOutfitItemsNestedInput
 }
 
 export type OutfitItemUncheckedUpdateWithoutClosetItemInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   outfitId?: Prisma.IntFieldUpdateOperationsInput | number
-  shoppingItemUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  wishlistItemId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OutfitItemUncheckedUpdateManyWithoutClosetItemInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   outfitId?: Prisma.IntFieldUpdateOperationsInput | number
-  shoppingItemUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  wishlistItemId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OutfitItemCreateManyOutfitInput = {
   id?: number
   closetItemId?: number | null
-  shoppingItemUrl?: string | null
+  wishlistItemId?: number | null
   position?: string | null
 }
 
 export type OutfitItemUpdateWithoutOutfitInput = {
-  shoppingItemUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   position?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   closetItem?: Prisma.ClosetItemUpdateOneWithoutOutfitItemsNestedInput
+  wishlistItem?: Prisma.WishlistItemUpdateOneWithoutOutfitItemsNestedInput
 }
 
 export type OutfitItemUncheckedUpdateWithoutOutfitInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   closetItemId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  shoppingItemUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  wishlistItemId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OutfitItemUncheckedUpdateManyWithoutOutfitInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   closetItemId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  shoppingItemUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  wishlistItemId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  position?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type OutfitItemCreateManyWishlistItemInput = {
+  id?: number
+  outfitId: number
+  closetItemId?: number | null
+  position?: string | null
+}
+
+export type OutfitItemUpdateWithoutWishlistItemInput = {
+  position?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  outfit?: Prisma.OutfitUpdateOneRequiredWithoutItemsNestedInput
+  closetItem?: Prisma.ClosetItemUpdateOneWithoutOutfitItemsNestedInput
+}
+
+export type OutfitItemUncheckedUpdateWithoutWishlistItemInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  outfitId?: Prisma.IntFieldUpdateOperationsInput | number
+  closetItemId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  position?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type OutfitItemUncheckedUpdateManyWithoutWishlistItemInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  outfitId?: Prisma.IntFieldUpdateOperationsInput | number
+  closetItemId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -613,52 +729,58 @@ export type OutfitItemSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   id?: boolean
   outfitId?: boolean
   closetItemId?: boolean
-  shoppingItemUrl?: boolean
+  wishlistItemId?: boolean
   position?: boolean
   outfit?: boolean | Prisma.OutfitDefaultArgs<ExtArgs>
   closetItem?: boolean | Prisma.OutfitItem$closetItemArgs<ExtArgs>
+  wishlistItem?: boolean | Prisma.OutfitItem$wishlistItemArgs<ExtArgs>
 }, ExtArgs["result"]["outfitItem"]>
 
 export type OutfitItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   outfitId?: boolean
   closetItemId?: boolean
-  shoppingItemUrl?: boolean
+  wishlistItemId?: boolean
   position?: boolean
   outfit?: boolean | Prisma.OutfitDefaultArgs<ExtArgs>
   closetItem?: boolean | Prisma.OutfitItem$closetItemArgs<ExtArgs>
+  wishlistItem?: boolean | Prisma.OutfitItem$wishlistItemArgs<ExtArgs>
 }, ExtArgs["result"]["outfitItem"]>
 
 export type OutfitItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   outfitId?: boolean
   closetItemId?: boolean
-  shoppingItemUrl?: boolean
+  wishlistItemId?: boolean
   position?: boolean
   outfit?: boolean | Prisma.OutfitDefaultArgs<ExtArgs>
   closetItem?: boolean | Prisma.OutfitItem$closetItemArgs<ExtArgs>
+  wishlistItem?: boolean | Prisma.OutfitItem$wishlistItemArgs<ExtArgs>
 }, ExtArgs["result"]["outfitItem"]>
 
 export type OutfitItemSelectScalar = {
   id?: boolean
   outfitId?: boolean
   closetItemId?: boolean
-  shoppingItemUrl?: boolean
+  wishlistItemId?: boolean
   position?: boolean
 }
 
-export type OutfitItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "outfitId" | "closetItemId" | "shoppingItemUrl" | "position", ExtArgs["result"]["outfitItem"]>
+export type OutfitItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "outfitId" | "closetItemId" | "wishlistItemId" | "position", ExtArgs["result"]["outfitItem"]>
 export type OutfitItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   outfit?: boolean | Prisma.OutfitDefaultArgs<ExtArgs>
   closetItem?: boolean | Prisma.OutfitItem$closetItemArgs<ExtArgs>
+  wishlistItem?: boolean | Prisma.OutfitItem$wishlistItemArgs<ExtArgs>
 }
 export type OutfitItemIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   outfit?: boolean | Prisma.OutfitDefaultArgs<ExtArgs>
   closetItem?: boolean | Prisma.OutfitItem$closetItemArgs<ExtArgs>
+  wishlistItem?: boolean | Prisma.OutfitItem$wishlistItemArgs<ExtArgs>
 }
 export type OutfitItemIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   outfit?: boolean | Prisma.OutfitDefaultArgs<ExtArgs>
   closetItem?: boolean | Prisma.OutfitItem$closetItemArgs<ExtArgs>
+  wishlistItem?: boolean | Prisma.OutfitItem$wishlistItemArgs<ExtArgs>
 }
 
 export type $OutfitItemPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -666,12 +788,13 @@ export type $OutfitItemPayload<ExtArgs extends runtime.Types.Extensions.Internal
   objects: {
     outfit: Prisma.$OutfitPayload<ExtArgs>
     closetItem: Prisma.$ClosetItemPayload<ExtArgs> | null
+    wishlistItem: Prisma.$WishlistItemPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
     outfitId: number
     closetItemId: number | null
-    shoppingItemUrl: string | null
+    wishlistItemId: number | null
     position: string | null
   }, ExtArgs["result"]["outfitItem"]>
   composites: {}
@@ -1069,6 +1192,7 @@ export interface Prisma__OutfitItemClient<T, Null = never, ExtArgs extends runti
   readonly [Symbol.toStringTag]: "PrismaPromise"
   outfit<T extends Prisma.OutfitDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OutfitDefaultArgs<ExtArgs>>): Prisma.Prisma__OutfitClient<runtime.Types.Result.GetResult<Prisma.$OutfitPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   closetItem<T extends Prisma.OutfitItem$closetItemArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OutfitItem$closetItemArgs<ExtArgs>>): Prisma.Prisma__ClosetItemClient<runtime.Types.Result.GetResult<Prisma.$ClosetItemPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  wishlistItem<T extends Prisma.OutfitItem$wishlistItemArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OutfitItem$wishlistItemArgs<ExtArgs>>): Prisma.Prisma__WishlistItemClient<runtime.Types.Result.GetResult<Prisma.$WishlistItemPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1101,7 +1225,7 @@ export interface OutfitItemFieldRefs {
   readonly id: Prisma.FieldRef<"OutfitItem", 'Int'>
   readonly outfitId: Prisma.FieldRef<"OutfitItem", 'Int'>
   readonly closetItemId: Prisma.FieldRef<"OutfitItem", 'Int'>
-  readonly shoppingItemUrl: Prisma.FieldRef<"OutfitItem", 'String'>
+  readonly wishlistItemId: Prisma.FieldRef<"OutfitItem", 'Int'>
   readonly position: Prisma.FieldRef<"OutfitItem", 'String'>
 }
     
@@ -1515,6 +1639,25 @@ export type OutfitItem$closetItemArgs<ExtArgs extends runtime.Types.Extensions.I
    */
   include?: Prisma.ClosetItemInclude<ExtArgs> | null
   where?: Prisma.ClosetItemWhereInput
+}
+
+/**
+ * OutfitItem.wishlistItem
+ */
+export type OutfitItem$wishlistItemArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the WishlistItem
+   */
+  select?: Prisma.WishlistItemSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the WishlistItem
+   */
+  omit?: Prisma.WishlistItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WishlistItemInclude<ExtArgs> | null
+  where?: Prisma.WishlistItemWhereInput
 }
 
 /**

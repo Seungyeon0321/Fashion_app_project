@@ -23,6 +23,11 @@ export * from './enums.js';
  */
 export type User = Prisma.UserModel
 /**
+ * Model ClothingItem
+ * 
+ */
+export type ClothingItem = Prisma.ClothingItemModel
+/**
  * Model ClosetItem
  * 
  */

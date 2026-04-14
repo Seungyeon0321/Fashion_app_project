@@ -29,17 +29,20 @@ export type AggregateStyleReference = {
 export type StyleReferenceAvgAggregateOutputType = {
   id: number | null
   userId: number | null
+  rating: number | null
 }
 
 export type StyleReferenceSumAggregateOutputType = {
   id: number | null
   userId: number | null
+  rating: number | null
 }
 
 export type StyleReferenceMinAggregateOutputType = {
   id: number | null
   userId: number | null
   originalImageUrl: string | null
+  rating: number | null
   createdAt: Date | null
 }
 
@@ -47,6 +50,7 @@ export type StyleReferenceMaxAggregateOutputType = {
   id: number | null
   userId: number | null
   originalImageUrl: string | null
+  rating: number | null
   createdAt: Date | null
 }
 
@@ -54,6 +58,7 @@ export type StyleReferenceCountAggregateOutputType = {
   id: number
   userId: number
   originalImageUrl: number
+  rating: number
   analysisResult: number
   createdAt: number
   _all: number
@@ -63,17 +68,20 @@ export type StyleReferenceCountAggregateOutputType = {
 export type StyleReferenceAvgAggregateInputType = {
   id?: true
   userId?: true
+  rating?: true
 }
 
 export type StyleReferenceSumAggregateInputType = {
   id?: true
   userId?: true
+  rating?: true
 }
 
 export type StyleReferenceMinAggregateInputType = {
   id?: true
   userId?: true
   originalImageUrl?: true
+  rating?: true
   createdAt?: true
 }
 
@@ -81,6 +89,7 @@ export type StyleReferenceMaxAggregateInputType = {
   id?: true
   userId?: true
   originalImageUrl?: true
+  rating?: true
   createdAt?: true
 }
 
@@ -88,6 +97,7 @@ export type StyleReferenceCountAggregateInputType = {
   id?: true
   userId?: true
   originalImageUrl?: true
+  rating?: true
   analysisResult?: true
   createdAt?: true
   _all?: true
@@ -183,6 +193,7 @@ export type StyleReferenceGroupByOutputType = {
   id: number
   userId: number
   originalImageUrl: string
+  rating: number
   analysisResult: runtime.JsonValue | null
   createdAt: Date
   _count: StyleReferenceCountAggregateOutputType | null
@@ -214,6 +225,7 @@ export type StyleReferenceWhereInput = {
   id?: Prisma.IntFilter<"StyleReference"> | number
   userId?: Prisma.IntFilter<"StyleReference"> | number
   originalImageUrl?: Prisma.StringFilter<"StyleReference"> | string
+  rating?: Prisma.IntFilter<"StyleReference"> | number
   analysisResult?: Prisma.JsonNullableFilter<"StyleReference">
   createdAt?: Prisma.DateTimeFilter<"StyleReference"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -224,6 +236,7 @@ export type StyleReferenceOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   originalImageUrl?: Prisma.SortOrder
+  rating?: Prisma.SortOrder
   analysisResult?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
@@ -237,6 +250,7 @@ export type StyleReferenceWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.StyleReferenceWhereInput | Prisma.StyleReferenceWhereInput[]
   userId?: Prisma.IntFilter<"StyleReference"> | number
   originalImageUrl?: Prisma.StringFilter<"StyleReference"> | string
+  rating?: Prisma.IntFilter<"StyleReference"> | number
   analysisResult?: Prisma.JsonNullableFilter<"StyleReference">
   createdAt?: Prisma.DateTimeFilter<"StyleReference"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -247,6 +261,7 @@ export type StyleReferenceOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   originalImageUrl?: Prisma.SortOrder
+  rating?: Prisma.SortOrder
   analysisResult?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.StyleReferenceCountOrderByAggregateInput
@@ -263,12 +278,14 @@ export type StyleReferenceScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"StyleReference"> | number
   userId?: Prisma.IntWithAggregatesFilter<"StyleReference"> | number
   originalImageUrl?: Prisma.StringWithAggregatesFilter<"StyleReference"> | string
+  rating?: Prisma.IntWithAggregatesFilter<"StyleReference"> | number
   analysisResult?: Prisma.JsonNullableWithAggregatesFilter<"StyleReference">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"StyleReference"> | Date | string
 }
 
 export type StyleReferenceCreateInput = {
   originalImageUrl: string
+  rating?: number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutStyleRefsInput
@@ -279,6 +296,7 @@ export type StyleReferenceUncheckedCreateInput = {
   id?: number
   userId: number
   originalImageUrl: string
+  rating?: number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   wishlistItems?: Prisma.WishlistItemUncheckedCreateNestedManyWithoutOriginStyleInput
@@ -286,6 +304,7 @@ export type StyleReferenceUncheckedCreateInput = {
 
 export type StyleReferenceUpdateInput = {
   originalImageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  rating?: Prisma.IntFieldUpdateOperationsInput | number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutStyleRefsNestedInput
@@ -296,6 +315,7 @@ export type StyleReferenceUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   originalImageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  rating?: Prisma.IntFieldUpdateOperationsInput | number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   wishlistItems?: Prisma.WishlistItemUncheckedUpdateManyWithoutOriginStyleNestedInput
@@ -305,12 +325,14 @@ export type StyleReferenceCreateManyInput = {
   id?: number
   userId: number
   originalImageUrl: string
+  rating?: number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
 
 export type StyleReferenceUpdateManyMutationInput = {
   originalImageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  rating?: Prisma.IntFieldUpdateOperationsInput | number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -319,6 +341,7 @@ export type StyleReferenceUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   originalImageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  rating?: Prisma.IntFieldUpdateOperationsInput | number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -337,6 +360,7 @@ export type StyleReferenceCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   originalImageUrl?: Prisma.SortOrder
+  rating?: Prisma.SortOrder
   analysisResult?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -344,12 +368,14 @@ export type StyleReferenceCountOrderByAggregateInput = {
 export type StyleReferenceAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  rating?: Prisma.SortOrder
 }
 
 export type StyleReferenceMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   originalImageUrl?: Prisma.SortOrder
+  rating?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -357,12 +383,14 @@ export type StyleReferenceMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   originalImageUrl?: Prisma.SortOrder
+  rating?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
 export type StyleReferenceSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  rating?: Prisma.SortOrder
 }
 
 export type StyleReferenceNullableScalarRelationFilter = {
@@ -430,6 +458,7 @@ export type StyleReferenceUpdateOneWithoutWishlistItemsNestedInput = {
 
 export type StyleReferenceCreateWithoutUserInput = {
   originalImageUrl: string
+  rating?: number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   wishlistItems?: Prisma.WishlistItemCreateNestedManyWithoutOriginStyleInput
@@ -438,6 +467,7 @@ export type StyleReferenceCreateWithoutUserInput = {
 export type StyleReferenceUncheckedCreateWithoutUserInput = {
   id?: number
   originalImageUrl: string
+  rating?: number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   wishlistItems?: Prisma.WishlistItemUncheckedCreateNestedManyWithoutOriginStyleInput
@@ -476,12 +506,14 @@ export type StyleReferenceScalarWhereInput = {
   id?: Prisma.IntFilter<"StyleReference"> | number
   userId?: Prisma.IntFilter<"StyleReference"> | number
   originalImageUrl?: Prisma.StringFilter<"StyleReference"> | string
+  rating?: Prisma.IntFilter<"StyleReference"> | number
   analysisResult?: Prisma.JsonNullableFilter<"StyleReference">
   createdAt?: Prisma.DateTimeFilter<"StyleReference"> | Date | string
 }
 
 export type StyleReferenceCreateWithoutWishlistItemsInput = {
   originalImageUrl: string
+  rating?: number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutStyleRefsInput
@@ -491,6 +523,7 @@ export type StyleReferenceUncheckedCreateWithoutWishlistItemsInput = {
   id?: number
   userId: number
   originalImageUrl: string
+  rating?: number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
@@ -513,6 +546,7 @@ export type StyleReferenceUpdateToOneWithWhereWithoutWishlistItemsInput = {
 
 export type StyleReferenceUpdateWithoutWishlistItemsInput = {
   originalImageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  rating?: Prisma.IntFieldUpdateOperationsInput | number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutStyleRefsNestedInput
@@ -522,6 +556,7 @@ export type StyleReferenceUncheckedUpdateWithoutWishlistItemsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   originalImageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  rating?: Prisma.IntFieldUpdateOperationsInput | number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -529,12 +564,14 @@ export type StyleReferenceUncheckedUpdateWithoutWishlistItemsInput = {
 export type StyleReferenceCreateManyUserInput = {
   id?: number
   originalImageUrl: string
+  rating?: number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
 
 export type StyleReferenceUpdateWithoutUserInput = {
   originalImageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  rating?: Prisma.IntFieldUpdateOperationsInput | number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   wishlistItems?: Prisma.WishlistItemUpdateManyWithoutOriginStyleNestedInput
@@ -543,6 +580,7 @@ export type StyleReferenceUpdateWithoutUserInput = {
 export type StyleReferenceUncheckedUpdateWithoutUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   originalImageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  rating?: Prisma.IntFieldUpdateOperationsInput | number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   wishlistItems?: Prisma.WishlistItemUncheckedUpdateManyWithoutOriginStyleNestedInput
@@ -551,6 +589,7 @@ export type StyleReferenceUncheckedUpdateWithoutUserInput = {
 export type StyleReferenceUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   originalImageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  rating?: Prisma.IntFieldUpdateOperationsInput | number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -590,6 +629,7 @@ export type StyleReferenceSelect<ExtArgs extends runtime.Types.Extensions.Intern
   id?: boolean
   userId?: boolean
   originalImageUrl?: boolean
+  rating?: boolean
   analysisResult?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -601,6 +641,7 @@ export type StyleReferenceSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   id?: boolean
   userId?: boolean
   originalImageUrl?: boolean
+  rating?: boolean
   analysisResult?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -610,6 +651,7 @@ export type StyleReferenceSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   id?: boolean
   userId?: boolean
   originalImageUrl?: boolean
+  rating?: boolean
   analysisResult?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -619,11 +661,12 @@ export type StyleReferenceSelectScalar = {
   id?: boolean
   userId?: boolean
   originalImageUrl?: boolean
+  rating?: boolean
   analysisResult?: boolean
   createdAt?: boolean
 }
 
-export type StyleReferenceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "originalImageUrl" | "analysisResult" | "createdAt", ExtArgs["result"]["styleReference"]>
+export type StyleReferenceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "originalImageUrl" | "rating" | "analysisResult" | "createdAt", ExtArgs["result"]["styleReference"]>
 export type StyleReferenceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   wishlistItems?: boolean | Prisma.StyleReference$wishlistItemsArgs<ExtArgs>
@@ -646,6 +689,7 @@ export type $StyleReferencePayload<ExtArgs extends runtime.Types.Extensions.Inte
     id: number
     userId: number
     originalImageUrl: string
+    rating: number
     analysisResult: runtime.JsonValue | null
     createdAt: Date
   }, ExtArgs["result"]["styleReference"]>
@@ -1076,6 +1120,7 @@ export interface StyleReferenceFieldRefs {
   readonly id: Prisma.FieldRef<"StyleReference", 'Int'>
   readonly userId: Prisma.FieldRef<"StyleReference", 'Int'>
   readonly originalImageUrl: Prisma.FieldRef<"StyleReference", 'String'>
+  readonly rating: Prisma.FieldRef<"StyleReference", 'Int'>
   readonly analysisResult: Prisma.FieldRef<"StyleReference", 'Json'>
   readonly createdAt: Prisma.FieldRef<"StyleReference", 'DateTime'>
 }

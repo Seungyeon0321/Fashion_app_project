@@ -5,12 +5,13 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import { S3Service } from '../../s3/s3.service.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
 
 @Injectable()
 // Return items created by the YOLO model
 // Do I need to do preprocessing?
 export class PostsService {
-    constructor(@InjectQueue('clothing') private readonly clothingQueue: Queue, private readonly s3Service: S3Service) {}
+    constructor(@InjectQueue('clothing') private readonly clothingQueue: Queue, private readonly s3Service: S3Service, private readonly prisma: PrismaService) {}
 
     public async registerMyClothes(userId: number, file: Express.Multer.File, validation: {valid: boolean, confidence: number, reason?: string}) {
         // check if the image is valid
@@ -30,26 +31,26 @@ export class PostsService {
             s3Key: key,
         });
 
-        console.log('job', job);
+        
 
         return { success: true, JobId: job.id };
     }
 
     public async getRegisterStatus(jobId: string) {
+        const items = await this.prisma.clothingItem.findMany({
+            where: { jobId: jobId }
+        })
+    
+        if (items.length > 0) {
+            return { status: 'completed', items }
+        }
+    
+        // DB에 없으면 아직 처리 중
         const job = await this.clothingQueue.getJob(jobId)
-
         if (!job) {
-            return { status: 'not found' }
+            return { status: 'not_found' }
         }
-
-        const state = await job.getState()
-
-        if (state === 'completed') {
-            // const items = await this.clothingRepository.findBy({ jobId})
-            // return { status: 'completed', items: items }
-
-        }
-
-        return { status: state }
+    
+        return { status: 'processing' }
     }
 }

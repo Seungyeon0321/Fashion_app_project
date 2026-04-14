@@ -43,49 +43,49 @@ export type WishlistItemSumAggregateOutputType = {
 export type WishlistItemMinAggregateOutputType = {
   id: number | null
   userId: number | null
-  imageUrl: string | null
   productName: string | null
   brand: string | null
   price: number | null
   currency: string | null
+  imageUrl: string | null
   purchaseUrl: string | null
   category: $Enums.Category | null
-  isPurchased: boolean | null
+  subCategory: $Enums.SubCategory | null
   originStyleId: number | null
+  isPurchased: boolean | null
   createdAt: Date | null
-  updatedAt: Date | null
 }
 
 export type WishlistItemMaxAggregateOutputType = {
   id: number | null
   userId: number | null
-  imageUrl: string | null
   productName: string | null
   brand: string | null
   price: number | null
   currency: string | null
+  imageUrl: string | null
   purchaseUrl: string | null
   category: $Enums.Category | null
-  isPurchased: boolean | null
+  subCategory: $Enums.SubCategory | null
   originStyleId: number | null
+  isPurchased: boolean | null
   createdAt: Date | null
-  updatedAt: Date | null
 }
 
 export type WishlistItemCountAggregateOutputType = {
   id: number
   userId: number
-  imageUrl: number
   productName: number
   brand: number
   price: number
   currency: number
+  imageUrl: number
   purchaseUrl: number
   category: number
-  isPurchased: number
+  subCategory: number
   originStyleId: number
+  isPurchased: number
   createdAt: number
-  updatedAt: number
   _all: number
 }
 
@@ -107,49 +107,49 @@ export type WishlistItemSumAggregateInputType = {
 export type WishlistItemMinAggregateInputType = {
   id?: true
   userId?: true
-  imageUrl?: true
   productName?: true
   brand?: true
   price?: true
   currency?: true
+  imageUrl?: true
   purchaseUrl?: true
   category?: true
-  isPurchased?: true
+  subCategory?: true
   originStyleId?: true
+  isPurchased?: true
   createdAt?: true
-  updatedAt?: true
 }
 
 export type WishlistItemMaxAggregateInputType = {
   id?: true
   userId?: true
-  imageUrl?: true
   productName?: true
   brand?: true
   price?: true
   currency?: true
+  imageUrl?: true
   purchaseUrl?: true
   category?: true
-  isPurchased?: true
+  subCategory?: true
   originStyleId?: true
+  isPurchased?: true
   createdAt?: true
-  updatedAt?: true
 }
 
 export type WishlistItemCountAggregateInputType = {
   id?: true
   userId?: true
-  imageUrl?: true
   productName?: true
   brand?: true
   price?: true
   currency?: true
+  imageUrl?: true
   purchaseUrl?: true
   category?: true
-  isPurchased?: true
+  subCategory?: true
   originStyleId?: true
+  isPurchased?: true
   createdAt?: true
-  updatedAt?: true
   _all?: true
 }
 
@@ -242,17 +242,17 @@ export type WishlistItemGroupByArgs<ExtArgs extends runtime.Types.Extensions.Int
 export type WishlistItemGroupByOutputType = {
   id: number
   userId: number
-  imageUrl: string
   productName: string | null
   brand: string | null
   price: number | null
   currency: string
-  purchaseUrl: string | null
+  imageUrl: string
+  purchaseUrl: string
   category: $Enums.Category
-  isPurchased: boolean
+  subCategory: $Enums.SubCategory
   originStyleId: number | null
+  isPurchased: boolean
   createdAt: Date
-  updatedAt: Date
   _count: WishlistItemCountAggregateOutputType | null
   _avg: WishlistItemAvgAggregateOutputType | null
   _sum: WishlistItemSumAggregateOutputType | null
@@ -281,37 +281,39 @@ export type WishlistItemWhereInput = {
   NOT?: Prisma.WishlistItemWhereInput | Prisma.WishlistItemWhereInput[]
   id?: Prisma.IntFilter<"WishlistItem"> | number
   userId?: Prisma.IntFilter<"WishlistItem"> | number
-  imageUrl?: Prisma.StringFilter<"WishlistItem"> | string
   productName?: Prisma.StringNullableFilter<"WishlistItem"> | string | null
   brand?: Prisma.StringNullableFilter<"WishlistItem"> | string | null
   price?: Prisma.FloatNullableFilter<"WishlistItem"> | number | null
   currency?: Prisma.StringFilter<"WishlistItem"> | string
-  purchaseUrl?: Prisma.StringNullableFilter<"WishlistItem"> | string | null
+  imageUrl?: Prisma.StringFilter<"WishlistItem"> | string
+  purchaseUrl?: Prisma.StringFilter<"WishlistItem"> | string
   category?: Prisma.EnumCategoryFilter<"WishlistItem"> | $Enums.Category
-  isPurchased?: Prisma.BoolFilter<"WishlistItem"> | boolean
+  subCategory?: Prisma.EnumSubCategoryFilter<"WishlistItem"> | $Enums.SubCategory
   originStyleId?: Prisma.IntNullableFilter<"WishlistItem"> | number | null
+  isPurchased?: Prisma.BoolFilter<"WishlistItem"> | boolean
   createdAt?: Prisma.DateTimeFilter<"WishlistItem"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"WishlistItem"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   originStyle?: Prisma.XOR<Prisma.StyleReferenceNullableScalarRelationFilter, Prisma.StyleReferenceWhereInput> | null
+  outfitItems?: Prisma.OutfitItemListRelationFilter
 }
 
 export type WishlistItemOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  imageUrl?: Prisma.SortOrder
   productName?: Prisma.SortOrderInput | Prisma.SortOrder
   brand?: Prisma.SortOrderInput | Prisma.SortOrder
   price?: Prisma.SortOrderInput | Prisma.SortOrder
   currency?: Prisma.SortOrder
-  purchaseUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  imageUrl?: Prisma.SortOrder
+  purchaseUrl?: Prisma.SortOrder
   category?: Prisma.SortOrder
-  isPurchased?: Prisma.SortOrder
+  subCategory?: Prisma.SortOrder
   originStyleId?: Prisma.SortOrderInput | Prisma.SortOrder
+  isPurchased?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
   originStyle?: Prisma.StyleReferenceOrderByWithRelationInput
+  outfitItems?: Prisma.OutfitItemOrderByRelationAggregateInput
 }
 
 export type WishlistItemWhereUniqueInput = Prisma.AtLeast<{
@@ -320,35 +322,36 @@ export type WishlistItemWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.WishlistItemWhereInput[]
   NOT?: Prisma.WishlistItemWhereInput | Prisma.WishlistItemWhereInput[]
   userId?: Prisma.IntFilter<"WishlistItem"> | number
-  imageUrl?: Prisma.StringFilter<"WishlistItem"> | string
   productName?: Prisma.StringNullableFilter<"WishlistItem"> | string | null
   brand?: Prisma.StringNullableFilter<"WishlistItem"> | string | null
   price?: Prisma.FloatNullableFilter<"WishlistItem"> | number | null
   currency?: Prisma.StringFilter<"WishlistItem"> | string
-  purchaseUrl?: Prisma.StringNullableFilter<"WishlistItem"> | string | null
+  imageUrl?: Prisma.StringFilter<"WishlistItem"> | string
+  purchaseUrl?: Prisma.StringFilter<"WishlistItem"> | string
   category?: Prisma.EnumCategoryFilter<"WishlistItem"> | $Enums.Category
-  isPurchased?: Prisma.BoolFilter<"WishlistItem"> | boolean
+  subCategory?: Prisma.EnumSubCategoryFilter<"WishlistItem"> | $Enums.SubCategory
   originStyleId?: Prisma.IntNullableFilter<"WishlistItem"> | number | null
+  isPurchased?: Prisma.BoolFilter<"WishlistItem"> | boolean
   createdAt?: Prisma.DateTimeFilter<"WishlistItem"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"WishlistItem"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   originStyle?: Prisma.XOR<Prisma.StyleReferenceNullableScalarRelationFilter, Prisma.StyleReferenceWhereInput> | null
+  outfitItems?: Prisma.OutfitItemListRelationFilter
 }, "id">
 
 export type WishlistItemOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  imageUrl?: Prisma.SortOrder
   productName?: Prisma.SortOrderInput | Prisma.SortOrder
   brand?: Prisma.SortOrderInput | Prisma.SortOrder
   price?: Prisma.SortOrderInput | Prisma.SortOrder
   currency?: Prisma.SortOrder
-  purchaseUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  imageUrl?: Prisma.SortOrder
+  purchaseUrl?: Prisma.SortOrder
   category?: Prisma.SortOrder
-  isPurchased?: Prisma.SortOrder
+  subCategory?: Prisma.SortOrder
   originStyleId?: Prisma.SortOrderInput | Prisma.SortOrder
+  isPurchased?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
   _count?: Prisma.WishlistItemCountOrderByAggregateInput
   _avg?: Prisma.WishlistItemAvgOrderByAggregateInput
   _max?: Prisma.WishlistItemMaxOrderByAggregateInput
@@ -362,124 +365,128 @@ export type WishlistItemScalarWhereWithAggregatesInput = {
   NOT?: Prisma.WishlistItemScalarWhereWithAggregatesInput | Prisma.WishlistItemScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"WishlistItem"> | number
   userId?: Prisma.IntWithAggregatesFilter<"WishlistItem"> | number
-  imageUrl?: Prisma.StringWithAggregatesFilter<"WishlistItem"> | string
   productName?: Prisma.StringNullableWithAggregatesFilter<"WishlistItem"> | string | null
   brand?: Prisma.StringNullableWithAggregatesFilter<"WishlistItem"> | string | null
   price?: Prisma.FloatNullableWithAggregatesFilter<"WishlistItem"> | number | null
   currency?: Prisma.StringWithAggregatesFilter<"WishlistItem"> | string
-  purchaseUrl?: Prisma.StringNullableWithAggregatesFilter<"WishlistItem"> | string | null
+  imageUrl?: Prisma.StringWithAggregatesFilter<"WishlistItem"> | string
+  purchaseUrl?: Prisma.StringWithAggregatesFilter<"WishlistItem"> | string
   category?: Prisma.EnumCategoryWithAggregatesFilter<"WishlistItem"> | $Enums.Category
-  isPurchased?: Prisma.BoolWithAggregatesFilter<"WishlistItem"> | boolean
+  subCategory?: Prisma.EnumSubCategoryWithAggregatesFilter<"WishlistItem"> | $Enums.SubCategory
   originStyleId?: Prisma.IntNullableWithAggregatesFilter<"WishlistItem"> | number | null
+  isPurchased?: Prisma.BoolWithAggregatesFilter<"WishlistItem"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"WishlistItem"> | Date | string
-  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"WishlistItem"> | Date | string
 }
 
 export type WishlistItemCreateInput = {
-  imageUrl: string
   productName?: string | null
   brand?: string | null
   price?: number | null
   currency?: string
-  purchaseUrl?: string | null
+  imageUrl: string
+  purchaseUrl: string
   category: $Enums.Category
+  subCategory: $Enums.SubCategory
   isPurchased?: boolean
   createdAt?: Date | string
-  updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutWishlistInput
   originStyle?: Prisma.StyleReferenceCreateNestedOneWithoutWishlistItemsInput
+  outfitItems?: Prisma.OutfitItemCreateNestedManyWithoutWishlistItemInput
 }
 
 export type WishlistItemUncheckedCreateInput = {
   id?: number
   userId: number
-  imageUrl: string
   productName?: string | null
   brand?: string | null
   price?: number | null
   currency?: string
-  purchaseUrl?: string | null
+  imageUrl: string
+  purchaseUrl: string
   category: $Enums.Category
-  isPurchased?: boolean
+  subCategory: $Enums.SubCategory
   originStyleId?: number | null
+  isPurchased?: boolean
   createdAt?: Date | string
-  updatedAt?: Date | string
+  outfitItems?: Prisma.OutfitItemUncheckedCreateNestedManyWithoutWishlistItemInput
 }
 
 export type WishlistItemUpdateInput = {
-  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   productName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
-  purchaseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  purchaseUrl?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
+  subCategory?: Prisma.EnumSubCategoryFieldUpdateOperationsInput | $Enums.SubCategory
   isPurchased?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutWishlistNestedInput
   originStyle?: Prisma.StyleReferenceUpdateOneWithoutWishlistItemsNestedInput
+  outfitItems?: Prisma.OutfitItemUpdateManyWithoutWishlistItemNestedInput
 }
 
 export type WishlistItemUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
-  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   productName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
-  purchaseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  purchaseUrl?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
-  isPurchased?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  subCategory?: Prisma.EnumSubCategoryFieldUpdateOperationsInput | $Enums.SubCategory
   originStyleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  isPurchased?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  outfitItems?: Prisma.OutfitItemUncheckedUpdateManyWithoutWishlistItemNestedInput
 }
 
 export type WishlistItemCreateManyInput = {
   id?: number
   userId: number
-  imageUrl: string
   productName?: string | null
   brand?: string | null
   price?: number | null
   currency?: string
-  purchaseUrl?: string | null
+  imageUrl: string
+  purchaseUrl: string
   category: $Enums.Category
-  isPurchased?: boolean
+  subCategory: $Enums.SubCategory
   originStyleId?: number | null
+  isPurchased?: boolean
   createdAt?: Date | string
-  updatedAt?: Date | string
 }
 
 export type WishlistItemUpdateManyMutationInput = {
-  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   productName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
-  purchaseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  purchaseUrl?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
+  subCategory?: Prisma.EnumSubCategoryFieldUpdateOperationsInput | $Enums.SubCategory
   isPurchased?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type WishlistItemUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
-  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   productName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
-  purchaseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  purchaseUrl?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
-  isPurchased?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  subCategory?: Prisma.EnumSubCategoryFieldUpdateOperationsInput | $Enums.SubCategory
   originStyleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  isPurchased?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type WishlistItemListRelationFilter = {
@@ -492,20 +499,25 @@ export type WishlistItemOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type WishlistItemNullableScalarRelationFilter = {
+  is?: Prisma.WishlistItemWhereInput | null
+  isNot?: Prisma.WishlistItemWhereInput | null
+}
+
 export type WishlistItemCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  imageUrl?: Prisma.SortOrder
   productName?: Prisma.SortOrder
   brand?: Prisma.SortOrder
   price?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  imageUrl?: Prisma.SortOrder
   purchaseUrl?: Prisma.SortOrder
   category?: Prisma.SortOrder
-  isPurchased?: Prisma.SortOrder
+  subCategory?: Prisma.SortOrder
   originStyleId?: Prisma.SortOrder
+  isPurchased?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
 }
 
 export type WishlistItemAvgOrderByAggregateInput = {
@@ -518,33 +530,33 @@ export type WishlistItemAvgOrderByAggregateInput = {
 export type WishlistItemMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  imageUrl?: Prisma.SortOrder
   productName?: Prisma.SortOrder
   brand?: Prisma.SortOrder
   price?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  imageUrl?: Prisma.SortOrder
   purchaseUrl?: Prisma.SortOrder
   category?: Prisma.SortOrder
-  isPurchased?: Prisma.SortOrder
+  subCategory?: Prisma.SortOrder
   originStyleId?: Prisma.SortOrder
+  isPurchased?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
 }
 
 export type WishlistItemMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  imageUrl?: Prisma.SortOrder
   productName?: Prisma.SortOrder
   brand?: Prisma.SortOrder
   price?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  imageUrl?: Prisma.SortOrder
   purchaseUrl?: Prisma.SortOrder
   category?: Prisma.SortOrder
-  isPurchased?: Prisma.SortOrder
+  subCategory?: Prisma.SortOrder
   originStyleId?: Prisma.SortOrder
+  isPurchased?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
 }
 
 export type WishlistItemSumOrderByAggregateInput = {
@@ -638,37 +650,51 @@ export type WishlistItemUncheckedUpdateManyWithoutOriginStyleNestedInput = {
   deleteMany?: Prisma.WishlistItemScalarWhereInput | Prisma.WishlistItemScalarWhereInput[]
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
+export type WishlistItemCreateNestedOneWithoutOutfitItemsInput = {
+  create?: Prisma.XOR<Prisma.WishlistItemCreateWithoutOutfitItemsInput, Prisma.WishlistItemUncheckedCreateWithoutOutfitItemsInput>
+  connectOrCreate?: Prisma.WishlistItemCreateOrConnectWithoutOutfitItemsInput
+  connect?: Prisma.WishlistItemWhereUniqueInput
+}
+
+export type WishlistItemUpdateOneWithoutOutfitItemsNestedInput = {
+  create?: Prisma.XOR<Prisma.WishlistItemCreateWithoutOutfitItemsInput, Prisma.WishlistItemUncheckedCreateWithoutOutfitItemsInput>
+  connectOrCreate?: Prisma.WishlistItemCreateOrConnectWithoutOutfitItemsInput
+  upsert?: Prisma.WishlistItemUpsertWithoutOutfitItemsInput
+  disconnect?: Prisma.WishlistItemWhereInput | boolean
+  delete?: Prisma.WishlistItemWhereInput | boolean
+  connect?: Prisma.WishlistItemWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.WishlistItemUpdateToOneWithWhereWithoutOutfitItemsInput, Prisma.WishlistItemUpdateWithoutOutfitItemsInput>, Prisma.WishlistItemUncheckedUpdateWithoutOutfitItemsInput>
 }
 
 export type WishlistItemCreateWithoutUserInput = {
-  imageUrl: string
   productName?: string | null
   brand?: string | null
   price?: number | null
   currency?: string
-  purchaseUrl?: string | null
+  imageUrl: string
+  purchaseUrl: string
   category: $Enums.Category
+  subCategory: $Enums.SubCategory
   isPurchased?: boolean
   createdAt?: Date | string
-  updatedAt?: Date | string
   originStyle?: Prisma.StyleReferenceCreateNestedOneWithoutWishlistItemsInput
+  outfitItems?: Prisma.OutfitItemCreateNestedManyWithoutWishlistItemInput
 }
 
 export type WishlistItemUncheckedCreateWithoutUserInput = {
   id?: number
-  imageUrl: string
   productName?: string | null
   brand?: string | null
   price?: number | null
   currency?: string
-  purchaseUrl?: string | null
+  imageUrl: string
+  purchaseUrl: string
   category: $Enums.Category
-  isPurchased?: boolean
+  subCategory: $Enums.SubCategory
   originStyleId?: number | null
+  isPurchased?: boolean
   createdAt?: Date | string
-  updatedAt?: Date | string
+  outfitItems?: Prisma.OutfitItemUncheckedCreateNestedManyWithoutWishlistItemInput
 }
 
 export type WishlistItemCreateOrConnectWithoutUserInput = {
@@ -703,46 +729,48 @@ export type WishlistItemScalarWhereInput = {
   NOT?: Prisma.WishlistItemScalarWhereInput | Prisma.WishlistItemScalarWhereInput[]
   id?: Prisma.IntFilter<"WishlistItem"> | number
   userId?: Prisma.IntFilter<"WishlistItem"> | number
-  imageUrl?: Prisma.StringFilter<"WishlistItem"> | string
   productName?: Prisma.StringNullableFilter<"WishlistItem"> | string | null
   brand?: Prisma.StringNullableFilter<"WishlistItem"> | string | null
   price?: Prisma.FloatNullableFilter<"WishlistItem"> | number | null
   currency?: Prisma.StringFilter<"WishlistItem"> | string
-  purchaseUrl?: Prisma.StringNullableFilter<"WishlistItem"> | string | null
+  imageUrl?: Prisma.StringFilter<"WishlistItem"> | string
+  purchaseUrl?: Prisma.StringFilter<"WishlistItem"> | string
   category?: Prisma.EnumCategoryFilter<"WishlistItem"> | $Enums.Category
-  isPurchased?: Prisma.BoolFilter<"WishlistItem"> | boolean
+  subCategory?: Prisma.EnumSubCategoryFilter<"WishlistItem"> | $Enums.SubCategory
   originStyleId?: Prisma.IntNullableFilter<"WishlistItem"> | number | null
+  isPurchased?: Prisma.BoolFilter<"WishlistItem"> | boolean
   createdAt?: Prisma.DateTimeFilter<"WishlistItem"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"WishlistItem"> | Date | string
 }
 
 export type WishlistItemCreateWithoutOriginStyleInput = {
-  imageUrl: string
   productName?: string | null
   brand?: string | null
   price?: number | null
   currency?: string
-  purchaseUrl?: string | null
+  imageUrl: string
+  purchaseUrl: string
   category: $Enums.Category
+  subCategory: $Enums.SubCategory
   isPurchased?: boolean
   createdAt?: Date | string
-  updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutWishlistInput
+  outfitItems?: Prisma.OutfitItemCreateNestedManyWithoutWishlistItemInput
 }
 
 export type WishlistItemUncheckedCreateWithoutOriginStyleInput = {
   id?: number
   userId: number
-  imageUrl: string
   productName?: string | null
   brand?: string | null
   price?: number | null
   currency?: string
-  purchaseUrl?: string | null
+  imageUrl: string
+  purchaseUrl: string
   category: $Enums.Category
+  subCategory: $Enums.SubCategory
   isPurchased?: boolean
   createdAt?: Date | string
-  updatedAt?: Date | string
+  outfitItems?: Prisma.OutfitItemUncheckedCreateNestedManyWithoutWishlistItemInput
 }
 
 export type WishlistItemCreateOrConnectWithoutOriginStyleInput = {
@@ -771,158 +799,271 @@ export type WishlistItemUpdateManyWithWhereWithoutOriginStyleInput = {
   data: Prisma.XOR<Prisma.WishlistItemUpdateManyMutationInput, Prisma.WishlistItemUncheckedUpdateManyWithoutOriginStyleInput>
 }
 
-export type WishlistItemCreateManyUserInput = {
-  id?: number
-  imageUrl: string
+export type WishlistItemCreateWithoutOutfitItemsInput = {
   productName?: string | null
   brand?: string | null
   price?: number | null
   currency?: string
-  purchaseUrl?: string | null
+  imageUrl: string
+  purchaseUrl: string
   category: $Enums.Category
+  subCategory: $Enums.SubCategory
   isPurchased?: boolean
-  originStyleId?: number | null
   createdAt?: Date | string
-  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutWishlistInput
+  originStyle?: Prisma.StyleReferenceCreateNestedOneWithoutWishlistItemsInput
 }
 
-export type WishlistItemUpdateWithoutUserInput = {
-  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+export type WishlistItemUncheckedCreateWithoutOutfitItemsInput = {
+  id?: number
+  userId: number
+  productName?: string | null
+  brand?: string | null
+  price?: number | null
+  currency?: string
+  imageUrl: string
+  purchaseUrl: string
+  category: $Enums.Category
+  subCategory: $Enums.SubCategory
+  originStyleId?: number | null
+  isPurchased?: boolean
+  createdAt?: Date | string
+}
+
+export type WishlistItemCreateOrConnectWithoutOutfitItemsInput = {
+  where: Prisma.WishlistItemWhereUniqueInput
+  create: Prisma.XOR<Prisma.WishlistItemCreateWithoutOutfitItemsInput, Prisma.WishlistItemUncheckedCreateWithoutOutfitItemsInput>
+}
+
+export type WishlistItemUpsertWithoutOutfitItemsInput = {
+  update: Prisma.XOR<Prisma.WishlistItemUpdateWithoutOutfitItemsInput, Prisma.WishlistItemUncheckedUpdateWithoutOutfitItemsInput>
+  create: Prisma.XOR<Prisma.WishlistItemCreateWithoutOutfitItemsInput, Prisma.WishlistItemUncheckedCreateWithoutOutfitItemsInput>
+  where?: Prisma.WishlistItemWhereInput
+}
+
+export type WishlistItemUpdateToOneWithWhereWithoutOutfitItemsInput = {
+  where?: Prisma.WishlistItemWhereInput
+  data: Prisma.XOR<Prisma.WishlistItemUpdateWithoutOutfitItemsInput, Prisma.WishlistItemUncheckedUpdateWithoutOutfitItemsInput>
+}
+
+export type WishlistItemUpdateWithoutOutfitItemsInput = {
   productName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
-  purchaseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  purchaseUrl?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
+  subCategory?: Prisma.EnumSubCategoryFieldUpdateOperationsInput | $Enums.SubCategory
   isPurchased?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutWishlistNestedInput
   originStyle?: Prisma.StyleReferenceUpdateOneWithoutWishlistItemsNestedInput
+}
+
+export type WishlistItemUncheckedUpdateWithoutOutfitItemsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  userId?: Prisma.IntFieldUpdateOperationsInput | number
+  productName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  purchaseUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
+  subCategory?: Prisma.EnumSubCategoryFieldUpdateOperationsInput | $Enums.SubCategory
+  originStyleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  isPurchased?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type WishlistItemCreateManyUserInput = {
+  id?: number
+  productName?: string | null
+  brand?: string | null
+  price?: number | null
+  currency?: string
+  imageUrl: string
+  purchaseUrl: string
+  category: $Enums.Category
+  subCategory: $Enums.SubCategory
+  originStyleId?: number | null
+  isPurchased?: boolean
+  createdAt?: Date | string
+}
+
+export type WishlistItemUpdateWithoutUserInput = {
+  productName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  purchaseUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
+  subCategory?: Prisma.EnumSubCategoryFieldUpdateOperationsInput | $Enums.SubCategory
+  isPurchased?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  originStyle?: Prisma.StyleReferenceUpdateOneWithoutWishlistItemsNestedInput
+  outfitItems?: Prisma.OutfitItemUpdateManyWithoutWishlistItemNestedInput
 }
 
 export type WishlistItemUncheckedUpdateWithoutUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   productName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
-  purchaseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  purchaseUrl?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
-  isPurchased?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  subCategory?: Prisma.EnumSubCategoryFieldUpdateOperationsInput | $Enums.SubCategory
   originStyleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  isPurchased?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  outfitItems?: Prisma.OutfitItemUncheckedUpdateManyWithoutWishlistItemNestedInput
 }
 
 export type WishlistItemUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   productName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
-  purchaseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  purchaseUrl?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
-  isPurchased?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  subCategory?: Prisma.EnumSubCategoryFieldUpdateOperationsInput | $Enums.SubCategory
   originStyleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  isPurchased?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type WishlistItemCreateManyOriginStyleInput = {
   id?: number
   userId: number
-  imageUrl: string
   productName?: string | null
   brand?: string | null
   price?: number | null
   currency?: string
-  purchaseUrl?: string | null
+  imageUrl: string
+  purchaseUrl: string
   category: $Enums.Category
+  subCategory: $Enums.SubCategory
   isPurchased?: boolean
   createdAt?: Date | string
-  updatedAt?: Date | string
 }
 
 export type WishlistItemUpdateWithoutOriginStyleInput = {
-  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   productName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
-  purchaseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  purchaseUrl?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
+  subCategory?: Prisma.EnumSubCategoryFieldUpdateOperationsInput | $Enums.SubCategory
   isPurchased?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutWishlistNestedInput
+  outfitItems?: Prisma.OutfitItemUpdateManyWithoutWishlistItemNestedInput
 }
 
 export type WishlistItemUncheckedUpdateWithoutOriginStyleInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
-  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   productName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
-  purchaseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  purchaseUrl?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
+  subCategory?: Prisma.EnumSubCategoryFieldUpdateOperationsInput | $Enums.SubCategory
   isPurchased?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  outfitItems?: Prisma.OutfitItemUncheckedUpdateManyWithoutWishlistItemNestedInput
 }
 
 export type WishlistItemUncheckedUpdateManyWithoutOriginStyleInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
-  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
   productName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
-  purchaseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  purchaseUrl?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
+  subCategory?: Prisma.EnumSubCategoryFieldUpdateOperationsInput | $Enums.SubCategory
   isPurchased?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+
+/**
+ * Count Type WishlistItemCountOutputType
+ */
+
+export type WishlistItemCountOutputType = {
+  outfitItems: number
+}
+
+export type WishlistItemCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  outfitItems?: boolean | WishlistItemCountOutputTypeCountOutfitItemsArgs
+}
+
+/**
+ * WishlistItemCountOutputType without action
+ */
+export type WishlistItemCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the WishlistItemCountOutputType
+   */
+  select?: Prisma.WishlistItemCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * WishlistItemCountOutputType without action
+ */
+export type WishlistItemCountOutputTypeCountOutfitItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OutfitItemWhereInput
+}
 
 
 export type WishlistItemSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
-  imageUrl?: boolean
   productName?: boolean
   brand?: boolean
   price?: boolean
   currency?: boolean
+  imageUrl?: boolean
   purchaseUrl?: boolean
   category?: boolean
-  isPurchased?: boolean
+  subCategory?: boolean
   originStyleId?: boolean
+  isPurchased?: boolean
   createdAt?: boolean
-  updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   originStyle?: boolean | Prisma.WishlistItem$originStyleArgs<ExtArgs>
+  outfitItems?: boolean | Prisma.WishlistItem$outfitItemsArgs<ExtArgs>
+  _count?: boolean | Prisma.WishlistItemCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["wishlistItem"]>
 
 export type WishlistItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
-  imageUrl?: boolean
   productName?: boolean
   brand?: boolean
   price?: boolean
   currency?: boolean
+  imageUrl?: boolean
   purchaseUrl?: boolean
   category?: boolean
-  isPurchased?: boolean
+  subCategory?: boolean
   originStyleId?: boolean
+  isPurchased?: boolean
   createdAt?: boolean
-  updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   originStyle?: boolean | Prisma.WishlistItem$originStyleArgs<ExtArgs>
 }, ExtArgs["result"]["wishlistItem"]>
@@ -930,17 +1071,17 @@ export type WishlistItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
 export type WishlistItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
-  imageUrl?: boolean
   productName?: boolean
   brand?: boolean
   price?: boolean
   currency?: boolean
+  imageUrl?: boolean
   purchaseUrl?: boolean
   category?: boolean
-  isPurchased?: boolean
+  subCategory?: boolean
   originStyleId?: boolean
+  isPurchased?: boolean
   createdAt?: boolean
-  updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   originStyle?: boolean | Prisma.WishlistItem$originStyleArgs<ExtArgs>
 }, ExtArgs["result"]["wishlistItem"]>
@@ -948,23 +1089,25 @@ export type WishlistItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
 export type WishlistItemSelectScalar = {
   id?: boolean
   userId?: boolean
-  imageUrl?: boolean
   productName?: boolean
   brand?: boolean
   price?: boolean
   currency?: boolean
+  imageUrl?: boolean
   purchaseUrl?: boolean
   category?: boolean
-  isPurchased?: boolean
+  subCategory?: boolean
   originStyleId?: boolean
+  isPurchased?: boolean
   createdAt?: boolean
-  updatedAt?: boolean
 }
 
-export type WishlistItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "imageUrl" | "productName" | "brand" | "price" | "currency" | "purchaseUrl" | "category" | "isPurchased" | "originStyleId" | "createdAt" | "updatedAt", ExtArgs["result"]["wishlistItem"]>
+export type WishlistItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "productName" | "brand" | "price" | "currency" | "imageUrl" | "purchaseUrl" | "category" | "subCategory" | "originStyleId" | "isPurchased" | "createdAt", ExtArgs["result"]["wishlistItem"]>
 export type WishlistItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   originStyle?: boolean | Prisma.WishlistItem$originStyleArgs<ExtArgs>
+  outfitItems?: boolean | Prisma.WishlistItem$outfitItemsArgs<ExtArgs>
+  _count?: boolean | Prisma.WishlistItemCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type WishlistItemIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -980,21 +1123,22 @@ export type $WishlistItemPayload<ExtArgs extends runtime.Types.Extensions.Intern
   objects: {
     user: Prisma.$UserPayload<ExtArgs>
     originStyle: Prisma.$StyleReferencePayload<ExtArgs> | null
+    outfitItems: Prisma.$OutfitItemPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
     userId: number
-    imageUrl: string
     productName: string | null
     brand: string | null
     price: number | null
     currency: string
-    purchaseUrl: string | null
+    imageUrl: string
+    purchaseUrl: string
     category: $Enums.Category
-    isPurchased: boolean
+    subCategory: $Enums.SubCategory
     originStyleId: number | null
+    isPurchased: boolean
     createdAt: Date
-    updatedAt: Date
   }, ExtArgs["result"]["wishlistItem"]>
   composites: {}
 }
@@ -1391,6 +1535,7 @@ export interface Prisma__WishlistItemClient<T, Null = never, ExtArgs extends run
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   originStyle<T extends Prisma.WishlistItem$originStyleArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WishlistItem$originStyleArgs<ExtArgs>>): Prisma.Prisma__StyleReferenceClient<runtime.Types.Result.GetResult<Prisma.$StyleReferencePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  outfitItems<T extends Prisma.WishlistItem$outfitItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WishlistItem$outfitItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OutfitItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1422,17 +1567,17 @@ export interface Prisma__WishlistItemClient<T, Null = never, ExtArgs extends run
 export interface WishlistItemFieldRefs {
   readonly id: Prisma.FieldRef<"WishlistItem", 'Int'>
   readonly userId: Prisma.FieldRef<"WishlistItem", 'Int'>
-  readonly imageUrl: Prisma.FieldRef<"WishlistItem", 'String'>
   readonly productName: Prisma.FieldRef<"WishlistItem", 'String'>
   readonly brand: Prisma.FieldRef<"WishlistItem", 'String'>
   readonly price: Prisma.FieldRef<"WishlistItem", 'Float'>
   readonly currency: Prisma.FieldRef<"WishlistItem", 'String'>
+  readonly imageUrl: Prisma.FieldRef<"WishlistItem", 'String'>
   readonly purchaseUrl: Prisma.FieldRef<"WishlistItem", 'String'>
   readonly category: Prisma.FieldRef<"WishlistItem", 'Category'>
-  readonly isPurchased: Prisma.FieldRef<"WishlistItem", 'Boolean'>
+  readonly subCategory: Prisma.FieldRef<"WishlistItem", 'SubCategory'>
   readonly originStyleId: Prisma.FieldRef<"WishlistItem", 'Int'>
+  readonly isPurchased: Prisma.FieldRef<"WishlistItem", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"WishlistItem", 'DateTime'>
-  readonly updatedAt: Prisma.FieldRef<"WishlistItem", 'DateTime'>
 }
     
 
@@ -1845,6 +1990,30 @@ export type WishlistItem$originStyleArgs<ExtArgs extends runtime.Types.Extension
    */
   include?: Prisma.StyleReferenceInclude<ExtArgs> | null
   where?: Prisma.StyleReferenceWhereInput
+}
+
+/**
+ * WishlistItem.outfitItems
+ */
+export type WishlistItem$outfitItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OutfitItem
+   */
+  select?: Prisma.OutfitItemSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OutfitItem
+   */
+  omit?: Prisma.OutfitItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OutfitItemInclude<ExtArgs> | null
+  where?: Prisma.OutfitItemWhereInput
+  orderBy?: Prisma.OutfitItemOrderByWithRelationInput | Prisma.OutfitItemOrderByWithRelationInput[]
+  cursor?: Prisma.OutfitItemWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OutfitItemScalarFieldEnum | Prisma.OutfitItemScalarFieldEnum[]
 }
 
 /**

@@ -29,11 +29,13 @@ export type AggregateOutfit = {
 export type OutfitAvgAggregateOutputType = {
   id: number | null
   userId: number | null
+  recordedTemp: number | null
 }
 
 export type OutfitSumAggregateOutputType = {
   id: number | null
   userId: number | null
+  recordedTemp: number | null
 }
 
 export type OutfitMinAggregateOutputType = {
@@ -41,6 +43,8 @@ export type OutfitMinAggregateOutputType = {
   userId: number | null
   title: string | null
   imageUrl: string | null
+  recordedTemp: number | null
+  recordedWeather: string | null
   source: $Enums.OutfitSource | null
   createdAt: Date | null
 }
@@ -50,6 +54,8 @@ export type OutfitMaxAggregateOutputType = {
   userId: number | null
   title: string | null
   imageUrl: string | null
+  recordedTemp: number | null
+  recordedWeather: string | null
   source: $Enums.OutfitSource | null
   createdAt: Date | null
 }
@@ -59,6 +65,8 @@ export type OutfitCountAggregateOutputType = {
   userId: number
   title: number
   imageUrl: number
+  recordedTemp: number
+  recordedWeather: number
   source: number
   createdAt: number
   _all: number
@@ -68,11 +76,13 @@ export type OutfitCountAggregateOutputType = {
 export type OutfitAvgAggregateInputType = {
   id?: true
   userId?: true
+  recordedTemp?: true
 }
 
 export type OutfitSumAggregateInputType = {
   id?: true
   userId?: true
+  recordedTemp?: true
 }
 
 export type OutfitMinAggregateInputType = {
@@ -80,6 +90,8 @@ export type OutfitMinAggregateInputType = {
   userId?: true
   title?: true
   imageUrl?: true
+  recordedTemp?: true
+  recordedWeather?: true
   source?: true
   createdAt?: true
 }
@@ -89,6 +101,8 @@ export type OutfitMaxAggregateInputType = {
   userId?: true
   title?: true
   imageUrl?: true
+  recordedTemp?: true
+  recordedWeather?: true
   source?: true
   createdAt?: true
 }
@@ -98,6 +112,8 @@ export type OutfitCountAggregateInputType = {
   userId?: true
   title?: true
   imageUrl?: true
+  recordedTemp?: true
+  recordedWeather?: true
   source?: true
   createdAt?: true
   _all?: true
@@ -194,6 +210,8 @@ export type OutfitGroupByOutputType = {
   userId: number
   title: string | null
   imageUrl: string | null
+  recordedTemp: number | null
+  recordedWeather: string | null
   source: $Enums.OutfitSource
   createdAt: Date
   _count: OutfitCountAggregateOutputType | null
@@ -226,6 +244,8 @@ export type OutfitWhereInput = {
   userId?: Prisma.IntFilter<"Outfit"> | number
   title?: Prisma.StringNullableFilter<"Outfit"> | string | null
   imageUrl?: Prisma.StringNullableFilter<"Outfit"> | string | null
+  recordedTemp?: Prisma.FloatNullableFilter<"Outfit"> | number | null
+  recordedWeather?: Prisma.StringNullableFilter<"Outfit"> | string | null
   source?: Prisma.EnumOutfitSourceFilter<"Outfit"> | $Enums.OutfitSource
   createdAt?: Prisma.DateTimeFilter<"Outfit"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -237,6 +257,8 @@ export type OutfitOrderByWithRelationInput = {
   userId?: Prisma.SortOrder
   title?: Prisma.SortOrderInput | Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  recordedTemp?: Prisma.SortOrderInput | Prisma.SortOrder
+  recordedWeather?: Prisma.SortOrderInput | Prisma.SortOrder
   source?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
@@ -251,6 +273,8 @@ export type OutfitWhereUniqueInput = Prisma.AtLeast<{
   userId?: Prisma.IntFilter<"Outfit"> | number
   title?: Prisma.StringNullableFilter<"Outfit"> | string | null
   imageUrl?: Prisma.StringNullableFilter<"Outfit"> | string | null
+  recordedTemp?: Prisma.FloatNullableFilter<"Outfit"> | number | null
+  recordedWeather?: Prisma.StringNullableFilter<"Outfit"> | string | null
   source?: Prisma.EnumOutfitSourceFilter<"Outfit"> | $Enums.OutfitSource
   createdAt?: Prisma.DateTimeFilter<"Outfit"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -262,6 +286,8 @@ export type OutfitOrderByWithAggregationInput = {
   userId?: Prisma.SortOrder
   title?: Prisma.SortOrderInput | Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  recordedTemp?: Prisma.SortOrderInput | Prisma.SortOrder
+  recordedWeather?: Prisma.SortOrderInput | Prisma.SortOrder
   source?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.OutfitCountOrderByAggregateInput
@@ -279,6 +305,8 @@ export type OutfitScalarWhereWithAggregatesInput = {
   userId?: Prisma.IntWithAggregatesFilter<"Outfit"> | number
   title?: Prisma.StringNullableWithAggregatesFilter<"Outfit"> | string | null
   imageUrl?: Prisma.StringNullableWithAggregatesFilter<"Outfit"> | string | null
+  recordedTemp?: Prisma.FloatNullableWithAggregatesFilter<"Outfit"> | number | null
+  recordedWeather?: Prisma.StringNullableWithAggregatesFilter<"Outfit"> | string | null
   source?: Prisma.EnumOutfitSourceWithAggregatesFilter<"Outfit"> | $Enums.OutfitSource
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Outfit"> | Date | string
 }
@@ -286,6 +314,8 @@ export type OutfitScalarWhereWithAggregatesInput = {
 export type OutfitCreateInput = {
   title?: string | null
   imageUrl?: string | null
+  recordedTemp?: number | null
+  recordedWeather?: string | null
   source?: $Enums.OutfitSource
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutOutfitsInput
@@ -297,6 +327,8 @@ export type OutfitUncheckedCreateInput = {
   userId: number
   title?: string | null
   imageUrl?: string | null
+  recordedTemp?: number | null
+  recordedWeather?: string | null
   source?: $Enums.OutfitSource
   createdAt?: Date | string
   items?: Prisma.OutfitItemUncheckedCreateNestedManyWithoutOutfitInput
@@ -305,6 +337,8 @@ export type OutfitUncheckedCreateInput = {
 export type OutfitUpdateInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordedTemp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  recordedWeather?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.EnumOutfitSourceFieldUpdateOperationsInput | $Enums.OutfitSource
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutOutfitsNestedInput
@@ -316,6 +350,8 @@ export type OutfitUncheckedUpdateInput = {
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordedTemp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  recordedWeather?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.EnumOutfitSourceFieldUpdateOperationsInput | $Enums.OutfitSource
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OutfitItemUncheckedUpdateManyWithoutOutfitNestedInput
@@ -326,6 +362,8 @@ export type OutfitCreateManyInput = {
   userId: number
   title?: string | null
   imageUrl?: string | null
+  recordedTemp?: number | null
+  recordedWeather?: string | null
   source?: $Enums.OutfitSource
   createdAt?: Date | string
 }
@@ -333,6 +371,8 @@ export type OutfitCreateManyInput = {
 export type OutfitUpdateManyMutationInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordedTemp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  recordedWeather?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.EnumOutfitSourceFieldUpdateOperationsInput | $Enums.OutfitSource
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -342,6 +382,8 @@ export type OutfitUncheckedUpdateManyInput = {
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordedTemp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  recordedWeather?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.EnumOutfitSourceFieldUpdateOperationsInput | $Enums.OutfitSource
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -361,6 +403,8 @@ export type OutfitCountOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   title?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
+  recordedTemp?: Prisma.SortOrder
+  recordedWeather?: Prisma.SortOrder
   source?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -368,6 +412,7 @@ export type OutfitCountOrderByAggregateInput = {
 export type OutfitAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  recordedTemp?: Prisma.SortOrder
 }
 
 export type OutfitMaxOrderByAggregateInput = {
@@ -375,6 +420,8 @@ export type OutfitMaxOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   title?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
+  recordedTemp?: Prisma.SortOrder
+  recordedWeather?: Prisma.SortOrder
   source?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -384,6 +431,8 @@ export type OutfitMinOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   title?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
+  recordedTemp?: Prisma.SortOrder
+  recordedWeather?: Prisma.SortOrder
   source?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -391,6 +440,7 @@ export type OutfitMinOrderByAggregateInput = {
 export type OutfitSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  recordedTemp?: Prisma.SortOrder
 }
 
 export type OutfitScalarRelationFilter = {
@@ -461,6 +511,8 @@ export type OutfitUpdateOneRequiredWithoutItemsNestedInput = {
 export type OutfitCreateWithoutUserInput = {
   title?: string | null
   imageUrl?: string | null
+  recordedTemp?: number | null
+  recordedWeather?: string | null
   source?: $Enums.OutfitSource
   createdAt?: Date | string
   items?: Prisma.OutfitItemCreateNestedManyWithoutOutfitInput
@@ -470,6 +522,8 @@ export type OutfitUncheckedCreateWithoutUserInput = {
   id?: number
   title?: string | null
   imageUrl?: string | null
+  recordedTemp?: number | null
+  recordedWeather?: string | null
   source?: $Enums.OutfitSource
   createdAt?: Date | string
   items?: Prisma.OutfitItemUncheckedCreateNestedManyWithoutOutfitInput
@@ -509,6 +563,8 @@ export type OutfitScalarWhereInput = {
   userId?: Prisma.IntFilter<"Outfit"> | number
   title?: Prisma.StringNullableFilter<"Outfit"> | string | null
   imageUrl?: Prisma.StringNullableFilter<"Outfit"> | string | null
+  recordedTemp?: Prisma.FloatNullableFilter<"Outfit"> | number | null
+  recordedWeather?: Prisma.StringNullableFilter<"Outfit"> | string | null
   source?: Prisma.EnumOutfitSourceFilter<"Outfit"> | $Enums.OutfitSource
   createdAt?: Prisma.DateTimeFilter<"Outfit"> | Date | string
 }
@@ -516,6 +572,8 @@ export type OutfitScalarWhereInput = {
 export type OutfitCreateWithoutItemsInput = {
   title?: string | null
   imageUrl?: string | null
+  recordedTemp?: number | null
+  recordedWeather?: string | null
   source?: $Enums.OutfitSource
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutOutfitsInput
@@ -526,6 +584,8 @@ export type OutfitUncheckedCreateWithoutItemsInput = {
   userId: number
   title?: string | null
   imageUrl?: string | null
+  recordedTemp?: number | null
+  recordedWeather?: string | null
   source?: $Enums.OutfitSource
   createdAt?: Date | string
 }
@@ -549,6 +609,8 @@ export type OutfitUpdateToOneWithWhereWithoutItemsInput = {
 export type OutfitUpdateWithoutItemsInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordedTemp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  recordedWeather?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.EnumOutfitSourceFieldUpdateOperationsInput | $Enums.OutfitSource
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutOutfitsNestedInput
@@ -559,6 +621,8 @@ export type OutfitUncheckedUpdateWithoutItemsInput = {
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordedTemp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  recordedWeather?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.EnumOutfitSourceFieldUpdateOperationsInput | $Enums.OutfitSource
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -567,6 +631,8 @@ export type OutfitCreateManyUserInput = {
   id?: number
   title?: string | null
   imageUrl?: string | null
+  recordedTemp?: number | null
+  recordedWeather?: string | null
   source?: $Enums.OutfitSource
   createdAt?: Date | string
 }
@@ -574,6 +640,8 @@ export type OutfitCreateManyUserInput = {
 export type OutfitUpdateWithoutUserInput = {
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordedTemp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  recordedWeather?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.EnumOutfitSourceFieldUpdateOperationsInput | $Enums.OutfitSource
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OutfitItemUpdateManyWithoutOutfitNestedInput
@@ -583,6 +651,8 @@ export type OutfitUncheckedUpdateWithoutUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordedTemp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  recordedWeather?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.EnumOutfitSourceFieldUpdateOperationsInput | $Enums.OutfitSource
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.OutfitItemUncheckedUpdateManyWithoutOutfitNestedInput
@@ -592,6 +662,8 @@ export type OutfitUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordedTemp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  recordedWeather?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   source?: Prisma.EnumOutfitSourceFieldUpdateOperationsInput | $Enums.OutfitSource
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -632,6 +704,8 @@ export type OutfitSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   userId?: boolean
   title?: boolean
   imageUrl?: boolean
+  recordedTemp?: boolean
+  recordedWeather?: boolean
   source?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -644,6 +718,8 @@ export type OutfitSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   userId?: boolean
   title?: boolean
   imageUrl?: boolean
+  recordedTemp?: boolean
+  recordedWeather?: boolean
   source?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -654,6 +730,8 @@ export type OutfitSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   userId?: boolean
   title?: boolean
   imageUrl?: boolean
+  recordedTemp?: boolean
+  recordedWeather?: boolean
   source?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -664,11 +742,13 @@ export type OutfitSelectScalar = {
   userId?: boolean
   title?: boolean
   imageUrl?: boolean
+  recordedTemp?: boolean
+  recordedWeather?: boolean
   source?: boolean
   createdAt?: boolean
 }
 
-export type OutfitOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "title" | "imageUrl" | "source" | "createdAt", ExtArgs["result"]["outfit"]>
+export type OutfitOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "title" | "imageUrl" | "recordedTemp" | "recordedWeather" | "source" | "createdAt", ExtArgs["result"]["outfit"]>
 export type OutfitInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   items?: boolean | Prisma.Outfit$itemsArgs<ExtArgs>
@@ -692,6 +772,8 @@ export type $OutfitPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     userId: number
     title: string | null
     imageUrl: string | null
+    recordedTemp: number | null
+    recordedWeather: string | null
     source: $Enums.OutfitSource
     createdAt: Date
   }, ExtArgs["result"]["outfit"]>
@@ -1123,6 +1205,8 @@ export interface OutfitFieldRefs {
   readonly userId: Prisma.FieldRef<"Outfit", 'Int'>
   readonly title: Prisma.FieldRef<"Outfit", 'String'>
   readonly imageUrl: Prisma.FieldRef<"Outfit", 'String'>
+  readonly recordedTemp: Prisma.FieldRef<"Outfit", 'Float'>
+  readonly recordedWeather: Prisma.FieldRef<"Outfit", 'String'>
   readonly source: Prisma.FieldRef<"Outfit", 'OutfitSource'>
   readonly createdAt: Prisma.FieldRef<"Outfit", 'DateTime'>
 }

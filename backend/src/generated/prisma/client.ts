@@ -45,6 +45,11 @@ export { Prisma }
  */
 export type User = Prisma.UserModel
 /**
+ * Model ClothingItem
+ * 
+ */
+export type ClothingItem = Prisma.ClothingItemModel
+/**
  * Model ClosetItem
  * 
  */

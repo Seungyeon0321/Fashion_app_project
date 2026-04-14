@@ -31,6 +31,31 @@ export const Category = {
 export type Category = (typeof Category)[keyof typeof Category]
 
 
+export const SubCategory = {
+  T_SHIRT_SHORT: 'T_SHIRT_SHORT',
+  T_SHIRT_LONG: 'T_SHIRT_LONG',
+  SHIRT: 'SHIRT',
+  KNIT: 'KNIT',
+  SWEATSHIRT: 'SWEATSHIRT',
+  HOODIE: 'HOODIE',
+  VEST: 'VEST',
+  CARDIGAN: 'CARDIGAN',
+  WINDBREAKER: 'WINDBREAKER',
+  JACKET: 'JACKET',
+  COAT: 'COAT',
+  PADDED_LIGHT: 'PADDED_LIGHT',
+  PADDED_HEAVY: 'PADDED_HEAVY',
+  DENIM: 'DENIM',
+  SLACKS: 'SLACKS',
+  COTTON_PANTS: 'COTTON_PANTS',
+  SWEATPANTS: 'SWEATPANTS',
+  SHORTS: 'SHORTS',
+  SKIRT: 'SKIRT'
+} as const
+
+export type SubCategory = (typeof SubCategory)[keyof typeof SubCategory]
+
+
 export const Season = {
   SPRING: 'SPRING',
   SUMMER: 'SUMMER',

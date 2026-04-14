@@ -40,6 +40,7 @@ export type UserMinAggregateOutputType = {
   password: string | null
   nickname: string | null
   gender: $Enums.Gender | null
+  location: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -50,6 +51,7 @@ export type UserMaxAggregateOutputType = {
   password: string | null
   nickname: string | null
   gender: $Enums.Gender | null
+  location: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -60,6 +62,7 @@ export type UserCountAggregateOutputType = {
   password: number
   nickname: number
   gender: number
+  location: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -80,6 +83,7 @@ export type UserMinAggregateInputType = {
   password?: true
   nickname?: true
   gender?: true
+  location?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -90,6 +94,7 @@ export type UserMaxAggregateInputType = {
   password?: true
   nickname?: true
   gender?: true
+  location?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -100,6 +105,7 @@ export type UserCountAggregateInputType = {
   password?: true
   nickname?: true
   gender?: true
+  location?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -197,6 +203,7 @@ export type UserGroupByOutputType = {
   password: string
   nickname: string | null
   gender: $Enums.Gender | null
+  location: string | null
   createdAt: Date
   updatedAt: Date
   _count: UserCountAggregateOutputType | null
@@ -230,6 +237,7 @@ export type UserWhereInput = {
   password?: Prisma.StringFilter<"User"> | string
   nickname?: Prisma.StringNullableFilter<"User"> | string | null
   gender?: Prisma.EnumGenderNullableFilter<"User"> | $Enums.Gender | null
+  location?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   closetItems?: Prisma.ClosetItemListRelationFilter
@@ -244,6 +252,7 @@ export type UserOrderByWithRelationInput = {
   password?: Prisma.SortOrder
   nickname?: Prisma.SortOrderInput | Prisma.SortOrder
   gender?: Prisma.SortOrderInput | Prisma.SortOrder
+  location?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   closetItems?: Prisma.ClosetItemOrderByRelationAggregateInput
@@ -261,6 +270,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   password?: Prisma.StringFilter<"User"> | string
   nickname?: Prisma.StringNullableFilter<"User"> | string | null
   gender?: Prisma.EnumGenderNullableFilter<"User"> | $Enums.Gender | null
+  location?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   closetItems?: Prisma.ClosetItemListRelationFilter
@@ -275,6 +285,7 @@ export type UserOrderByWithAggregationInput = {
   password?: Prisma.SortOrder
   nickname?: Prisma.SortOrderInput | Prisma.SortOrder
   gender?: Prisma.SortOrderInput | Prisma.SortOrder
+  location?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
@@ -293,6 +304,7 @@ export type UserScalarWhereWithAggregatesInput = {
   password?: Prisma.StringWithAggregatesFilter<"User"> | string
   nickname?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   gender?: Prisma.EnumGenderNullableWithAggregatesFilter<"User"> | $Enums.Gender | null
+  location?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
 }
@@ -302,6 +314,7 @@ export type UserCreateInput = {
   password: string
   nickname?: string | null
   gender?: $Enums.Gender | null
+  location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   closetItems?: Prisma.ClosetItemCreateNestedManyWithoutUserInput
@@ -316,6 +329,7 @@ export type UserUncheckedCreateInput = {
   password: string
   nickname?: string | null
   gender?: $Enums.Gender | null
+  location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   closetItems?: Prisma.ClosetItemUncheckedCreateNestedManyWithoutUserInput
@@ -329,6 +343,7 @@ export type UserUpdateInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closetItems?: Prisma.ClosetItemUpdateManyWithoutUserNestedInput
@@ -343,6 +358,7 @@ export type UserUncheckedUpdateInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closetItems?: Prisma.ClosetItemUncheckedUpdateManyWithoutUserNestedInput
@@ -357,6 +373,7 @@ export type UserCreateManyInput = {
   password: string
   nickname?: string | null
   gender?: $Enums.Gender | null
+  location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -366,6 +383,7 @@ export type UserUpdateManyMutationInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -376,6 +394,7 @@ export type UserUncheckedUpdateManyInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -386,6 +405,7 @@ export type UserCountOrderByAggregateInput = {
   password?: Prisma.SortOrder
   nickname?: Prisma.SortOrder
   gender?: Prisma.SortOrder
+  location?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -400,6 +420,7 @@ export type UserMaxOrderByAggregateInput = {
   password?: Prisma.SortOrder
   nickname?: Prisma.SortOrder
   gender?: Prisma.SortOrder
+  location?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -410,6 +431,7 @@ export type UserMinOrderByAggregateInput = {
   password?: Prisma.SortOrder
   nickname?: Prisma.SortOrder
   gender?: Prisma.SortOrder
+  location?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -508,6 +530,7 @@ export type UserCreateWithoutClosetItemsInput = {
   password: string
   nickname?: string | null
   gender?: $Enums.Gender | null
+  location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   styleRefs?: Prisma.StyleReferenceCreateNestedManyWithoutUserInput
@@ -521,6 +544,7 @@ export type UserUncheckedCreateWithoutClosetItemsInput = {
   password: string
   nickname?: string | null
   gender?: $Enums.Gender | null
+  location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   styleRefs?: Prisma.StyleReferenceUncheckedCreateNestedManyWithoutUserInput
@@ -549,6 +573,7 @@ export type UserUpdateWithoutClosetItemsInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   styleRefs?: Prisma.StyleReferenceUpdateManyWithoutUserNestedInput
@@ -562,6 +587,7 @@ export type UserUncheckedUpdateWithoutClosetItemsInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   styleRefs?: Prisma.StyleReferenceUncheckedUpdateManyWithoutUserNestedInput
@@ -574,6 +600,7 @@ export type UserCreateWithoutStyleRefsInput = {
   password: string
   nickname?: string | null
   gender?: $Enums.Gender | null
+  location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   closetItems?: Prisma.ClosetItemCreateNestedManyWithoutUserInput
@@ -587,6 +614,7 @@ export type UserUncheckedCreateWithoutStyleRefsInput = {
   password: string
   nickname?: string | null
   gender?: $Enums.Gender | null
+  location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   closetItems?: Prisma.ClosetItemUncheckedCreateNestedManyWithoutUserInput
@@ -615,6 +643,7 @@ export type UserUpdateWithoutStyleRefsInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closetItems?: Prisma.ClosetItemUpdateManyWithoutUserNestedInput
@@ -628,6 +657,7 @@ export type UserUncheckedUpdateWithoutStyleRefsInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closetItems?: Prisma.ClosetItemUncheckedUpdateManyWithoutUserNestedInput
@@ -640,6 +670,7 @@ export type UserCreateWithoutOutfitsInput = {
   password: string
   nickname?: string | null
   gender?: $Enums.Gender | null
+  location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   closetItems?: Prisma.ClosetItemCreateNestedManyWithoutUserInput
@@ -653,6 +684,7 @@ export type UserUncheckedCreateWithoutOutfitsInput = {
   password: string
   nickname?: string | null
   gender?: $Enums.Gender | null
+  location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   closetItems?: Prisma.ClosetItemUncheckedCreateNestedManyWithoutUserInput
@@ -681,6 +713,7 @@ export type UserUpdateWithoutOutfitsInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closetItems?: Prisma.ClosetItemUpdateManyWithoutUserNestedInput
@@ -694,6 +727,7 @@ export type UserUncheckedUpdateWithoutOutfitsInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closetItems?: Prisma.ClosetItemUncheckedUpdateManyWithoutUserNestedInput
@@ -706,6 +740,7 @@ export type UserCreateWithoutWishlistInput = {
   password: string
   nickname?: string | null
   gender?: $Enums.Gender | null
+  location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   closetItems?: Prisma.ClosetItemCreateNestedManyWithoutUserInput
@@ -719,6 +754,7 @@ export type UserUncheckedCreateWithoutWishlistInput = {
   password: string
   nickname?: string | null
   gender?: $Enums.Gender | null
+  location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   closetItems?: Prisma.ClosetItemUncheckedCreateNestedManyWithoutUserInput
@@ -747,6 +783,7 @@ export type UserUpdateWithoutWishlistInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closetItems?: Prisma.ClosetItemUpdateManyWithoutUserNestedInput
@@ -760,6 +797,7 @@ export type UserUncheckedUpdateWithoutWishlistInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closetItems?: Prisma.ClosetItemUncheckedUpdateManyWithoutUserNestedInput
@@ -831,6 +869,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   password?: boolean
   nickname?: boolean
   gender?: boolean
+  location?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   closetItems?: boolean | Prisma.User$closetItemsArgs<ExtArgs>
@@ -846,6 +885,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   password?: boolean
   nickname?: boolean
   gender?: boolean
+  location?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["user"]>
@@ -856,6 +896,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   password?: boolean
   nickname?: boolean
   gender?: boolean
+  location?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["user"]>
@@ -866,11 +907,12 @@ export type UserSelectScalar = {
   password?: boolean
   nickname?: boolean
   gender?: boolean
+  location?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "password" | "nickname" | "gender" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "password" | "nickname" | "gender" | "location" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   closetItems?: boolean | Prisma.User$closetItemsArgs<ExtArgs>
   styleRefs?: boolean | Prisma.User$styleRefsArgs<ExtArgs>
@@ -895,6 +937,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     password: string
     nickname: string | null
     gender: $Enums.Gender | null
+    location: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["user"]>
@@ -1329,6 +1372,7 @@ export interface UserFieldRefs {
   readonly password: Prisma.FieldRef<"User", 'String'>
   readonly nickname: Prisma.FieldRef<"User", 'String'>
   readonly gender: Prisma.FieldRef<"User", 'Gender'>
+  readonly location: Prisma.FieldRef<"User", 'String'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
 }
