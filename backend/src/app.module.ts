@@ -6,6 +6,7 @@ import { ConfigModule } from './config/config.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { S3Module } from './s3/s3.module.js';
 import { BullModule } from '@nestjs/bullmq';
+import { ClosetModule } from './closet/closet.module.js';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { BullModule } from '@nestjs/bullmq';
     ConfigModule,
     PrismaModule,
     S3Module,
+    ClosetModule,
   ],
   controllers: [AppController],
   providers: [AppService],

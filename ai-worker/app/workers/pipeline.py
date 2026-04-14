@@ -66,6 +66,7 @@ class ClothingPipeline:
         image: Image.Image | None = None,
         s3_key: str | None = None,
         user_id: int | None = None,
+        job_id: str | None = None,
     ) -> list[int]:
         """
         파이프라인 실행.
@@ -116,6 +117,7 @@ class ClothingPipeline:
                 # DB 저장
                 item = ClothingItem(
                     user_id=user_id,
+                    job_id=job_id,
                     label=crop["label"],
                     label_id=crop["label_id"],
                     source_s3_key=s3_key,

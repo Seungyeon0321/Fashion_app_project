@@ -464,14 +464,6 @@ export type OutfitItemUncheckedUpdateManyWithoutOutfitNestedInput = {
   deleteMany?: Prisma.OutfitItemScalarWhereInput | Prisma.OutfitItemScalarWhereInput[]
 }
 
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type OutfitItemCreateNestedManyWithoutWishlistItemInput = {
   create?: Prisma.XOR<Prisma.OutfitItemCreateWithoutWishlistItemInput, Prisma.OutfitItemUncheckedCreateWithoutWishlistItemInput> | Prisma.OutfitItemCreateWithoutWishlistItemInput[] | Prisma.OutfitItemUncheckedCreateWithoutWishlistItemInput[]
   connectOrCreate?: Prisma.OutfitItemCreateOrConnectWithoutWishlistItemInput | Prisma.OutfitItemCreateOrConnectWithoutWishlistItemInput[]

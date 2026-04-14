@@ -83,7 +83,7 @@ def _run_pipeline(
 ) -> None:
     logger.info("처리 시작 | job_id=%s user_id=%s s3_key=%s", job_id, user_id, s3_key)
     try:
-        saved_ids = pipeline.run(s3_key=s3_key, user_id=user_id)
+        saved_ids = pipeline.run(s3_key=s3_key, user_id=user_id, job_id=job_id)
         logger.info(
             "처리 완료 | job_id=%s | 저장된 clothing_item ids: %s",
             job_id, saved_ids,

@@ -46,7 +46,8 @@ class ClothingItem(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
 
     user_id = Column(Integer, nullable=False)
-
+    
+    job_id = Column(String, nullable=True)         # BullMQ job ID
 
     # 어떤 옷인지
     label = Column(String, nullable=False)          # "Upper-clothes", "Pants" 등
@@ -74,14 +75,15 @@ def init_db():
     테이블 생성 + pgvector 확장 활성화.
     Worker 시작 시 한 번만 실행.
     """
-    with engine.connect() as conn:
-        # pgvector 확장 활성화 (이미 돼있으면 무시)
-        conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
-        conn.commit()
+    pass
+    # with engine.connect() as conn:
+    #     # pgvector 확장 활성화 (이미 돼있으면 무시)
+    #     conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+    #     conn.commit()
 
-    # 테이블이 없으면 생성 (있으면 스킵)
-    Base.metadata.create_all(engine)
-    print("[DB] 테이블 초기화 완료")
+    # # 테이블이 없으면 생성 (있으면 스킵)
+    # Base.metadata.create_all(engine)
+    # print("[DB] 테이블 초기화 완료")
 
 
 def get_session() -> Session:

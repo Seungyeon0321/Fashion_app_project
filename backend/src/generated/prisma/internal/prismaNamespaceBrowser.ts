@@ -109,7 +109,9 @@ export type ClothingItemScalarFieldEnum = (typeof ClothingItemScalarFieldEnum)[k
 export const ClosetItemScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
+  clothingItemId: 'clothingItemId',
   imageUrl: 'imageUrl',
+  cropS3Key: 'cropS3Key',
   category: 'category',
   subCategory: 'subCategory',
   minTemp: 'minTemp',
@@ -119,6 +121,8 @@ export const ClosetItemScalarFieldEnum = {
   colors: 'colors',
   season: 'season',
   brand: 'brand',
+  memo: 'memo',
+  isFavorite: 'isFavorite',
   wearCount: 'wearCount',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
