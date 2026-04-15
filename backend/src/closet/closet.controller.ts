@@ -20,7 +20,9 @@ export class ClosetController {
     @Get()
     async findAll(@Req() req: any) {
         const userId = 1;
-        return this.closetService.findAllByUserId(userId);
+        const result = await this.closetService.findAllByUserId(userId);
+        console.log(result);
+        return result;
     }
 
     // PUT /closet/:id/archive

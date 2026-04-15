@@ -1,4 +1,3 @@
-// app/(tabs)/index.tsx
 import { useState } from 'react';
 import { HomePage } from '@/pages/home/ui/HomePage';
 

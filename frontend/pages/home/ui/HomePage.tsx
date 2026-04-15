@@ -1,19 +1,10 @@
 // pages/home/ui/HomePage.tsx
 import { useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
+import { useClosetItems } from '@/features/closet/api/useCloset';
 import { ClothingCard, getCardBgColor } from '@/shared/ui/Clothingcard';
 import { colors, fonts, spacing, radius } from '@/shared/lib/tokens';
-
-// ── 임시 더미 데이터 (나중에 API 연결) ──────────────────────
-const DUMMY_ITEMS = [
-  { id: 1, category: 'Outerwear',   brand: 'Totême',   isFavorite: true,  imageUrl: undefined },
-  { id: 2, category: 'Tops',        brand: 'Everlane', isFavorite: false, imageUrl: undefined },
-  { id: 3, category: 'Bottoms',     brand: 'Uniqlo',   isFavorite: false, imageUrl: undefined },
-  { id: 4, category: 'Accessories', brand: 'Linjer',   isFavorite: true,  imageUrl: undefined },
-  { id: 5, category: 'Shoes',       brand: 'Common Projects', isFavorite: false, imageUrl: undefined },
-  { id: 6, category: 'Knitwear',    brand: 'Cuyana',   isFavorite: false, imageUrl: undefined },
-];
 
 const CATEGORIES = ['ALL', 'TOPS', 'BOTTOMS', 'OUTER', 'SHOES'];
 
@@ -28,9 +19,38 @@ export function HomePage({
 }: HomePageProps) {
   const router = useRouter();
 
+  // ── 서버 데이터 ──────────────────────────────────────────
+  const { data: allItems = [], isLoading, isError } = useClosetItems();
+
+  // 카테고리 필터링
+  const filtered = selectedCategory === 'ALL'
+    ? allItems
+    : allItems.filter(item =>
+        item.category.toUpperCase() === selectedCategory
+      );
+
   // 왼쪽/오른쪽 컬럼으로 분리
-  const leftItems  = DUMMY_ITEMS.filter((_, i) => i % 2 === 0);
-  const rightItems = DUMMY_ITEMS.filter((_, i) => i % 2 === 1);
+  const leftItems  = filtered.filter((_, i) => i % 2 === 0);
+  const rightItems = filtered.filter((_, i) => i % 2 === 1);
+
+  // ── 로딩 상태 ────────────────────────────────────────────
+  if (isLoading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  // ── 에러 상태 ────────────────────────────────────────────
+  if (isError) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.errorText}>Error occurred while fetching closet items</Text>
+        <Text style={styles.errorSub}>Please try again later</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.screen}>
@@ -41,11 +61,9 @@ export function HomePage({
       >
         {/* ── 헤더 ── */}
         <View style={styles.header}>
-          <View>
-            <Text style={styles.greeting}>GOOD MORNING</Text>
-            <Text style={styles.title}>My{'\n'}Wardrobe</Text>
-            <Text style={styles.count}>{DUMMY_ITEMS.length} items curated</Text>
-          </View>
+          <Text style={styles.greeting}>GOOD MORNING</Text>
+          <Text style={styles.title}>My{'\n'}Wardrobe</Text>
+          <Text style={styles.count}>{allItems.length} items curated</Text>
         </View>
 
         {/* ── 카테고리 탭 ── */}
@@ -73,59 +91,63 @@ export function HomePage({
           })}
         </ScrollView>
 
+        {/* ── 빈 상태 ── */}
+        {filtered.length === 0 && (
+          <View style={styles.empty}>
+            <Text style={styles.emptyText}>아직 등록된 옷이 없어요</Text>
+            <Text style={styles.emptySub}>+ 버튼으로 첫 번째 옷을 추가해보세요</Text>
+          </View>
+        )}
+
         {/* ── 지그재그 그리드 ── */}
-        {/* 왼쪽이 위, 오른쪽이 spacing.cardOffset 만큼 아래 */}
-        <View style={styles.grid}>
+        {filtered.length > 0 && (
+          <View style={styles.grid}>
 
-          {/* 왼쪽 컬럼 */}
-          <View style={styles.column}>
-            {leftItems.map((item, idx) => (
-              <View
-                key={item.id}
-                style={[
-                  styles.cardWrapper,
-                  // 첫 번째 카드 이후 간격
-                  idx > 0 && { marginTop: spacing.sectionGap },
-                  // 배경색 적용
-                  { backgroundColor: getCardBgColor(idx * 2) },
-                ]}
-              >
-                <ClothingCard
-                  imageUrl={item.imageUrl}
-                  category={item.category}
-                  brand={item.brand}
-                  isFavorite={item.isFavorite}
-                  onPress={() => router.push(`/(tabs)/closet/${item.id}`)}
-                />
-              </View>
-            ))}
+            {/* 왼쪽 컬럼 */}
+            <View style={styles.column}>
+              {leftItems.map((item, idx) => (
+                <View
+                  key={item.id}
+                  style={[
+                    styles.cardWrapper,
+                    idx > 0 && { marginTop: spacing.sectionGap },
+                    { backgroundColor: getCardBgColor(idx * 2) },
+                  ]}
+                >
+                  <ClothingCard
+                    category={item.category}
+                    brand={item.brand ?? ''}
+                    isFavorite={item.isFavorite}
+                    onPress={() => router.push(`/closet/${item.id}`)}
+                  />
+                </View>
+              ))}
+            </View>
+
+            {/* 오른쪽 컬럼 — cardOffset만큼 아래로 */}
+            <View style={[styles.column, { marginTop: spacing.cardOffset }]}>
+              {rightItems.map((item, idx) => (
+                <View
+                  key={item.id}
+                  style={[
+                    styles.cardWrapper,
+                    idx > 0 && { marginTop: spacing.sectionGap },
+                    { backgroundColor: getCardBgColor(idx * 2 + 1) },
+                  ]}
+                >
+                  <ClothingCard
+                    category={item.category}
+                    brand={item.brand ?? ''}
+                    isFavorite={item.isFavorite}
+                    onPress={() => router.push(`/closet/${item.id}`)}
+                  />
+                </View>
+              ))}
+            </View>
+
           </View>
+        )}
 
-          {/* 오른쪽 컬럼 — cardOffset만큼 아래로 */}
-          <View style={[styles.column, { marginTop: spacing.cardOffset }]}>
-            {rightItems.map((item, idx) => (
-              <View
-                key={item.id}
-                style={[
-                  styles.cardWrapper,
-                  idx > 0 && { marginTop: spacing.sectionGap },
-                  { backgroundColor: getCardBgColor(idx * 2 + 1) },
-                ]}
-              >
-                <ClothingCard
-                  imageUrl={item.imageUrl}
-                  category={item.category}
-                  brand={item.brand}
-                  isFavorite={item.isFavorite}
-                  onPress={() => router.push(`/(tabs)/closet/${item.id}`)}
-                />
-              </View>
-            ))}
-          </View>
-
-        </View>
-
-        {/* 스크롤 하단 여백 (FAB가 가리지 않도록) */}
         <View style={{ height: 100 }} />
       </ScrollView>
 
@@ -153,7 +175,24 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingTop: 14, // status bar 여백
+    paddingTop: 14,
+  },
+
+  // ── 로딩 / 에러 ──
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background,
+  },
+  errorText: {
+    ...fonts.title,
+    color: colors.primary,
+  },
+  errorSub: {
+    ...fonts.bodyMd,
+    color: colors.hint,
+    marginTop: 8,
   },
 
   // ── Header ──
@@ -183,7 +222,6 @@ const styles = StyleSheet.create({
   },
   tabsContent: {
     paddingHorizontal: spacing.outerMargin,
-    gap: 0,
   },
   tabItem: {
     paddingHorizontal: 14,
@@ -207,6 +245,21 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
 
+  // ── 빈 상태 ──
+  empty: {
+    alignItems: 'center',
+    marginTop: 80,
+  },
+  emptyText: {
+    ...fonts.title,
+    color: colors.primary,
+  },
+  emptySub: {
+    ...fonts.bodyMd,
+    color: colors.hint,
+    marginTop: 8,
+  },
+
   // ── Grid ──
   grid: {
     flexDirection: 'row',
@@ -225,7 +278,7 @@ const styles = StyleSheet.create({
   // ── FAB ──
   fab: {
     position: 'absolute',
-    bottom: 100,   // 탭바 위
+    bottom: 100,
     right: spacing.outerMargin,
     width: 52,
     height: 52,
