@@ -61,6 +61,33 @@ class ClothingPipeline:
         # io.BytesIO는 메모리에 있는 데이터를 파일처럼 다룰 수 있게 해주는 파이썬 표준 라이브러리이다.
         return Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
+    def _upload_crop_to_s3(
+        self,
+        crop_image: Image.Image,
+        user_id: int,
+        job_id: str,
+        label: str,
+        index: int,
+    ) -> str:
+        s3 = self._get_s3()
+
+        # PIL Image → bytes 변환
+        buffer = io.BytesIO()
+        crop_image.save(buffer, format="JPEG", quality=90)
+        buffer.seek(0)
+
+        # crops/{userId}/{jobId}/{label}_{index}.jpg
+        crop_key = f"crops/{user_id}/{job_id}/{label}_{index}.jpg"
+
+        s3.put_object(
+            Bucket=settings.S3_BUCKET,
+            Key=crop_key,
+            Body=buffer,
+            ContentType="image/jpeg",
+        )
+
+        return crop_key
+
     def run(
         self,
         image: Image.Image | None = None,
@@ -104,7 +131,7 @@ class ClothingPipeline:
         session = get_session()
 
         try:
-            for crop in crops:
+            for index, crop in enumerate(crops):
                 print(
                     f"[Pipeline] CLIP 인코딩: {crop['label']} "
                     f"(mask_ratio={crop['mask_ratio']})",
@@ -114,6 +141,17 @@ class ClothingPipeline:
                 # 크롭 이미지 → 512차원 벡터
                 vector = self.encoder.encode(crop["image"])
 
+                crop_s3_key = None
+                if user_id is not None and job_id is not None:
+                    crop_s3_key = self._upload_crop_to_s3(
+                        crop_image=crop["image"],
+                        user_id=user_id,
+                        job_id=job_id,
+                        label=crop["label"],
+                        index=index,
+                    )
+                    print(f"[Pipeline] 크롭 S3 업로드: {crop_s3_key}", flush=True)
+
                 # DB 저장
                 item = ClothingItem(
                     user_id=user_id,
@@ -121,6 +159,7 @@ class ClothingPipeline:
                     label=crop["label"],
                     label_id=crop["label_id"],
                     source_s3_key=s3_key,
+                    crop_s3_key=crop_s3_key,
                     bbox=crop["bbox"],
                     mask_ratio=crop["mask_ratio"],
                     embedding=vector.tolist(),  # numpy → list (pgvector 호환)

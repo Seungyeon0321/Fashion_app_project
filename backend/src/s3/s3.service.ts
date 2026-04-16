@@ -29,21 +29,21 @@ export class S3Service {
   async uploadClothingImage(
     imageBuffer: Buffer,
     userId: string,
+    jobId: string,           // ← 추가
     mimeType: string = 'image/jpeg',
   ): Promise<{ key: string; url: string }> {
-    const ext = mimeType.split('/')[1]; // jpeg, png 등
-    const key = `clothing/${userId}/${randomUUID()}.${ext}`;
-
-    // 
+    const ext = mimeType.split('/')[1];
+    const key = `originals/${userId}/${jobId}/original.${ext}`;  // ← 변경
+  
     const command = new PutObjectCommand({
       Bucket: this.bucket,
       Key: key,
       Body: imageBuffer,
       ContentType: mimeType,
     });
-
+  
     await this.client.send(command);
-
+  
     const url = `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
     return { key, url };
   }

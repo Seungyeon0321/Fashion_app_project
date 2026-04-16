@@ -6,6 +6,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import { S3Service } from '../../s3/s3.service.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 // Return items created by the YOLO model
@@ -19,14 +20,15 @@ export class PostsService {
             throw new BadRequestException('Invalid clothing image');
         }
 
-        // upload the image to S3
-        const { key, url } = await this.s3Service.uploadClothingImage(file.buffer, userId.toString());
+        const jobId = `job-${randomUUID()}`;
 
-        console.log('key', key);
+        // upload the image to S3
+        const { key, url } = await this.s3Service.uploadClothingImage(file.buffer, userId.toString(), jobId);
+
         
         // add the image to the queue
         const job = await this.clothingQueue.add('analyze-clothing', {
-            job_id: `job-${Date.now()}`,
+            job_id: jobId,
             userId: userId,
             s3Key: key,
         });
