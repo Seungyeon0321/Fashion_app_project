@@ -73,17 +73,16 @@ class ClothingPipeline:
 
         # PIL Image → bytes 변환
         buffer = io.BytesIO()
-        crop_image.save(buffer, format="JPEG", quality=90)
+        crop_image.save(buffer, format="PNG")  # 투명도 지원
         buffer.seek(0)
 
-        # crops/{userId}/{jobId}/{label}_{index}.jpg
-        crop_key = f"crops/{user_id}/{job_id}/{label}_{index}.jpg"
+        crop_key = f"crops/{user_id}/{job_id}/{label}_{index}.png"
 
         s3.put_object(
             Bucket=settings.S3_BUCKET,
             Key=crop_key,
             Body=buffer,
-            ContentType="image/jpeg",
+            ContentType="image/png",
         )
 
         return crop_key

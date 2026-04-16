@@ -189,13 +189,26 @@ class SegFormerSegmenter:
             right = min(original_size[0], right + pad_w)
 
             # 크롭
-            cropped = image.crop((left, top, right, bottom))
+            # 1. bbox 영역 크롭
+            cropped_rgb = image.crop((left, top, right, bottom))
+
+            # 2. 마스크도 같은 영역으로 크롭
+            mask_cropped = mask[top:bottom, left:right]
+
+            # 3. RGBA 변환 (A = 투명도 채널)
+            cropped_rgba = cropped_rgb.convert("RGBA")
+
+            # 4. numpy 배열 변환
+            rgba_np = np.array(cropped_rgba)
+
+            # 5. 마스크 바깥 픽셀 투명 처리
+            rgba_np[:, :, 3] = np.where(mask_cropped, 255, 0)
 
             results.append({
                 "label": LABEL_MAP[label_id],
                 "label_id": label_id,
-                "image": cropped,
-                "bbox": [left, top, right - left, bottom - top],  # [x, y, w, h]
+                "image": Image.fromarray(rgba_np, "RGBA"),
+                "bbox": [left, top, right - left, bottom - top],
                 "mask_ratio": round(float(mask_ratio), 4),
             })
 

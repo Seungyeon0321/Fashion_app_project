@@ -43,7 +43,7 @@ def process_job(r: redis_lib.Redis, pipeline: ClothingPipeline, raw: bytes) -> N
         if isinstance(payload, dict) and "data" in payload:
             s3_key  = payload["data"]["s3Key"]
             user_id = payload["data"].get("userId", "unknown")
-            job_id  = str(payload.get("id", decoded))
+            job_id  = payload["data"].get("job_id") or str(payload.get("id", decoded))  # ← 수정
             _run_pipeline(r, pipeline, job_id, s3_key, user_id, raw)
             return
     except (json.JSONDecodeError, KeyError):
@@ -65,6 +65,7 @@ def process_job(r: redis_lib.Redis, pipeline: ClothingPipeline, raw: bytes) -> N
         data     = json.loads(data_str)
         s3_key   = data["s3Key"]
         user_id  = data.get("userId", "unknown")
+        job_id   = data.get("job_id") or job_id 
     except (KeyError, json.JSONDecodeError) as e:
         logger.error("job_id=%s 데이터 파싱 실패: %s", job_id, e)
         _move_to_failed(r, raw, reason=str(e))

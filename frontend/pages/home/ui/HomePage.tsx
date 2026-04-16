@@ -2,9 +2,10 @@
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
-import { useClosetItems } from '@/features/closet/api/useCloset';
+import { useClosetItems, closetKeys, useUpdateClosetItem } from '@/features/closet/api/useCloset';
 import { ClothingCard, getCardBgColor } from '@/shared/ui/Clothingcard';
 import { colors, fonts, spacing, radius } from '@/shared/lib/tokens';
+import { useQueryClient } from '@tanstack/react-query';
 
 const CATEGORIES = ['ALL', 'TOPS', 'BOTTOMS', 'OUTER', 'SHOES'];
 
@@ -115,11 +116,12 @@ export function HomePage({
                   ]}
                 >
                   <ClothingCard
+                    imageUrl={item.imageUrl ?? undefined}
                     category={item.category}
                     brand={item.brand ?? ''}
                     isFavorite={item.isFavorite}
                     onPress={() => router.push(`/closet/${item.id}`)}
-                  />
+/>
                 </View>
               ))}
             </View>
@@ -135,11 +137,12 @@ export function HomePage({
                     { backgroundColor: getCardBgColor(idx * 2 + 1) },
                   ]}
                 >
-                  <ClothingCard
-                    category={item.category}
-                    brand={item.brand ?? ''}
-                    isFavorite={item.isFavorite}
-                    onPress={() => router.push(`/closet/${item.id}`)}
+                 <ClothingCard
+                  imageUrl={item.imageUrl ?? undefined}
+                  category={item.category}
+                  brand={item.brand ?? ''}
+                  isFavorite={item.isFavorite}
+                  onPress={() => router.push(`/closet/${item.id}`)}
                   />
                 </View>
               ))}

@@ -32,7 +32,7 @@ export class PostsController {
             const result = await this.postsService.registerMyClothes(testUserId, file, validation)
 
             type RegisterMyClothesData = { jobId: string };
-            return ok<RegisterMyClothesData>({ jobId: String(result.JobId) });
+            return ok<RegisterMyClothesData>({ jobId: String(result.jobId) });
     }
 
     @Get('/registerMyClothes/status/:jobId')

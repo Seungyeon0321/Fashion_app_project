@@ -35,7 +35,7 @@ export class PostsService {
 
         
 
-        return { success: true, JobId: job.id };
+        return { success: true, jobId: jobId };
     }
 
     public async getRegisterStatus(jobId: string) {

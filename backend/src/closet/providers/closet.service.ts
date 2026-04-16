@@ -1,19 +1,20 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
-import { RegisterClosetItemDto, UpdateClosetItemDto } from './dtos/closet.dtos.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
+import { S3Service } from '../../s3/s3.service.js';
+import { RegisterClosetItemDto, UpdateClosetItemDto } from '../dtos/closet.dtos.js';
 
 @Injectable()
 export class ClosetService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly s3: S3Service,  // ← 추가
+    ) {}
 
     // POST /closet/register
     async register(userId: number, dto: RegisterClosetItemDto) {
-        // 1. clothing_items에서 원본 데이터 가져오기
         const source = await this.prisma.clothingItem.findUnique({
-            where: {
-                id: dto.clothingItemId,
-            }
-        })
+            where: { id: dto.clothingItemId }
+        });
 
         if (!source) {
             throw new NotFoundException('Clothing item not found');
@@ -32,17 +33,34 @@ export class ClosetService {
                 isFavorite: false,
                 wearCount: 0,
             }
-        })
-    }
-      // GET /closet
-    async findAllByUserId(userId: number) {
-        return this.prisma.closetItem.findMany({
-        where: { userId, isArchived: false },
-        orderBy: { createdAt: 'desc' },
         });
+
+        return {
+            ...closetItem,
+            imageUrl: closetItem.cropS3Key
+                ? await this.s3.getPresignedUrl(closetItem.cropS3Key)
+                : null,
+        };
     }
 
-    // PUT /closet/:id/archive
+    // GET /closet
+    async findAllByUserId(userId: number) {
+        const items = await this.prisma.closetItem.findMany({
+            where: { userId, isArchived: false },
+            orderBy: { createdAt: 'desc' },
+        });
+
+        // Presigned URL을 병렬로 발급 (Promise.all — 순차 X, 동시 처리)
+        return Promise.all(
+            items.map(async (item) => ({
+                ...item,
+                imageUrl: item.cropS3Key
+                    ? await this.s3.getPresignedUrl(item.cropS3Key)
+                    : null,
+            }))
+        );
+    }
+
     async archive(userId: number, closetItemId: number) {
         const item = await this.prisma.closetItem.findUnique({
             where: { id: closetItemId, userId },
@@ -56,7 +74,6 @@ export class ClosetService {
         });
     }
 
-    // DELETE /closet/:id
     async remove(userId: number, closetItemId: number) {
         const item = await this.prisma.closetItem.findUnique({
             where: { id: closetItemId, userId },
@@ -69,19 +86,16 @@ export class ClosetService {
         });
     }
 
-    // Patch /closet/:id
     async update(userId: number, id: number, dto: UpdateClosetItemDto) {
         const item = await this.prisma.closetItem.findUnique({
-          where: { id },
+            where: { id },
         });
-      
         if (!item || item.userId !== userId) {
-          throw new NotFoundException('Closet item not found');
+            throw new NotFoundException('Closet item not found');
         }
-      
         return this.prisma.closetItem.update({
-          where: { id },
-          data: { ...dto },
+            where: { id },
+            data: { ...dto },
         });
-      }
+    }
 }

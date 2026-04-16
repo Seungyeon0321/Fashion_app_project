@@ -1,6 +1,7 @@
 export interface ClosetItem {
   id: number;
   userId: number;
+  imageUrl: string | null;
   clothingItemId: number | null;
   cropS3Key: string | null;
   category: string;

@@ -32,6 +32,7 @@ export function ClothingCard({
           </View>
         )}
       </View>
+      
 
       {/* 텍스트 영역 */}
       <View style={styles.textArea}>
