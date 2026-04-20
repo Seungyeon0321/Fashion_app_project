@@ -82,3 +82,39 @@ export function useDeleteClosetItem() {
     },
   });
 }
+
+// ── PATCH /closet/:id/favorite ───────────────────────────────
+export function useToggleFavorite(id: number) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    // mutate 호출 시 newValue를 변수로 받음
+    mutationFn: async (newValue: boolean) => {
+      console.log(newValue, 'newValue');
+      const res = await api.patch<ClosetItem>(`/closet/${id}`, {
+        isFavorite: newValue,
+      });
+      return res.data;
+    },
+
+    onMutate: async (newValue: boolean) => {
+      await queryClient.cancelQueries({ queryKey: closetKeys.lists });
+
+      const previousItems = queryClient.getQueryData<ClosetItem[]>(closetKeys.lists);
+
+      queryClient.setQueryData<ClosetItem[]>(closetKeys.lists, (old) =>
+        old?.map((item) =>
+          item.id === id ? { ...item, isFavorite: newValue } : item
+        )
+      );
+
+      return { previousItems };
+    },
+
+    onError: (_err, _vars, context) => {
+      if (context?.previousItems) {
+        queryClient.setQueryData(closetKeys.lists, context.previousItems);
+      }
+    },
+  });
+}

@@ -18,7 +18,6 @@ export class PostsController {
     @Get('/registerMyClothes')
     public async getUploadURL(@Query('fileName') filename: string) {
         // return await this.postsService.registerMyClothes(filename);
-        console.log('this is test to get upload URL')
     }
 
     @Post('/registerMyClothes')

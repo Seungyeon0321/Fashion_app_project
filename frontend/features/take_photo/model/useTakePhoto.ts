@@ -53,7 +53,6 @@ export const useTakePhoto = (ref: RefObject<CameraView>) => {
                 format: SaveFormat.JPEG,
                 compress: 0.85,
             });
-            console.log('saved', saved);
             setPhoto({ uri: saved.uri, width: saved.width, height: saved.height });
             setValidationStatus("valid");
         } catch (error) {

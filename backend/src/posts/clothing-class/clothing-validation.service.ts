@@ -18,8 +18,6 @@ export class ClothingValidationService implements OnModuleInit{
     async validate(imageBuffer: Buffer): Promise<{valid: boolean, confidence: number, reason?: string}> {
         // 1. image resize and remove alpha
         const { data, info } = await sharp(imageBuffer).resize(224, 224).removeAlpha().raw().toBuffer({ resolveWithObject: true });
-        console.log(info, 'info')
-        console.log('first pixel RGB:', data[0], data[1], data[2]);
         const mean = [0.485, 0.456, 0.406];
         const std  = [0.229, 0.224, 0.225];
         const tensor = new Float32Array(3 * 224 * 224);
@@ -53,7 +51,6 @@ export class ClothingValidationService implements OnModuleInit{
         CLOTHING_CLASS_INDICES.has(index)
       );
   
-      console.log('this is test to get topClothing', topClothing)
       if (topClothing) {
         return { valid: true, confidence: topClothing.probability };
       }

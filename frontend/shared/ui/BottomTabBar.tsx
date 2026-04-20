@@ -21,7 +21,6 @@ const TABS: { name: TabName; label: string }[] = [
 
 export function BottomTabBar({ activeTab, onTabPress }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  console.log(activeTab);
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom || 12 }]}>

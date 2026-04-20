@@ -4,7 +4,6 @@ import { BottomTabBar } from '@/shared/ui/BottomTabBar';
 type BarTab = 'home' | 'stylist' | 'style' | 'profile';
 
 function routeNameToBarTab(routeName: string): BarTab {
-  console.log(routeName, 'routeNameToBarTab');
   switch (routeName) {
     case 'home':
       return 'home';

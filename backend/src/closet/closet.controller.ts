@@ -21,7 +21,6 @@ export class ClosetController {
     async findAll(@Req() req: any) {
         const userId = 1;
         const result = await this.closetService.findAllByUserId(userId);
-        console.log(result);
         return result;
     }
 
@@ -47,6 +46,7 @@ export class ClosetController {
     @Body() dto: UpdateClosetItemDto,
     ) {
     const userId = 1;
+    console.log(dto, 'dto', id, 'id');
     return this.closetService.update(userId, id, dto);
 }
 }
