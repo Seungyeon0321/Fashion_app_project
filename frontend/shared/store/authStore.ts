@@ -18,6 +18,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   login: async (token: string) => {
     await tokenStorage.save(token);
+    console.log('✅ login token:', token);
     set({ token, isAuthenticated: true });
   },
 

@@ -1,9 +1,9 @@
-import { Button, Image, View, Text, ActivityIndicator, StyleSheet, useWindowDimensions } from 'react-native'
+import { Pressable, Image, View, Text, ActivityIndicator, StyleSheet, useWindowDimensions } from 'react-native'
 import { Photo } from '@/entities/media/model/types'
 import type { ValidationStatus } from '@/features/take_photo/model/useTakePhoto'
 import { CameraType } from 'expo-camera'
 import { useCameraFrame } from '../model/useCameraFrame'
-import Svg, { Path, Rect } from 'react-native-svg'
+import Svg, { Path } from 'react-native-svg'
 
 type PhotoPreviewProps = {
   photo: Photo | null
@@ -30,39 +30,67 @@ export const PhotoPreview = ({
   const isInvalid = validationStatus === 'invalid'
   const isPending = validationStatus === 'pending'
 
-  const outerPath = `M0,0 H${width} V${height} H0 V0 Z`;
+  const outerPath = `M0,0 H${width} V${height} H0 V0 Z`
   const innerPath = frameRect
-  ? `M${frameRect.left},${frameRect.top} H${frameRect.left + frameRect.width} V${frameRect.top + frameRect.height} H${frameRect.left} Z`
-  : ''
+    ? `M${frameRect.left},${frameRect.top} H${frameRect.left + frameRect.width} V${frameRect.top + frameRect.height} H${frameRect.left} Z`
+    : ''
 
   return (
     <View style={styles.container}>
-      <Image source={{ uri: photo?.uri ?? '' }} style={[styles.image, { transform: facing === 'front' ? [{ scaleX: -1 }] : [] }]} resizeMode="cover" />
+      <Image
+        source={{ uri: photo?.uri ?? '' }}
+        style={[styles.image, { transform: facing === 'front' ? [{ scaleX: -1 }] : [] }]}
+        resizeMode="cover"
+      />
 
+      {/* ── 분석 중 ── */}
       {isPending && (
         <View style={styles.overlay}>
-          <ActivityIndicator size="large" color="#fff" />
-          <Text style={styles.overlayText}>Analyzing...</Text>
+          <ActivityIndicator size="large" color="rgba(250,249,246,0.9)" />
+          <Text style={styles.overlayText}>ANALYZING</Text>
         </View>
       )}
 
+      {/* ── 유효하지 않은 사진 ── */}
       {isInvalid && (
         <View style={styles.overlay}>
           <Text style={styles.errorTitle}>{RETRY_MESSAGE}</Text>
-          {validationMessage ? <Text style={styles.errorSub}>{validationMessage}</Text> : null}
-          <Button title="Retry" onPress={onClear} />
+          {validationMessage && (
+            <Text style={styles.errorSub}>{validationMessage}</Text>
+          )}
+          <Pressable
+            style={({ pressed }) => [styles.button, { opacity: pressed ? 0.7 : 1 }]}
+            onPress={onClear}
+          >
+            <Text style={styles.buttonText}>RETRY</Text>
+          </Pressable>
         </View>
       )}
 
+      {/* ── 유효한 사진 ── */}
       {validationStatus === 'valid' && frameRect && (
         <>
-        <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
-          <Path d={`${outerPath} ${innerPath}`} fillRule="evenodd" fill="rgba(0, 0, 0, 0.5)" />
-        </Svg>
-        <View style={styles.actions}>
-          <Button title="Confirm Photo" onPress={() => onConfirm(width, height)} />
-          <Button title="Take another picture" onPress={onClear} />
-        </View>
+          <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
+            <Path
+              d={`${outerPath} ${innerPath}`}
+              fillRule="evenodd"
+              fill="rgba(0,0,0,0.5)"
+            />
+          </Svg>
+          <View style={styles.actions}>
+            <Pressable
+              style={({ pressed }) => [styles.button, styles.buttonPrimary, { opacity: pressed ? 0.7 : 1 }]}
+              onPress={() => onConfirm(width, height)}
+            >
+              <Text style={styles.buttonText}>CONFIRM</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [styles.button, styles.buttonGhost, { opacity: pressed ? 0.7 : 1 }]}
+              onPress={onClear}
+            >
+              <Text style={styles.buttonTextGhost}>RETAKE</Text>
+            </Pressable>
+          </View>
         </>
       )}
     </View>
@@ -78,6 +106,8 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
   },
+
+  // ── 오버레이 ──
   overlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.6)',
@@ -87,25 +117,62 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   overlayText: {
-    color: '#fff',
-    fontSize: 16,
+    fontFamily: 'Manrope_500Medium',
+    fontSize: 11,
+    letterSpacing: 2,
+    color: 'rgba(250,249,246,0.9)',
+    marginTop: 12,
   },
   errorTitle: {
-    color: '#fff',
+    fontFamily: 'Epilogue_500Medium',
     fontSize: 18,
-    fontWeight: '600',
+    color: '#faf9f6',
     textAlign: 'center',
   },
   errorSub: {
-    color: 'rgba(255,255,255,0.9)',
-    fontSize: 14,
+    fontFamily: 'Manrope_400Regular',
+    fontSize: 13,
+    color: 'rgba(250,249,246,0.7)',
     textAlign: 'center',
+    lineHeight: 20,
   },
+
+  // ── 하단 액션 버튼 ──
   actions: {
     position: 'absolute',
-    bottom: 24,
-    left: 0,
-    right: 0,
+    bottom: 40,
+    left: 24,
+    right: 24,
+    flexDirection: 'row',
+    gap: 12,
     alignItems: 'center',
+  },
+  button: {
+    flex: 1,
+    width: '100%',
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 0,
+  },
+  buttonPrimary: {
+    backgroundColor: 'rgba(250,249,246,0.9)',
+  },
+  buttonGhost: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: 'rgba(250,249,246,0.4)',
+  },
+  buttonText: {
+    fontFamily: 'Manrope_500Medium',
+    fontSize: 11,
+    letterSpacing: 2,
+    color: '#1a1a1a',
+  },
+  buttonTextGhost: {
+    fontFamily: 'Manrope_500Medium',
+    fontSize: 11,
+    letterSpacing: 2,
+    color: 'rgba(250,249,246,0.9)',
   },
 })

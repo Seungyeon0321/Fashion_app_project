@@ -64,9 +64,10 @@ export default function RootLayout() {
         <ThemeProvider value={DefaultTheme}>
           <StatusBar style="dark" />
           <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="closet" options={{ headerShown: false }} />
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="closet" options={{ headerShown: false }} />
+            <Stack.Screen name="camera" options={{ headerShown: false }} />
           </Stack>
         </ThemeProvider>
       </SafeAreaProvider>

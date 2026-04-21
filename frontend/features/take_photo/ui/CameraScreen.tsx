@@ -18,26 +18,27 @@ const PhotoView = ({
   isCountingDown,
   countDown,
 }: CameraLayoutProps) => {
-
   return (
     <>
-        <CameraLayout>
-                {isCountingDown && <Text style={styles.countDownText}>{countDown}</Text>}
-        </CameraLayout>
-    <TextBox text={message}  />
+      <CameraLayout>
+        {isCountingDown && (
+          <Text style={styles.countDownText}>{countDown}</Text>
+        )}
+      </CameraLayout>
+      <TextBox text={message} />
     </>
   )
 }
 
 const styles = StyleSheet.create({
   countDownText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontFamily: 'Epilogue_700Bold',
+    fontSize: 64,
+    color: '#faf9f6',
     textAlign: 'center',
-    textShadowColor: 'rgba(0,0,0,0.75)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
 })
 

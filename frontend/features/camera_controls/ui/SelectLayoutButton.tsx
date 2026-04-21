@@ -1,47 +1,66 @@
-import { Pressable, Text, View, StyleSheet} from "react-native"
+import { Pressable, Text, View, StyleSheet } from "react-native"
 import { BodyFrameType } from "../model/useSelectLayout";
 
-const button = [
-    {type: 'topBody', label: 'Top Body'},
-    {type: 'bottomBody', label: 'Bottom Body'},
-    {type: 'fullBody', label: 'Full Body'},
+const BUTTONS = [
+    { type: 'topBody',    label: 'TOP' },
+    { type: 'bottomBody', label: 'BOTTOM' },
+    { type: 'fullBody',   label: 'FULL' },
 ]
 
 export const SelectLayoutButton = ({ currentLayout, changeLayout }: { currentLayout: BodyFrameType, changeLayout: (layout: BodyFrameType) => void }) => {
-
     return (
         <View style={styles.container}>
-            {button.map((item) => (
-                <Pressable key={item.type} style={({ pressed }) => [styles.button, { opacity: pressed ? 0.7 : 1 }]} onPress={() => {
-                    changeLayout(item.type);
-                }}>
-                    <Text style={[styles.buttonText, { color: currentLayout === item.type ? 'white' : 'gray' }]}>{item.label}</Text>
-                </Pressable>
-            ))}
+            {BUTTONS.map((item) => {
+                const active = currentLayout === item.type;
+                return (
+                    <Pressable
+                        key={item.type}
+                        style={({ pressed }) => [
+                            styles.button,
+                            active && styles.buttonActive,
+                            { opacity: pressed ? 0.7 : 1 },
+                        ]}
+                        onPress={() => changeLayout(item.type)}
+                    >
+                        <Text style={[styles.buttonText, active && styles.buttonTextActive]}>
+                            {item.label}
+                        </Text>
+                    </Pressable>
+                )
+            })}
         </View>
-
     )
 }
 
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
         width: '100%',
-        gap: 20,
-        paddingHorizontal: 20,
+        gap: 8,
+        paddingHorizontal: 24,
     },
     button: {
-        backgroundColor: 'rgba(27, 26, 26, 0.5)',
-        height: 40,
-        width: '30%',
-        borderRadius: 10,
+        flex: 1,
+        height: 36,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.3)',
+        borderRadius: 0, // sharp corners
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: 'transparent',
+    },
+    buttonActive: {
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        borderColor: 'rgba(255,255,255,0.8)',
     },
     buttonText: {
+        fontFamily: 'Manrope_500Medium',
+        fontSize: 11,
+        letterSpacing: 1.5,
+        color: 'rgba(255,255,255,0.4)',
+    },
+    buttonTextActive: {
         color: 'white',
-        fontSize: 16,
-        fontWeight: 'bold',
     },
 })

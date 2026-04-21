@@ -3,19 +3,15 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6"
 
 export const ToggleFacingButton = ({ toggleFacing }: { toggleFacing: () => void }) => {
     const { width } = useWindowDimensions()
-    const W = width
-
-    // 아이콘 크기 = 화면 너비의 5% (useWindowDimensions로 기기마다 비율 유지)
-    const iconSize = Math.round(W * 0.05)
-    const padding = Math.round(W * 0.02)
+    const iconSize = Math.round(width * 0.05)
 
     return (
-        <View style={[styles.container, { width: W }]}>
+        <View style={[styles.container, { width }]}>
             <Pressable
                 onPress={toggleFacing}
                 style={({ pressed }) => [
                     styles.button,
-                    { padding, opacity: pressed ? 0.8 : 1 },
+                    { opacity: pressed ? 0.6 : 1 },
                 ]}
             >
                 <FontAwesome6 name="rotate-left" size={iconSize} color="white" />
@@ -31,7 +27,10 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
     },
     button: {
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        borderRadius: 50,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.2)',
+        borderRadius: 0, // sharp corners
+        padding: 10,
     },
 })

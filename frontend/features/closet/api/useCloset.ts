@@ -18,6 +18,7 @@ export function useClosetItems() {
     queryKey: closetKeys.lists,
     queryFn: async () => {
       const res = await api.get<ClosetItem[]>('/closet');
+      console.log('✅ closet res:', res.data);
       return res.data;
     },
   });

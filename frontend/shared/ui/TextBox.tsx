@@ -12,11 +12,14 @@ const styles = StyleSheet.create({
     container: {
         justifyContent: 'center',
         alignItems: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 24,
     },
     text: {
-        color: 'white',
-        fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'Manrope_400Regular',
+        fontSize: 12,
+        letterSpacing: 1.5,
+        color: 'rgba(250,249,246,0.95)', // 거의 흰색
         textAlign: 'center',
     },
 })

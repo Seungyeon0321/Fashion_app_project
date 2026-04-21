@@ -1,7 +1,7 @@
 // pages/home/ui/HomePage.tsx
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Svg, { Line } from 'react-native-svg';
+import Svg, { Line, Path } from 'react-native-svg';
 import { useClosetItems, closetKeys, useUpdateClosetItem } from '@/features/closet/api/useCloset';
 import { ClothingCard, getCardBgColor } from '@/shared/ui/Clothingcard';
 import { colors, fonts, spacing, radius } from '@/shared/lib/tokens';
@@ -21,7 +21,7 @@ export function HomePage({
   const router = useRouter();
 
   // ── 서버 데이터 ──────────────────────────────────────────
-  const { data: allItems = [], isLoading, isError } = useClosetItems();
+  const { data: allItems = [], isLoading, isError, error } = useClosetItems();
 
   // 카테고리 필터링
   const filtered = selectedCategory === 'ALL'
@@ -45,6 +45,7 @@ export function HomePage({
 
   // ── 에러 상태 ────────────────────────────────────────────
   if (isError) {
+    console.log(error, 'error');
     return (
       <View style={styles.centered}>
         <Text style={styles.errorText}>Error occurred while fetching closet items</Text>
@@ -63,7 +64,7 @@ export function HomePage({
         {/* ── 헤더 ── */}
         <View style={styles.header}>
           <Text style={styles.greeting}>GOOD MORNING</Text>
-          <Text style={styles.title}>My{'\n'}Wardrobe</Text>
+          <Text style={styles.title}>My Wardrobe</Text>
           <Text style={styles.count}>{allItems.length} items curated</Text>
         </View>
 
@@ -95,10 +96,39 @@ export function HomePage({
         {/* ── 빈 상태 ── */}
         {filtered.length === 0 && (
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>아직 등록된 옷이 없어요</Text>
-            <Text style={styles.emptySub}>+ 버튼으로 첫 번째 옷을 추가해보세요</Text>
-          </View>
-        )}
+            <Svg width={48} height={48} viewBox="0 0 24 24" fill="none">
+            {/* 걸이 고리 */}
+            <Path
+              d="M12 3 C12 3 10 3 10 5 C10 7 12 7 12 7"
+              stroke="#e24b4a"
+              strokeWidth={1.5}
+              strokeLinecap="round"
+              fill="none"
+
+            />
+            {/* 어깨 라인 */}
+            <Path
+              d="M12 7 L3 17 H21 L12 7"
+              stroke="#e24b4a"
+              strokeWidth={1.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+            />
+          </Svg>
+
+            <Text style={styles.emptyTitle}>Your closet{'\n'}is empty.</Text>
+            <Text style={styles.emptySub}>— add your first piece —</Text>
+
+            <TouchableOpacity
+              style={styles.emptyButton}
+              onPress={() => router.push('/camera')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.emptyButtonText}>+ ADD ITEM</Text>
+            </TouchableOpacity>
+  </View>
+)}
 
         {/* ── 지그재그 그리드 ── */}
         {filtered.length > 0 && (
@@ -155,16 +185,18 @@ export function HomePage({
       </ScrollView>
 
       {/* ── FAB 버튼 ── */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => router.push('/camera')}
-        activeOpacity={0.85}
-      >
-        <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
-          <Line x1={10} y1={3} x2={10} y2={17} stroke="white" strokeWidth={2} strokeLinecap="round" />
-          <Line x1={3}  y1={10} x2={17} y2={10} stroke="white" strokeWidth={2} strokeLinecap="round" />
-        </Svg>
-      </TouchableOpacity>
+      {allItems.length > 0 && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => router.push('/camera')}
+          activeOpacity={0.85}
+        >
+          <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
+            <Line x1={10} y1={3} x2={10} y2={17} stroke="white" strokeWidth={2} strokeLinecap="round" />
+            <Line x1={3}  y1={10} x2={17} y2={10} stroke="white" strokeWidth={2} strokeLinecap="round" />
+          </Svg>
+        </TouchableOpacity>
+)}
     </View>
   );
 }
@@ -201,7 +233,7 @@ const styles = StyleSheet.create({
   // ── Header ──
   header: {
     paddingHorizontal: spacing.outerMargin,
-    paddingTop: 20,
+    paddingTop: 10,
   },
   greeting: {
     ...fonts.label,
@@ -211,12 +243,11 @@ const styles = StyleSheet.create({
   title: {
     ...fonts.display,
     color: colors.primary,
-    marginTop: 4,
+    marginTop: 8,
   },
   count: {
     ...fonts.bodyMd,
     color: colors.hint,
-    marginTop: 10,
   },
 
   // ── Category tabs ──
@@ -251,18 +282,36 @@ const styles = StyleSheet.create({
   // ── 빈 상태 ──
   empty: {
     alignItems: 'center',
-    marginTop: 80,
+    marginTop: 100,
+    paddingHorizontal: spacing.outerMargin,
+    paddingBottom: 120, // ← 추가
   },
-  emptyText: {
-    ...fonts.title,
+  emptyTitle: {
+    ...fonts.headline,
     color: colors.primary,
+    textAlign: 'center',
+    marginTop: 24,
+    lineHeight: 34,
   },
   emptySub: {
-    ...fonts.bodyMd,
+    ...fonts.caption,
     color: colors.hint,
-    marginTop: 8,
+    marginTop: 12,
+    letterSpacing: 1.5,
   },
-
+  emptyButton: {
+    marginTop: 36,
+    paddingVertical: 14,
+    paddingHorizontal: 40,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    backgroundColor: 'transparent',
+  },
+  emptyButtonText: {
+    ...fonts.label,
+    color: colors.primary,
+    letterSpacing: 2,
+  },
   // ── Grid ──
   grid: {
     flexDirection: 'row',
@@ -290,4 +339,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+ 
 });
