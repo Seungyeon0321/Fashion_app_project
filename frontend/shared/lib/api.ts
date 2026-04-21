@@ -1,6 +1,7 @@
 // shared/lib/api.ts
 import axios from 'axios';
 import { ENV } from '@/shared/util/env';
+import { useAuthStore } from '../store/authStore';
 
 export const api = axios.create({
   baseURL: ENV.BACKEND_API_URL,
@@ -15,9 +16,8 @@ export const api = axios.create({
 // 모든 요청 전에 실행 — 나중에 JWT 토큰 여기서 주입
 api.interceptors.request.use(
   (config) => {
-    // TODO: Auth 구현 후 아래 주석 해제
-    // const token = useAuthStore.getState().token;
-    // if (token) config.headers.Authorization = `Bearer ${token}`;
+    const token = useAuthStore.getState().token;
+    if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
   (error) => Promise.reject(error),
@@ -30,23 +30,24 @@ api.interceptors.response.use(
   (error) => {
     // 네트워크 자체가 안 될 때 (서버 꺼져있거나 오프라인)
     if (!error.response) {
-      console.error('[API] 네트워크 오류:', error.message);
-      return Promise.reject(new Error('네트워크 연결을 확인해주세요'));
+      console.error('[API] error of network:', error.message);
+      return Promise.reject(new Error('check your network connection'));
     }
 
     const { status } = error.response;
 
-    // TODO: Auth 구현 후 401 처리 추가
-    // if (status === 401) {
-    //   useAuthStore.getState().logout();
-    // }
+    // 토큰이 만료됐을 때 서버가 401을 돌려줘요. 이걸 잡아서 자동으로 logout()을 호출하면, ㅏ용자가 모르게 만료된 토큰을 들고 다니는
+    // 상황을 방지 할 수 있다.
+    if (status === 401) {
+      useAuthStore.getState().logout();
+    }
 
     if (status === 404) {
-      return Promise.reject(new Error('요청한 데이터를 찾을 수 없어요'));
+      return Promise.reject(new Error('requested data not found'));
     }
 
     if (status >= 500) {
-      return Promise.reject(new Error('서버 오류가 발생했어요. 잠시 후 다시 시도해주세요'));
+      return Promise.reject(new Error('server error occurred. please try again later'));
     }
 
     return Promise.reject(error);
