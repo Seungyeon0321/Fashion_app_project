@@ -74,3 +74,11 @@ export const OutfitSource = {
 } as const
 
 export type OutfitSource = (typeof OutfitSource)[keyof typeof OutfitSource]
+
+
+export const AuthProvider = {
+  LOCAL: 'LOCAL',
+  GOOGLE: 'GOOGLE'
+} as const
+
+export type AuthProvider = (typeof AuthProvider)[keyof typeof AuthProvider]

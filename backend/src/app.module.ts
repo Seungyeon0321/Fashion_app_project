@@ -7,6 +7,8 @@ import { PrismaModule } from './prisma/prisma.module.js';
 import { S3Module } from './s3/s3.module.js';
 import { BullModule } from '@nestjs/bullmq';
 import { ClosetModule } from './closet/closet.module.js';
+import { AuthModule } from './auth/auth.module.js';
+import { UsersModule } from './users/users.module.js';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { ClosetModule } from './closet/closet.module.js';
     PrismaModule,
     S3Module,
     ClosetModule,
+    AuthModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

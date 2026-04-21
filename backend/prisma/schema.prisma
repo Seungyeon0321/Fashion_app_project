@@ -18,20 +18,25 @@ datasource db {
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
-  password  String   // Hashed password
+  password  String?  // ← String에서 String?으로 변경 (Google 사용자는 비밀번호 없음)
   nickname  String?
-  gender    Gender?  // Used for considering fit in recommendations
-  
-  // Relations
-  closetItems   ClosetItem[]     // My Wardrobe
-  styleRefs     StyleReference[] // Uploaded style reference photos
-  outfits       Outfit[]         // Created outfits (combinations)
-  wishlist      WishlistItem[]   // / Wishlist or AI-recommended items
+  gender    Gender?
 
-  location String?
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  // OAuth 관련 필드 추가
+  provider  AuthProvider @default(LOCAL)  // 가입 경로
+  googleId  String?      @unique          // Google 고유 ID
+  avatarUrl String?                       // 프로필 이미지
+
+  // Relations (기존 그대로)
+  closetItems   ClosetItem[]
+  styleRefs     StyleReference[]
+  outfits       Outfit[]
+  wishlist      WishlistItem[]
+
+  location  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model ClothingItem {
@@ -268,3 +273,7 @@ enum OutfitSource {
   CALENDAR    // From OOTD Calendar
 }
 
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+}

@@ -973,6 +973,9 @@ export const UserScalarFieldEnum = {
   password: 'password',
   nickname: 'nickname',
   gender: 'gender',
+  provider: 'provider',
+  googleId: 'googleId',
+  avatarUrl: 'avatarUrl',
   location: 'location',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -1164,6 +1167,20 @@ export type EnumGenderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMod
  * Reference to a field of type 'Gender[]'
  */
 export type ListEnumGenderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Gender[]'>
+    
+
+
+/**
+ * Reference to a field of type 'AuthProvider'
+ */
+export type EnumAuthProviderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuthProvider'>
+    
+
+
+/**
+ * Reference to a field of type 'AuthProvider[]'
+ */
+export type ListEnumAuthProviderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuthProvider[]'>
     
 
 
