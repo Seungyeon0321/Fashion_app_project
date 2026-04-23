@@ -11,13 +11,14 @@ export class PostsInterceptor implements NestInterceptor {
         const request = context.switchToHttp().getRequest();
         const file = request.file as Express.Multer.File;
 
-
         // check if file is uploaded
         if (!file) {
             throw new BadRequestException('No file uploaded');
         }
 
         const validationResult = await this.clothingValidationService.validate(file.buffer);
+
+        console.log(validationResult, 'validationResult');
         
         if (!validationResult.valid) {
             throw new BadRequestException({

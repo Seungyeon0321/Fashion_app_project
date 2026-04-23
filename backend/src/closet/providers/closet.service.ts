@@ -61,6 +61,22 @@ export class ClosetService {
         );
     }
 
+    // GET /closet/:id
+    async findOneById(userId: number, closetItemId: number) {
+        const item = await this.prisma.closetItem.findUnique({
+            where: { id: closetItemId, userId },
+        });
+        if (!item || item.userId !== userId) {
+            throw new NotFoundException('Closet item not found');
+        }
+        return {
+            ...item,
+            imageUrl: item.cropS3Key
+                ? await this.s3.getPresignedUrl(item.cropS3Key)
+                : null,
+        };
+    }
+
     async archive(userId: number, closetItemId: number) {
         const item = await this.prisma.closetItem.findUnique({
             where: { id: closetItemId, userId },

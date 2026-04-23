@@ -2,6 +2,8 @@
 import axios from 'axios';
 import { ENV } from '@/shared/util/env';
 import { useAuthStore } from '../store/authStore';
+import { getUploadFile } from './fileUtils';
+import { Platform } from 'react-native';
 
 export const api = axios.create({
   baseURL: ENV.BACKEND_API_URL,
@@ -21,7 +23,7 @@ api.interceptors.request.use(
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
-  (error) => Promise.reject(error),
+  (error) =>Promise.reject(error),
 );
 
 // ── Response Interceptor ───────────────────────────────────
@@ -35,12 +37,17 @@ api.interceptors.response.use(
       return Promise.reject(new Error('check your network connection'));
     }
 
-    const { status } = error.response;
+    const { status, data } = error.response;
 
-    // 토큰이 만료됐을 때 서버가 401을 돌려줘요. 이걸 잡아서 자동으로 logout()을 호출하면, ㅏ용자가 모르게 만료된 토큰을 들고 다니는
-    // 상황을 방지 할 수 있다.
     if (status === 401) {
       useAuthStore.getState().logout();
+    }
+
+    if (status === 400) {
+      // 백엔드가 보낸 메시지 그대로 꺼내서 전달
+      const message = data?.message ?? 'Bad request'
+      console.log(message, 'message');
+      return Promise.reject(new Error(message))
     }
 
     if (status === 404) {
@@ -54,3 +61,57 @@ api.interceptors.response.use(
     return Promise.reject(error);
   },
 );
+
+// ── Posts API ─────────────────────────────────────────────
+
+export type RegisterStatus = 'processing' | 'completed' | 'not_found'
+
+export type RegisterStatusResponse = {
+  status: RegisterStatus
+  items?: { id: number; cropS3Key: string; jobId: string }[]
+}
+
+export const uploadClothingImage = async (
+  imageUri: string,
+): Promise<{ jobId: string }> => {
+  const formData = new FormData()
+
+  // React Native에서 파일을 FormData에 담는 방식
+
+  const uploadFile = await getUploadFile(imageUri);
+
+  if (Platform.OS === 'web') {
+    formData.append('image', uploadFile, 'clothing_image.jpg');
+  } else {
+    formData.append('image', uploadFile);
+  }
+
+  const res = await api.post('/posts/registerMyClothes', formData, {
+    headers: {
+      'Content-Type': undefined,
+    },
+    timeout: 30000, // 이미지 업로드는 30초로 늘림
+  })
+
+  return res.data.data // { jobId }
+}
+
+export const getRegisterStatus = async (
+  jobId: string,
+): Promise<RegisterStatusResponse> => {
+  const res = await api.get(`/posts/registerMyClothes/status/${jobId}`)
+  return res.data.data
+}
+
+export type RegisterClosetItemPayload = {
+  clothingItemId: number;
+  category: string;
+  subCategory: string;
+  brand?: string;
+  colors?: string[];
+  memo?: string;
+}
+
+export const registerClosetItem = async (payload: RegisterClosetItemPayload): Promise<void> => {
+  await api.post('/closet/register', payload);
+}

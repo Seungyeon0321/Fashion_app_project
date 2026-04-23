@@ -8,7 +8,8 @@ import Svg, { Path } from 'react-native-svg'
 type PhotoPreviewProps = {
   photo: Photo | null
   onClear: () => void
-  onConfirm: (width: number, height: number) => void
+  onConfirm: () => void       // ← width/height 제거, 단순 콜백
+  isUploading: boolean        // ← 부모에서 내려받음
   facing: CameraType
   validationStatus?: ValidationStatus | null
   validationMessage?: string | null
@@ -20,6 +21,7 @@ export const PhotoPreview = ({
   photo,
   onClear,
   onConfirm,
+  isUploading,
   facing,
   validationStatus = null,
   validationMessage = null,
@@ -80,7 +82,7 @@ export const PhotoPreview = ({
           <View style={styles.actions}>
             <Pressable
               style={({ pressed }) => [styles.button, styles.buttonPrimary, { opacity: pressed ? 0.7 : 1 }]}
-              onPress={() => onConfirm(width, height)}
+              onPress={onConfirm}
             >
               <Text style={styles.buttonText}>CONFIRM</Text>
             </Pressable>

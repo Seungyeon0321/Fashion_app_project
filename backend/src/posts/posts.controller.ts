@@ -8,6 +8,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { PostsInterceptor } from './posts.interceptors.js';
 import { ok } from '../common/utils/api-response.js';
 import { ApiResponseDto } from '../common/dto/api-response.dto.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { UseGuards } from '@nestjs/common';
 
 @Controller('posts')
 export class PostsController {
@@ -21,14 +23,18 @@ export class PostsController {
     }
 
     @Post('/registerMyClothes')
+    @UseGuards(JwtAuthGuard)
     @UseInterceptors(FileInterceptor('image'), PostsInterceptor)
     public async registerMyClothes(
         @UploadedFile() file: Express.Multer.File, 
         @Req() req: any) {
+            console.log('🔥 file:', file);
             const validation = (req as any).clothingValidation;
-            const testUserId = 1;
+            const userId = req.user.id;
 
-            const result = await this.postsService.registerMyClothes(testUserId, file, validation)
+            const result = await this.postsService.registerMyClothes(userId, file, validation)
+
+            console.log(result, 'result');
 
             type RegisterMyClothesData = { jobId: string };
             return ok<RegisterMyClothesData>({ jobId: String(result.jobId) });

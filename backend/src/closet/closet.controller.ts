@@ -20,6 +20,12 @@ export class ClosetController {
         return this.closetService.findAllByUserId(userId);
     }
 
+    @Get('/:id')
+    async findOne(@Req() req: any, @Param('id') closetItemId: number) {
+        const userId = req.user.id;
+        return this.closetService.findOneById(userId, closetItemId);
+    }
+
     @Patch('/:id/archive')
     async archive(@Req() req: any, @Param('id') closetItemId: number) {
         const userId = req.user.id;
