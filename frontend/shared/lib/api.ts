@@ -113,5 +113,6 @@ export type RegisterClosetItemPayload = {
 }
 
 export const registerClosetItem = async (payload: RegisterClosetItemPayload): Promise<void> => {
+  console.log(payload, 'payload');
   await api.post('/closet/register', payload);
 }

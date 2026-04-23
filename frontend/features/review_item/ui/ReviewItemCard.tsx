@@ -19,7 +19,7 @@ export const ReviewItemCard = ({ item, state, onUpdate, onCategoryChange }: Prop
 
       {/* 이미지 */}
       <Image
-        source={{ uri: item.cropS3Key ?? undefined }}
+        source={{ uri: item.imageUrl ?? undefined }}
         style={styles.image}
         resizeMode="cover"
       />

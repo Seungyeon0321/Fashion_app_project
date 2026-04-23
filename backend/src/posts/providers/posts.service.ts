@@ -44,7 +44,15 @@ export class PostsService {
         })
     
         if (items.length > 0) {
-            return { status: 'completed', items }
+            const itemsWithUrl = await Promise.all(
+                items.map(async (item) => ({
+                  ...item,
+                  imageUrl: item.cropS3Key
+                    ? await this.s3Service.getPresignedUrl(item.cropS3Key)
+                    : null,
+                }))
+              )
+              return { status: 'completed', items: itemsWithUrl }
         }
     
         // DB에 없으면 아직 처리 중

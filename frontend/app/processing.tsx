@@ -8,17 +8,19 @@ export default function ProcessingScreen() {
   const { jobId } = useLocalSearchParams<{ jobId: string }>()
   const router = useRouter()
 
-  const { data, isError } = useQuery({
+  const { data, isError, isLoading } = useQuery({
     queryKey: ['registerStatus', jobId],
     queryFn: () => getRegisterStatus(jobId),
     // 3초마다 자동으로 API 호출
     refetchInterval: (query) => {
       // completed 또는 not_found 상태면 폴링 중단
       const status = query.state.data?.status
-      if (status === 'completed' || status === 'not_found') return false
+      if (status === 'completed') return false
       return 3000
     },
     enabled: !!jobId,
+    retry: 3,
+    retryDelay: 2000,
   })
 
   useEffect(() => {
@@ -29,8 +31,16 @@ export default function ProcessingScreen() {
     }
   }, [data?.status])
 
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#faf9f6" />
+      </View>
+    )
+  }
+
   // 에러 or not_found 상태
-  if (isError || data?.status === 'not_found') {
+  if (isError) {
     return (
       <View style={styles.container}>
         <Text style={styles.errorTitle}>Something went wrong</Text>

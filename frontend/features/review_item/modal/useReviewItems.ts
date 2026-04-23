@@ -4,6 +4,7 @@ import { Category, SubCategory, SUBCATEGORY_BY_CATEGORY } from '@/shared/types/e
 export type ClothingItem = {
   id: number
   cropS3Key: string | null
+  imageUrl: string | null
   label: string
 }
 
