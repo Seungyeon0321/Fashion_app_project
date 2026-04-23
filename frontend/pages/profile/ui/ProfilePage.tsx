@@ -15,7 +15,7 @@ import { useLogout } from '@/features/profile/api/useLogout';
 
 export function ProfilePage() {
   const { data: profile, isLoading } = useProfile();
-  const { logout } = useLogout();
+  const { handleLogout } = useLogout();
 
   const generalSettings = [
     {
@@ -72,7 +72,7 @@ export function ProfilePage() {
           <SettingsSection items={legalSettings} />
         </View>
 
-        <LogoutButton onPress={logout} />
+        <LogoutButton onPress={handleLogout} />
 
         <Text style={styles.version}>ATELIER NOIR • V1.0.0</Text>
       </ScrollView>

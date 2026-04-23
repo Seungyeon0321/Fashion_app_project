@@ -21,6 +21,9 @@ export default function Index() {
   useEffect(() => {
     initialize();
   }, []);
+  
+  console.log(isAuthenticated, 'isAuthenticated');
+  console.log(isInitialized, 'isInitialized');
 
   // 초기화 완료 + 로그인 됐으면 홈으로
   useEffect(() => {

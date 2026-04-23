@@ -1,16 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
 import { Alert } from 'react-native';
-
-const TOKEN_KEY = 'auth_token';
+import { useAuthStore } from '@/shared/store/authStore';
 
 export function useLogout() {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const { logout } = useAuthStore();
 
-  const logout = () => {
-    console.log('logout');
+  const handleLogout = () => {
     Alert.alert(
       'Log Out',
       'Are you sure you want to end your current session?',
@@ -21,7 +19,7 @@ export function useLogout() {
           style: 'destructive',
           onPress: async () => {
             try {
-                await SecureStore.deleteItemAsync(TOKEN_KEY);
+                await logout();         // 토큰 삭제 + 상태 초기화 한 번에
                 queryClient.clear();
                 router.replace('/');
               } catch (error) {
@@ -34,5 +32,5 @@ export function useLogout() {
     );
   };
 
-  return { logout };
+  return { handleLogout };
 }
