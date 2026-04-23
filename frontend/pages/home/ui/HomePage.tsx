@@ -45,7 +45,6 @@ export function HomePage({
 
   // ── 에러 상태 ────────────────────────────────────────────
   if (isError) {
-    console.log(error, 'error');
     return (
       <View style={styles.centered}>
         <Text style={styles.errorText}>Error occurred while fetching closet items</Text>

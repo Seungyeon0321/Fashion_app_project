@@ -46,7 +46,6 @@ api.interceptors.response.use(
     if (status === 400) {
       // 백엔드가 보낸 메시지 그대로 꺼내서 전달
       const message = data?.message ?? 'Bad request'
-      console.log(message, 'message');
       return Promise.reject(new Error(message))
     }
 
@@ -113,6 +112,5 @@ export type RegisterClosetItemPayload = {
 }
 
 export const registerClosetItem = async (payload: RegisterClosetItemPayload): Promise<void> => {
-  console.log(payload, 'payload');
   await api.post('/closet/register', payload);
 }

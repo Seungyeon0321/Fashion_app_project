@@ -18,7 +18,6 @@ export function useClosetItems() {
     queryKey: closetKeys.lists,
     queryFn: async () => {
       const res = await api.get<ClosetItem[]>('/closet');
-      console.log('✅ closet res:', res.data);
       return res.data;
     },
   });
@@ -91,7 +90,6 @@ export function useToggleFavorite(id: number) {
   return useMutation({
     // mutate 호출 시 newValue를 변수로 받음
     mutationFn: async (newValue: boolean) => {
-      console.log(newValue, 'newValue');
       const res = await api.patch<ClosetItem>(`/closet/${id}`, {
         isFavorite: newValue,
       });

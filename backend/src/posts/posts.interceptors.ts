@@ -18,7 +18,6 @@ export class PostsInterceptor implements NestInterceptor {
 
         const validationResult = await this.clothingValidationService.validate(file.buffer);
 
-        console.log(validationResult, 'validationResult');
         
         if (!validationResult.valid) {
             throw new BadRequestException({

@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, fonts } from '@/shared/lib/tokens';
 
-export default function StylistPage() {
+export default function StylistTab() {
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Stylist Page</Text>

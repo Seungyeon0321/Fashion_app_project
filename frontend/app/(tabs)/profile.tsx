@@ -1,23 +1,7 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { colors, fonts } from '@/shared/lib/tokens';
+import { ProfilePage } from '@/pages/profile/ui/ProfilePage';
 
-export default function ProfilePage() {
+export default function ProfileTab() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Profile Page</Text>
-    </View>
+      <ProfilePage />
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.background,
-  },
-  text: {
-    ...fonts.body,
-    color: colors.primary,
-  },
-});

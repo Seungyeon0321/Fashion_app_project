@@ -28,13 +28,10 @@ export class PostsController {
     public async registerMyClothes(
         @UploadedFile() file: Express.Multer.File, 
         @Req() req: any) {
-            console.log('🔥 file:', file);
             const validation = (req as any).clothingValidation;
             const userId = req.user.id;
 
             const result = await this.postsService.registerMyClothes(userId, file, validation)
-
-            console.log(result, 'result');
 
             type RegisterMyClothesData = { jobId: string };
             return ok<RegisterMyClothesData>({ jobId: String(result.jobId) });
