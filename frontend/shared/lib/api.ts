@@ -101,16 +101,3 @@ export const getRegisterStatus = async (
   const res = await api.get(`/posts/registerMyClothes/status/${jobId}`)
   return res.data.data
 }
-
-export type RegisterClosetItemPayload = {
-  clothingItemId: number;
-  category: string;
-  subCategory: string;
-  brand?: string;
-  colors?: string[];
-  memo?: string;
-}
-
-export const registerClosetItem = async (payload: RegisterClosetItemPayload): Promise<void> => {
-  await api.post('/closet/register', payload);
-}

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/shared/ui/Button'
 import { ReviewItemCard } from '@/features/review_item/ui/ReviewItemCard'
 import { useReviewItems, ClothingItem } from '@/features/review_item/modal/useReviewItems'
-import { registerClosetItem } from '@/shared/lib/api'
+import { useRegisterClosetItem } from '@/features/closet/api/useCloset'
 
 type Props = {
   items: ClothingItem[]
@@ -12,6 +12,7 @@ type Props = {
 
 export const ResultPage = ({ items }: Props) => {
   const router = useRouter()
+  const { mutateAsync: registerClosetItem } = useRegisterClosetItem()
   const { states, update, setCategory, allActioned, savedItems } = useReviewItems(items)
   const [isConfirming, setIsConfirming] = useState(false)
 
