@@ -1,27 +1,44 @@
+import os
+import psycopg2
+from dotenv import load_dotenv
 from .state import OutfitState
 
-MOCK_WARDROBE = [
-    {"id": 1, "name": "Navy blazer",         "category": "outer",  "season": "spring", "style": "formal"},
-    {"id": 2, "name": "White dress shirt",    "category": "top",    "season": "spring", "style": "formal"},
-    {"id": 3, "name": "Charcoal slacks",      "category": "bottom", "season": "spring", "style": "formal"},
-    {"id": 4, "name": "White sneakers",       "category": "shoes",  "season": "spring", "style": "casual"},
-    {"id": 5, "name": "Grey hoodie",          "category": "top",    "season": "spring", "style": "casual"},
-    {"id": 6, "name": "Running shorts",       "category": "bottom", "season": "spring", "style": "sporty"},
-    {"id": 7, "name": "Oxford leather shoes", "category": "shoes",  "season": "spring", "style": "formal"},
-]
+load_dotenv()
 
+def get_connection():
+    return psycopg2.connect(os.getenv("DATABASE_URL"))
 
 def retrieval(state: OutfitState) -> dict:
     intent         = state["intent"]
     season         = state["season"]
     excluded_items = state.get("excluded_items") or []
 
-    # style + season 필터 + 교체 시 제외 아이템 제외
+    conn = get_connection()
+    cur  = conn.cursor()
+
+    cur.execute("""
+        SELECT id, category, style, season, "imageUrl"
+        FROM closet_items
+        WHERE season = %s
+          AND style = %s
+          AND "isArchived" = false
+          AND "isWashing" = false
+    """, (season.upper(), intent))
+
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
     retrieved_items = [
-        item for item in MOCK_WARDROBE
-        if item["season"] == season
-        and item["style"] == intent
-        and item["id"] not in excluded_items
+        {
+            "id":       row[0],
+            "category": row[1],
+            "style":    row[2],
+            "season":   row[3],
+            "imageUrl": row[4],
+        }
+        for row in rows
+        if row[0] not in excluded_items
     ]
 
     return {"retrieved_items": retrieved_items}

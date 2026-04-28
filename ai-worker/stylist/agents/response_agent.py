@@ -14,7 +14,7 @@ def response_agent(state: OutfitState) -> dict:
     weather = state["weather"]
     calendar_events = state["calendar_events"] or []
 
-    items_text = "\n".join([f"{item['name']} ({item['category']})" for item in ranked_items])
+    items_text = "\n".join([f"{item['category']} ({item['style']})" for item in ranked_items])
     calendar_text = ", ".join(calendar_events) if calendar_events else "No events today"
 
     system_prompt = """You are a friendly personal stylist assistant.
