@@ -89,7 +89,6 @@ model ClosetItem {
 
   embedding    Unsupported("vector(512)")? 
   colors       String[]
-  season       Season?
   brand        String?
 
     // ✅ 추가: 자유 메모
@@ -102,6 +101,9 @@ model ClosetItem {
   outfitItems  OutfitItem[]
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
+
+  season       Season?
+  style        String?
 
 
   @@map("closet_items")
