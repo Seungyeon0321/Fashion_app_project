@@ -9,6 +9,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { ClosetModule } from './closet/closet.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { UsersModule } from './users/users.module.js';
+import { StyleModule } from './style/style.module.js';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { UsersModule } from './users/users.module.js';
     ClosetModule,
     AuthModule,
     UsersModule,
+    StyleModule,
   ],
   controllers: [AppController],
   providers: [AppService],
