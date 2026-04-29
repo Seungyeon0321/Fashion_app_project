@@ -1,23 +1,7 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { colors, fonts } from '@/shared/lib/tokens';
+import { StylistPage } from '@/pages/stylist/ui/StylistPage.tsx';
 
 export default function StylistTab() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Stylist Page</Text>
-    </View>
+    <StylistPage />
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.background,
-  },
-  text: {
-    ...fonts.body,
-    color: colors.primary,
-  },
-});

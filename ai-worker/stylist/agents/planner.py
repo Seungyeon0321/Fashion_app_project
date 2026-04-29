@@ -1,12 +1,17 @@
 import os
 import requests
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 from langchain_anthropic import ChatAnthropic
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
 from .state import OutfitState
 
 load_dotenv()
 
 llm = ChatAnthropic(model="claude-haiku-4-5", max_tokens=512)
+
+SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
 
 def get_weather() -> dict:
     api_key = os.getenv("OPENWEATHER_API_KEY")
@@ -17,12 +22,9 @@ def get_weather() -> dict:
     res = requests.get(url)
     data = res.json()
 
-    print("🌤️ Weather API response:", data)  # ← 추가
-
     temp      = data["main"]["temp"]
     condition = data["weather"][0]["main"].lower()
 
-    # 기온 기반 시즌 판단
     if temp >= 20:
         season = "summer"
     elif temp >= 10:
@@ -38,12 +40,26 @@ def get_weather() -> dict:
         "season":      season,
     }
 
-def get_mock_calendar() -> list[str]:
-    return ["2pm team meeting", "5pm client call", "8pm dinner with friends"]
+def get_calendar() -> list[str]:
+    token_path = os.path.join(os.path.dirname(__file__), "..", "token.json")
+    creds = Credentials.from_authorized_user_file(token_path, SCOPES)
+    service = build("calendar", "v3", credentials=creds)
+
+    now = datetime.now(timezone.utc).isoformat()
+    events_result = service.events().list(
+        calendarId="primary",
+        timeMin=now,
+        maxResults=5,
+        singleEvents=True,
+        orderBy="startTime"
+    ).execute()
+
+    events = events_result.get("items", [])
+    return [event.get("summary", "No title") for event in events]
 
 def planner(state: OutfitState) -> dict:
     weather_data  = get_weather()
-    calendar_data = get_mock_calendar()
+    calendar_data = get_calendar()
     weather_str   = f"{weather_data['temperature']}deg C, {weather_data['condition']}"
 
     return {

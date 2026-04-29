@@ -12,6 +12,7 @@ class RecommendRequest(BaseModel):
 
 class RecommendResponse(BaseModel):
     intent: str
+    calendar_events: Optional[List[str]] = []
     weather: Optional[str] = None
     ranked_items: List[dict] = []
     final_response: str
@@ -43,6 +44,7 @@ def recommend(request: RecommendRequest):
 
     return RecommendResponse(
         intent=result["intent"],
+        calendar_events=result["calendar_events"],
         weather=result["weather"],
         ranked_items=result["ranked_items"],
         final_response=result["final_response"],
