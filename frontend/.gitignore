@@ -41,3 +41,6 @@ app-example
 # generated native folders
 /ios
 /android
+
+ai-worker/stylist/token.json
+ai-worker/stylist/credentials.json
