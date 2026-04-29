@@ -140,3 +140,6 @@ vite.config.ts.timestamp-*
 
 # docker
 docker-compose.yml
+
+ai-worker/stylist/token.json
+ai-worker/stylist/credentials.json
