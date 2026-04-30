@@ -38,6 +38,10 @@ class Settings(BaseSettings):
         default="",
         validation_alias=AliasChoices("S3_BUCKET_NAME", "AWS_S3_BUCKET"),
     )
+    S3_BASE_URL: str = Field(
+        default="",
+        validation_alias=AliasChoices("S3_BASE_URL", "AWS_S3_BASE_URL"),
+    )
 
     # ── AI 모델 ─────────────────────────────────────────────
     # HuggingFace에서 다운로드할 모델 이름
@@ -51,6 +55,14 @@ class Settings(BaseSettings):
 
     # 로컬 테스트용 (test_segformer 등). .env에 없으면 None — 비워두면 무시됨
     IMAGE_PATH: str | None = Field(default=None)
+
+    # ── Anthropic ───────────────────────────────────────────
+    ANTHROPIC_API_KEY: str = Field(default="")
+
+    # ── OpenWeather ─────────────────────────────────────────
+    OPENWEATHER_API_KEY: str = Field(default="")
+    WEATHER_LAT: str = Field(default="")
+    WEATHER_LON: str = Field(default="")
 
     class Config:
         # .env 파일 위치 (ai-worker 루트에 있어야 함)

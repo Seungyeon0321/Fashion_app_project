@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,18 +9,31 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { IntentSelector } from '@/features/select-intent/ui/IntentSelector';
-import { useIntentStore } from '@/features/select-intent/model/intentStore.ts';
+import { useIntentStore } from '@/features/select-intent/model/intentStore';
 import { colors, fonts } from '@/shared/lib/tokens';
+import { useRecommendation, RecommendationResponse } from '@/features/get-recommendation/api/useRecommendation';
+import { RecommendationModal } from '@/features/get-recommendation/ui/RecommendationModal';
 
 export function StylistPage() {
   const router = useRouter();
   const selectedIntent = useIntentStore((s) => s.selectedIntent);
+  const { mutate, isPending, isError, error } = useRecommendation();
+
+  // 모달 상태
+  const [modalVisible, setModalVisible] = useState(false);
+  const [recommendationData, setRecommendationData] = useState<RecommendationResponse | null>(null);
 
   const handleRecommend = () => {
     if (!selectedIntent) return;
-    // Step 22에서 결과 화면으로 연결 예정
-    // router.push({ pathname: '/(tabs)/stylist/result', params: { intent: selectedIntent } });
-    console.log('intent selected:', selectedIntent);
+    mutate(selectedIntent, {
+      onSuccess: (data) => {
+        setRecommendationData(data);
+        setModalVisible(true);
+      },
+      onError: (error) => {
+        console.error('❌ recommendation error:', error.message);
+      },
+    });
   };
 
   return (
@@ -42,17 +55,27 @@ export function StylistPage() {
         {/* 하단 CTA */}
         <View style={styles.cta}>
           <TouchableOpacity
-            style={[styles.ctaButton, !selectedIntent && styles.ctaDisabled]}
+            style={[styles.ctaButton, (!selectedIntent || isPending) && styles.ctaDisabled]}
             onPress={handleRecommend}
             disabled={!selectedIntent}
             activeOpacity={0.9}
           >
-            <Text style={styles.ctaLabel}>{`${selectedIntent ? 'GET RECOMMENDED STYLES' : 'SELECT YOUR INTENT'}`}</Text>
+            <Text style={styles.ctaLabel}>
+              {isPending ? 'FINDING YOUR STYLE...' : selectedIntent ? 'GET RECOMMENDED STYLES' : 'SELECT YOUR INTENT'}
+            </Text>
           </TouchableOpacity>
           <Text style={styles.ctaCaption}>AI-POWERED PERSONALIZED STYLING</Text>
         </View>
 
       </View>
+
+      {/* 모달 */}
+      <RecommendationModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        data={recommendationData}
+      />
+
     </SafeAreaView>
   );
 }

@@ -2,6 +2,8 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { colors, fonts, radius } from '@/shared/lib/tokens';
 
+type Size = 'full' | 'mini';
+
 interface ClothingCardProps {
   imageUrl?: string;
   category: string;
@@ -9,6 +11,7 @@ interface ClothingCardProps {
   isFavorite?: boolean;
   onPress?: () => void;
   onFavoritePress?: () => void;
+  size?: Size
 }
 
 export function ClothingCard({
@@ -17,11 +20,14 @@ export function ClothingCard({
   brand,
   isFavorite = false,
   onPress,
+  size = 'full',
 }: ClothingCardProps) {
+  const isMini = size === 'mini';
+
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.container}>
       {/* 이미지 영역 — 4:5 비율 */}
-      <View style={styles.imageWrapper}>
+      <View style={[styles.imageWrapper, isMini && styles.imageWrapperMini]}>
         {imageUrl ? (
           <Image source={{ uri: imageUrl }} style={styles.image} resizeMode="cover" />
         ) : (
@@ -35,6 +41,7 @@ export function ClothingCard({
       
 
       {/* 텍스트 영역 */}
+      {!isMini && (
       <View style={styles.textArea}>
         <Text style={styles.category}>{category.toUpperCase()}</Text>
         <View style={styles.brandRow}>
@@ -43,6 +50,7 @@ export function ClothingCard({
           {isFavorite && <View style={styles.favoriteUnderline} />}
         </View>
       </View>
+    )}
     </TouchableOpacity>
   );
 }
@@ -110,5 +118,10 @@ const styles = StyleSheet.create({
     width: '60%',         // 브랜드명 길이에 맞게 — 실제로는 텍스트 너비 측정 필요
     backgroundColor: colors.accentRed,
     alignSelf: 'flex-start',
+  },
+  imageWrapperMini: {
+    width: 72,
+    height: 90,
+    aspectRatio: undefined, // full의 aspectRatio 덮어쓰기
   },
 });
