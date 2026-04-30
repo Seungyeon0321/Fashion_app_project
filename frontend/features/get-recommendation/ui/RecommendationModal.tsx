@@ -8,12 +8,14 @@ import {
   TouchableOpacity,
   Animated,
 } from 'react-native';
-import { Button } from '@/shared/ui/Button';
 import { RecommendationResponse } from '../api/useRecommendation';
 import { useCanvasStore } from '../model/canvasStore';
 import { MoodboardCanvas } from './MoodboardCanvas';
 import { ItemTray } from './ItemTray';
 import { colors, fonts } from '@/shared/lib/tokens';
+import { WardrobePickerModal } from './WardrobePickerModal';
+import { useSaveOutfit } from '../api/useSaveOutfit';
+import { Toast } from '@/shared/ui/Toast';
 
 type Props = {
   visible: boolean;
@@ -22,9 +24,14 @@ type Props = {
 };
 
 export function RecommendationModal({ visible, onClose, data }: Props) {
+  const { canvasItems, initFromResponse, reset } = useCanvasStore();
+  const { mutate: saveOutfit, isPending } = useSaveOutfit();
+
+  const [wardrobePickerVisible, setWardrobePickerVisible] = useState(false);
   const [commentExpanded, setCommentExpanded] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
   const animValue = useRef(new Animated.Value(0)).current;
-  const { initFromResponse, reset } = useCanvasStore();
 
   useEffect(() => {
     if (visible && data) {
@@ -34,6 +41,30 @@ export function RecommendationModal({ visible, onClose, data }: Props) {
       reset();
     };
   }, [visible, data]);
+
+  const handleSaveOutfit = () => {
+    if (canvasItems.length === 0) return;
+
+    saveOutfit(
+      {
+        items: canvasItems.map((item) => ({
+          closetItemId: item.id,
+        })),
+      },
+      {
+        onSuccess: () => {
+          setToast({ message: 'OUTFIT SAVED', type: 'success' });
+          setTimeout(() => {
+            onClose();
+          }, 1000);
+        },
+        onError: (error) => {
+          setToast({ message: 'FAILED TO SAVE OUTFIT', type: 'error' });
+          console.error(error);
+        },
+      }
+    );
+  };
 
   const handleExpandComment = () => {
     const toValue = commentExpanded ? 0 : 1;
@@ -47,7 +78,7 @@ export function RecommendationModal({ visible, onClose, data }: Props) {
 
   const expandedHeight = animValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [44, 200], // 접힌 높이 → 펼쳐진 높이
+    outputRange: [44, 200],
   });
 
   if (!data) return null;
@@ -61,30 +92,26 @@ export function RecommendationModal({ visible, onClose, data }: Props) {
       visible={visible}
       animationType="slide"
       presentationStyle="fullScreen"
+      onRequestClose={onClose}
     >
       <SafeAreaView style={styles.container}>
 
         {/* 헤더 */}
         <View style={styles.header}>
           <Text style={styles.title}>STUDIO CANVAS</Text>
-          <Button
-            label="✕"
-            onPress={onClose}
-            variant="text"
-            style={styles.closeBtn}
-          />
+          <TouchableOpacity onPress={onClose}>
+            <Text style={styles.closeBtn}>✕</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* AI 코멘트 — 탭하면 스으륵 펼쳐짐 */}
+        {/* AI 코멘트 */}
         <TouchableOpacity
           onPress={handleExpandComment}
           activeOpacity={0.8}
           style={styles.commentWrapper}
         >
           <Animated.View style={{ height: expandedHeight, overflow: 'hidden' }}>
-            <Text style={styles.commentText}>
-              {cleanComment}
-            </Text>
+            <Text style={styles.commentText}>{cleanComment}</Text>
           </Animated.View>
           <Text style={styles.commentMore}>
             {commentExpanded ? '↑ CLOSE' : '↓ TAP TO READ MORE'}
@@ -96,14 +123,36 @@ export function RecommendationModal({ visible, onClose, data }: Props) {
 
         {/* 하단 트레이 + Save 버튼 */}
         <View style={styles.bottom}>
-          <ItemTray />
-          <Button
-            label="SAVE OUTFIT"
-            onPress={() => {}}
-            variant="primary"
-            style={styles.saveBtn}
+          <ItemTray onAddPress={() => setWardrobePickerVisible(true)} />
+
+          <WardrobePickerModal
+            visible={wardrobePickerVisible}
+            onClose={() => setWardrobePickerVisible(false)}
           />
+
+          <TouchableOpacity
+            onPress={handleSaveOutfit}
+            disabled={isPending || canvasItems.length === 0}
+            style={[
+              styles.saveButton,
+              (isPending || canvasItems.length === 0) && styles.saveButtonDisabled,
+            ]}
+          >
+            <Text style={styles.saveButtonText}>
+              {isPending ? 'SAVING...' : 'SAVE OUTFIT'}
+            </Text>
+          </TouchableOpacity>
         </View>
+
+        {/* Toast */}
+        {toast && (
+          <Toast
+            visible={!!toast}
+            message={toast.message}
+            type={toast.type}
+            onDismiss={() => setToast(null)}
+          />
+        )}
 
       </SafeAreaView>
     </Modal>
@@ -113,7 +162,7 @@ export function RecommendationModal({ visible, onClose, data }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#faf9f6',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -126,11 +175,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Epilogue_700Bold',
     fontSize: 18,
     letterSpacing: 2,
-    color: '#1a1a1a',
+    color: colors.primary,
   },
   closeBtn: {
-    width: 'auto',
-    paddingVertical: 0,
+    color: colors.primary,
+    fontWeight: 'bold',
+    fontSize: fonts.title.fontSize,
   },
   commentWrapper: {
     marginHorizontal: 24,
@@ -144,7 +194,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: 'bold',
     lineHeight: 20,
-    color: '#5f5e5e',
+    color: colors.primaryMuted,
   },
   commentMore: {
     ...fonts.tab,
@@ -157,8 +207,18 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     gap: 12,
   },
-  saveBtn: {
+  saveButton: {
     borderWidth: 1,
-    borderColor: '#1a1a1a',
+    borderColor: colors.primary,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  saveButtonDisabled: {
+    borderColor: colors.divider,
+  },
+  saveButtonText: {
+    ...fonts.tab,
+    color: colors.primary,
+    letterSpacing: 3,
   },
 });

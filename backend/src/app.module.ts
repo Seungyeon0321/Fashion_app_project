@@ -10,6 +10,7 @@ import { ClosetModule } from './closet/closet.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { UsersModule } from './users/users.module.js';
 import { StyleModule } from './style/style.module.js';
+import { OutfitModule } from './outfit/outfit.module.js';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { StyleModule } from './style/style.module.js';
     AuthModule,
     UsersModule,
     StyleModule,
+    OutfitModule,
   ],
   controllers: [AppController],
   providers: [AppService],
