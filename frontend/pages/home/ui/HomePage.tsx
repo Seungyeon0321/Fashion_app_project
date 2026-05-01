@@ -2,10 +2,14 @@
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Line, Path } from 'react-native-svg';
+import { useState } from 'react';
+import * as ImagePicker from 'expo-image-picker';
 import { useClosetItems, closetKeys, useUpdateClosetItem } from '@/features/closet/api/useCloset';
 import { ClothingCard, getCardBgColor } from '@/shared/ui/Clothingcard';
 import { colors, fonts, spacing, radius } from '@/shared/lib/tokens';
 import { useQueryClient } from '@tanstack/react-query';
+import { RegistrationMethodModal } from '@/features/select-registration-method/ui/RegistrationMethodModal';
+import type { RegistrationMethodId } from '@/features/select-registration-method/model/registrationMethods';
 
 const CATEGORIES = ['ALL', 'TOPS', 'BOTTOMS', 'OUTER', 'SHOES'];
 
@@ -19,6 +23,7 @@ export function HomePage({
   onCategoryChange,
 }: HomePageProps) {
   const router = useRouter();
+  const [isMethodModalVisible, setIsMethodModalVisible] = useState(false);
 
   // ── 서버 데이터 ──────────────────────────────────────────
   const { data: allItems = [], isLoading, isError, error } = useClosetItems();
@@ -33,6 +38,37 @@ export function HomePage({
   // 왼쪽/오른쪽 컬럼으로 분리
   const leftItems  = filtered.filter((_, i) => i % 2 === 0);
   const rightItems = filtered.filter((_, i) => i % 2 === 1);
+
+  // ── 등록 방법 선택 핸들러 ────────────────────────────────
+  const handleSelectMethod = async (methodId: RegistrationMethodId) => {
+    switch (methodId) {
+      case 'camera':
+        // 기존 카메라 플로우
+        router.push('/camera');
+        break;
+
+      case 'library':
+        // 앨범에서 선택
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          aspect: [3, 4],
+          quality: 0.8,
+        });
+
+        if (!result.canceled) {
+          // TODO: 등록 플로우로 이동 (이미지와 함께)
+          // router.push({ pathname: '/register', params: { imageUri: result.assets[0].uri } });
+          console.log('Library image selected:', result.assets[0].uri);
+        }
+        break;
+
+      case 'purchase':
+        // Coming Soon
+        console.log('Import from purchase - coming soon');
+        break;
+    }
+  };
 
   // ── 로딩 상태 ────────────────────────────────────────────
   if (isLoading) {
@@ -121,7 +157,7 @@ export function HomePage({
 
             <TouchableOpacity
               style={styles.emptyButton}
-              onPress={() => router.push('/camera')}
+              onPress={() => setIsMethodModalVisible(true)}
               activeOpacity={0.8}
             >
               <Text style={styles.emptyButtonText}>+ ADD ITEM</Text>
@@ -187,7 +223,7 @@ export function HomePage({
       {allItems.length > 0 && (
         <TouchableOpacity
           style={styles.fab}
-          onPress={() => router.push('/camera')}
+          onPress={() => setIsMethodModalVisible(true)}
           activeOpacity={0.85}
         >
           <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
@@ -196,6 +232,13 @@ export function HomePage({
           </Svg>
         </TouchableOpacity>
 )}
+
+      {/* ── Registration Method Modal ── */}
+      <RegistrationMethodModal
+        visible={isMethodModalVisible}
+        onClose={() => setIsMethodModalVisible(false)}
+        onSelectMethod={handleSelectMethod}
+      />
     </View>
   );
 }
