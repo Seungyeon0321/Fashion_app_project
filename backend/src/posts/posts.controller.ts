@@ -30,8 +30,9 @@ export class PostsController {
         @Req() req: any) {
             const validation = (req as any).clothingValidation;
             const userId = req.user.id;
+            const category = req.body.category as 'TOP' | 'BOTTOM' | 'FULL';
 
-            const result = await this.postsService.registerMyClothes(userId, file, validation)
+            const result = await this.postsService.registerMyClothes(userId, file, validation, category)
 
             type RegisterMyClothesData = { jobId: string };
             return ok<RegisterMyClothesData>({ jobId: String(result.jobId) });

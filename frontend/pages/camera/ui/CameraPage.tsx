@@ -10,7 +10,7 @@ import { BodyFrameEnum, useChangeBodyFrame } from "@/features/camera_controls/mo
 import { useCountdown } from "@/shared/lib/hooks/useCountdown";
 import PhotoView from "@/features/take_photo/ui/CameraScreen";
 import { useRouter } from "expo-router";
-import { uploadClothingImage } from "@/shared/lib/api";
+import { ClothingCategory, uploadClothingImage } from "@/shared/lib/api";
 import { useToastStore } from "@/shared/store/toastStore";
 
 const MESSAGE: Record<BodyFrameEnum, string> = {
@@ -86,7 +86,7 @@ export const CameraPage = () => {
         if (!photo?.uri) return;
         setIsUploading(true);
         try {
-            const { jobId } = await uploadClothingImage(photo.uri);
+            const { jobId } = await uploadClothingImage(photo.uri, currentLayout as ClothingCategory);
             router.push(`/processing?jobId=${jobId}`);
         } catch (e) {
             const message = e instanceof Error ? e.message : 'Please check your connection and try again.';

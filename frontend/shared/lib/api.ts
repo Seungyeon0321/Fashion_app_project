@@ -64,6 +64,7 @@ api.interceptors.response.use(
 // ── Posts API ─────────────────────────────────────────────
 
 export type RegisterStatus = 'processing' | 'completed' | 'not_found'
+export type ClothingCategory = 'TOP' | 'BOTTOM' | 'FULL'
 
 export type RegisterStatusResponse = {
   status: RegisterStatus
@@ -72,6 +73,7 @@ export type RegisterStatusResponse = {
 
 export const uploadClothingImage = async (
   imageUri: string,
+  category: ClothingCategory
 ): Promise<{ jobId: string }> => {
   const formData = new FormData()
 
@@ -84,6 +86,9 @@ export const uploadClothingImage = async (
   } else {
     formData.append('image', uploadFile);
   }
+
+  // add category field to formData
+  formData.append('category', category);
 
   const res = await api.post('/posts/registerMyClothes', formData, {
     headers: {

@@ -93,6 +93,7 @@ class ClothingPipeline:
         s3_key: str | None = None,
         user_id: int | None = None,
         job_id: str | None = None,
+        category: str = 'FULL',
     ) -> list[int]:
         """
         파이프라인 실행.
@@ -118,7 +119,7 @@ class ClothingPipeline:
 
         # 2. SegFormer 분석
         print("[Pipeline] SegFormer 실행 중...", flush=True)
-        crops = self.segmenter.segment(image)
+        crops = self.segmenter.segment(image, category=category)
         print(f"[Pipeline] 검출된 옷: {len(crops)}개", flush=True)
 
         if not crops:

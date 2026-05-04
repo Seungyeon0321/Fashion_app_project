@@ -49,6 +49,11 @@ LABEL_MAP = {
 # 신발, 가방, 모자도 패션 아이템이므로 포함
 CLOTHING_LABELS = {4, 5, 6, 7, 8, 9, 10, 16, 17}
 
+CLOTHING_LABELS_MAP = {
+    'TOP': {4, 7, 17},
+    'BOTTOM': {5, 6},
+    'FULL': CLOTHING_LABELS,
+}
 
 class SegFormerSegmenter:
     """
@@ -100,12 +105,13 @@ class SegFormerSegmenter:
 
         print(f"[SegFormer] 모델 로드 완료")
 
-    def segment(self, image: Image.Image) -> list[dict]:
+    def segment(self, image: Image.Image, category: str = 'FULL') -> list[dict]:
         """
         이미지에서 옷 영역을 분리해 크롭 이미지 목록을 반환.
 
         Args:
             image: PIL Image 객체 (RGB)
+            category: 분할할 옷 카테고리 ('TOP', 'BOTTOM', 'FULL')
 
         Returns:
             [
@@ -145,6 +151,7 @@ class SegFormerSegmenter:
         upsampled = torch.nn.functional.interpolate(
             logits,
             size=(original_size[1], original_size[0]),  # (height, width)
+            # bilinear: 픽셀 사이를 부드럽게 보간하는 방법, 가장 일반적이고 자연스러운 업샘플링 방식
             mode="bilinear",
             align_corners=False,
         )
@@ -156,12 +163,16 @@ class SegFormerSegmenter:
         seg_map = upsampled.argmax(dim=1)[0].cpu().numpy()
         # seg_map shape: (height, width), 각 값은 0~17 사이의 카테고리 인덱스
 
+        target_labels = CLOTHING_LABELS_MAP.get(category, CLOTHING_LABELS)
+
         # 5. 카테고리별로 크롭 이미지 생성
         results = []
         image_np = np.array(image)
         total_pixels = seg_map.size
 
-        for label_id in CLOTHING_LABELS:
+        
+
+        for label_id in target_labels:
             # 해당 카테고리에 속하는 픽셀 위치 찾기
             mask = seg_map == label_id  # True/False 배열
 

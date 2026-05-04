@@ -14,7 +14,7 @@ import { randomUUID } from 'crypto';
 export class PostsService {
     constructor(@InjectQueue('clothing') private readonly clothingQueue: Queue, private readonly s3Service: S3Service, private readonly prisma: PrismaService) {}
 
-    public async registerMyClothes(userId: number, file: Express.Multer.File, validation: {valid: boolean, confidence: number, reason?: string}) {
+    public async registerMyClothes(userId: number, file: Express.Multer.File, validation: {valid: boolean, confidence: number, reason?: string}, category: 'TOP' | 'BOTTOM' | 'FULL') {
         // check if the image is valid
         if (!validation.valid) {
             throw new BadRequestException('Invalid clothing image');
@@ -31,6 +31,7 @@ export class PostsService {
             job_id: jobId,
             userId: userId,
             s3Key: key,
+            category: category
         });
 
         

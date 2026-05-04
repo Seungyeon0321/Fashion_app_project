@@ -22,14 +22,19 @@ from transformers import CLIPProcessor, CLIPModel
 from app.core.config import settings
 
 
+# 어떠한 라이브러리를 사용하든, get_image_features()의 반환 타입이 버전에 따라 달라질 수 있음
 def _clip_image_features_to_tensor(image_features: torch.Tensor | object) -> torch.Tensor:
     """
     Transformers 5.x: get_image_features()가 BaseModelOutputWithPooling을 반환하고,
     투영된 이미지 임베딩은 .pooler_output에 있음.
     이전 버전: torch.Tensor를 그대로 반환.
     """
+
+    # 지금 들어오는 image_features는 tourch.Tensor이거나, BaseModelOutputWithPooling 객체일 수 있음
     if isinstance(image_features, torch.Tensor):
         return image_features
+    # 만약 데이터가 신버전 라이브러리가 뱉어낸 복잡한 객체일 경우, getattr(객체, "찾을_이름", 없을 때 반환할 기본값) 을 이용해서 
+    # poorler에 변수에 할당, 이는 신 버전에서는 결과값이 바로 텐서로 나오지 않고, 여러 정보가 담긴 박스 형태로 나옵니다.
     pooler = getattr(image_features, "pooler_output", None)
     if pooler is not None:
         return pooler
@@ -66,16 +71,28 @@ class CLIPEncoder:
 
         print(f"[CLIP] 모델 로드 중: {settings.CLIP_MODEL_NAME}")
 
+        # tource.device: 데이터가 일할 '작업장' 설정 (GPU 우선, 없으면 CPU)
+        # torch.cuda.is_available()로 CUDA 지원 여부 확인 → GPU 사용 가능하면 "cuda", 아니면 "cpu" 반환
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(f"[CLIP] 디바이스: {self._device}")
 
         # CLIPProcessor: 이미지를 CLIP 입력 형식으로 변환
         # 내부적으로 224×224 리사이즈 + 정규화 처리
+        # from_pretained() : 모델을 하드디스크에서 메모리로 끌어올리는 함수, 
+        # 
+        # 처음에는 컴퓨터의 로컬 캐시 폴더에 해당 모델 파일이 있는지 찾아봄, 없으면 인터넷에서 다운로드 함.
+        # 이후 하드디스크에 저장된 수백 MB의 모델 가중치 파일을 읽어서, 우리가 파이썬 코드에서 조작할 수 있도록 객체형태로 시스템 메모리에 띄웁니다.
         self._processor = CLIPProcessor.from_pretrained(settings.CLIP_MODEL_NAME)
 
         # CLIPModel: 이미지 → 벡터 변환 모델
         self._model = CLIPModel.from_pretrained(settings.CLIP_MODEL_NAME)
+
+        # .to(device): 해당 코드에 인해 우리 모델이 RAM 혹은 VRAM(GPU 메모리) 중 어디에서 상주해서 연산하게 될지 정해진다.
         self._model.to(self._device)
+
+        # model.train()은 학습모드이고 model.eval()은 추론모드입니다.
+        # CLIP 모델은 사전 학습된 모델이므로, 우리는 학습이 필요 없고, 단지 추론(이미지 → 벡터 변환)만 필요하기 때문에 model.eval()로 설정합니다.
+        # 추론 모드를 사용하면 1. 드롭아웃을 비활성화하며, 2. 배치 정규화 레이어가 고정된 통계값을 사용하도록 설정하여, 일관된 결과를 보장합니다.
         self._model.eval()
 
         print(f"[CLIP] 모델 로드 완료")
@@ -93,17 +110,23 @@ class CLIPEncoder:
         """
         self._load_model()
 
+        # CLIP 모델은 RGB 이미지만 처리할 수 있으므로, 입력 이미지가 RGB가 아니면 변환
         if image.mode != "RGB":
             image = image.convert("RGB")
 
         # 1. 이미지 → 모델 입력 텐서 변환
         # CLIPProcessor가 224×224 리사이즈 + 정규화를 자동 처리
         inputs = self._processor(images=image, return_tensors="pt")
+        # Dictionary Comprehension: inputs는 {'pixel_values': tensor} 형태인데, 이 코드는 모든 텐서를 GPU로 이동시킵니다.
         inputs = {k: v.to(self._device) for k, v in inputs.items()}
 
         # 2. 비전 인코더만 실행 (텍스트 인코더는 사용 안 함)
         # get_image_features()는 이미지 → 벡터 변환만 수행
+
+        # with torch.no_grad(): → AI 추론 과정에서 가장 중요한 메모리 절약 스위치이다.
+        # 역전파 과정에서 텐서의 계산 그래프를 추적하지 않도록 설정하여, GPU 메모리를 크게 절약할 수 있다.
         with torch.no_grad():
+            # CLIP 모델의 비전 인코더를 사용하여 이미지 특징 추출
             raw = self._model.get_image_features(**inputs)
         image_features = _clip_image_features_to_tensor(raw)
 

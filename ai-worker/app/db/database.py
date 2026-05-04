@@ -28,7 +28,7 @@ from app.core.config import settings
 # SQLAlchemy 엔진 생성 (DB 연결 풀)
 engine = create_engine(settings.DATABASE_URL)
 
-
+# 여기서 이 Base 클래스는 SQLAlchemy의 DeclarativeBase를 상속받아서, 우리가 정의할 모든 테이블이 이 Base를 기반으로 만들어지도록 하는 역할을 합니다.
 class Base(DeclarativeBase):
     pass
 

@@ -44,7 +44,8 @@ def process_job(r: redis_lib.Redis, pipeline: ClothingPipeline, raw: bytes) -> N
             s3_key  = payload["data"]["s3Key"]
             user_id = payload["data"].get("userId", "unknown")
             job_id  = payload["data"].get("job_id") or str(payload.get("id", decoded))  # ← 수정
-            _run_pipeline(r, pipeline, job_id, s3_key, user_id, raw)
+            category = payload["data"].get("category", "FULL")
+            _run_pipeline(r, pipeline, job_id, s3_key, user_id, category, raw)
             return
     except (json.JSONDecodeError, KeyError):
         pass
@@ -66,12 +67,13 @@ def process_job(r: redis_lib.Redis, pipeline: ClothingPipeline, raw: bytes) -> N
         s3_key   = data["s3Key"]
         user_id  = data.get("userId", "unknown")
         job_id   = data.get("job_id") or job_id 
+        category
     except (KeyError, json.JSONDecodeError) as e:
         logger.error("job_id=%s 데이터 파싱 실패: %s", job_id, e)
         _move_to_failed(r, raw, reason=str(e))
         return
 
-    _run_pipeline(r, pipeline, job_id, s3_key, user_id, raw)
+    _run_pipeline(r, pipeline, job_id, s3_key, user_id, category, raw)
 
 
 def _run_pipeline(
@@ -80,11 +82,12 @@ def _run_pipeline(
     job_id: str,
     s3_key: str,
     user_id: int,
+    category: str,
     raw: bytes,
 ) -> None:
     logger.info("처리 시작 | job_id=%s user_id=%s s3_key=%s", job_id, user_id, s3_key)
     try:
-        saved_ids = pipeline.run(s3_key=s3_key, user_id=user_id, job_id=job_id)
+        saved_ids = pipeline.run(s3_key=s3_key, user_id=user_id, job_id=job_id, category=category)
         logger.info(
             "처리 완료 | job_id=%s | 저장된 clothing_item ids: %s",
             job_id, saved_ids,
