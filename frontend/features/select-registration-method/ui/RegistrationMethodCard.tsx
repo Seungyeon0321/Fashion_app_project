@@ -11,6 +11,11 @@ interface RegistrationMethodCardProps {
   onPress: () => void;
 }
 
+const METHOD: { key: string; label: string; image: string }[] = [
+  {key: 'camera', label: 'TAKE PHOTO', image: 'https://my-fashion-app-media.s3.ca-central-1.amazonaws.com/take_photo.png'},
+  {key: 'gallery', label: 'UPLOAD FROM GALLERY', image: 'https://my-fashion-app-media.s3.ca-central-1.amazonaws.com/library.png'},
+]
+
 export function RegistrationMethodCard({ method, onPress }: RegistrationMethodCardProps) {
   return (
     <Pressable

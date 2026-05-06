@@ -18,7 +18,7 @@ export const REGISTRATION_METHODS: RegistrationMethod[] = [
     title: 'TAKE PHOTO',
     subtitle: 'Capture a new item in real-time',
     icon: 'camera',
-    image: null, // 카메라 이미지 (삼각대 위 카메라)
+    image: "https://my-fashion-app-media.s3.ca-central-1.amazonaws.com/takePhoto.png", // 카메라 이미지 (삼각대 위 카메라)
     enabled: true,
   },
   {
@@ -26,7 +26,7 @@ export const REGISTRATION_METHODS: RegistrationMethod[] = [
     title: 'CHOOSE FROM LIBRARY',
     subtitle: 'Pick from your existing gallery',
     icon: 'image',
-    image: null, // 옷장 이미지
+    image: "https://my-fashion-app-media.s3.ca-central-1.amazonaws.com/library.png", // 옷장 이미지
     enabled: true,
   },
   {
