@@ -4,6 +4,7 @@ import { ENV } from '@/shared/util/env';
 import { useAuthStore } from '../store/authStore';
 import { getUploadFile } from './fileUtils';
 import { Platform } from 'react-native';
+import type { PresetKey, StylePreset } from '@/features/style-reference/model/types';
 
 export const api = axios.create({
   baseURL: ENV.BACKEND_API_URL,
@@ -107,4 +108,18 @@ export const getRegisterStatus = async (
 ): Promise<RegisterStatusResponse> => {
   const res = await api.get(`/posts/registerMyClothes/status/${jobId}`)
   return res.data.data
+}
+
+////////////////////// style_reference API //////////////////////
+
+export type MyStyle = {
+  id: number;
+  presetKey: PresetKey;
+  createdAt: string;
+  preset: StylePreset;
+}
+
+export const getMyStyles = async (): Promise<MyStyle[]> => {
+  const res = await api.get('/style-reference/my-styles')
+  return res.data
 }

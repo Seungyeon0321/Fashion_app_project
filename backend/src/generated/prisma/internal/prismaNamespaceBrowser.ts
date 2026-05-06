@@ -122,13 +122,14 @@ export const ClosetItemScalarFieldEnum = {
   isArchived: 'isArchived',
   isWashing: 'isWashing',
   colors: 'colors',
-  season: 'season',
   brand: 'brand',
   memo: 'memo',
   isFavorite: 'isFavorite',
   wearCount: 'wearCount',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  season: 'season',
+  style: 'style'
 } as const
 
 export type ClosetItemScalarFieldEnum = (typeof ClosetItemScalarFieldEnum)[keyof typeof ClosetItemScalarFieldEnum]
@@ -137,6 +138,8 @@ export type ClosetItemScalarFieldEnum = (typeof ClosetItemScalarFieldEnum)[keyof
 export const StyleReferenceScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
+  type: 'type',
+  presetKey: 'presetKey',
   originalImageUrl: 'originalImageUrl',
   rating: 'rating',
   analysisResult: 'analysisResult',

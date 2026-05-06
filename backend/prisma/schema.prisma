@@ -115,23 +115,21 @@ model ClosetItem {
 // 3. Style Reference - Core Feature #1
 // ==========================================
 model StyleReference {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id               Int      @id @default(autoincrement())
+  userId           Int
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  originalImageUrl String // Original photo uploaded from magazine/Pinterest
-  rating Int @default(5)
-  
-  // AI Analysis Result (JSON)
-  // e.g., { "top": { "bbox": [x,y,w,h], "color": "red" }, "bottom": ... }
-  // Stores coordinates and features of clothes analyzed by YOLO
-  analysisResult   Json? 
-  
-  // Vector storing the overall mood of this style photo (Optional)
+  type             StyleRefType  // 추가
+
+  // PRESET용
+  presetKey        String?       // "minimal", "streetwear"...
+
+  // CUSTOM용 (기존 필드 그대로)
+  originalImageUrl String?       // nullable로 변경
+  rating           Int           @default(5)
+  analysisResult   Json?
   embedding        Unsupported("vector(512)")?
-
-  // Relations
-  wishlistItems    WishlistItem[] // Items recommended based on this style
+  wishlistItems    WishlistItem[]
 
   createdAt        DateTime @default(now())
 }
@@ -278,4 +276,9 @@ enum OutfitSource {
 enum AuthProvider {
   LOCAL
   GOOGLE
+}
+
+enum StyleRefType {
+  PRESET
+  CUSTOM
 }

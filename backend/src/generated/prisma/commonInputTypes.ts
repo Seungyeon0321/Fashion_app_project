@@ -340,6 +340,23 @@ export type EnumSeasonNullableWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumSeasonNullableFilter<$PrismaModel>
 }
 
+export type EnumStyleRefTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.StyleRefType | Prisma.EnumStyleRefTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.StyleRefType[] | Prisma.ListEnumStyleRefTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.StyleRefType[] | Prisma.ListEnumStyleRefTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumStyleRefTypeFilter<$PrismaModel> | $Enums.StyleRefType
+}
+
+export type EnumStyleRefTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.StyleRefType | Prisma.EnumStyleRefTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.StyleRefType[] | Prisma.ListEnumStyleRefTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.StyleRefType[] | Prisma.ListEnumStyleRefTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumStyleRefTypeWithAggregatesFilter<$PrismaModel> | $Enums.StyleRefType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumStyleRefTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumStyleRefTypeFilter<$PrismaModel>
+}
+
 export type EnumOutfitSourceFilter<$PrismaModel = never> = {
   equals?: $Enums.OutfitSource | Prisma.EnumOutfitSourceFieldRefInput<$PrismaModel>
   in?: $Enums.OutfitSource[] | Prisma.ListEnumOutfitSourceFieldRefInput<$PrismaModel>
@@ -656,6 +673,23 @@ export type NestedEnumSeasonNullableWithAggregatesFilter<$PrismaModel = never> =
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedEnumSeasonNullableFilter<$PrismaModel>
   _max?: Prisma.NestedEnumSeasonNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumStyleRefTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.StyleRefType | Prisma.EnumStyleRefTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.StyleRefType[] | Prisma.ListEnumStyleRefTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.StyleRefType[] | Prisma.ListEnumStyleRefTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumStyleRefTypeFilter<$PrismaModel> | $Enums.StyleRefType
+}
+
+export type NestedEnumStyleRefTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.StyleRefType | Prisma.EnumStyleRefTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.StyleRefType[] | Prisma.ListEnumStyleRefTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.StyleRefType[] | Prisma.ListEnumStyleRefTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumStyleRefTypeWithAggregatesFilter<$PrismaModel> | $Enums.StyleRefType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumStyleRefTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumStyleRefTypeFilter<$PrismaModel>
 }
 
 export type NestedEnumOutfitSourceFilter<$PrismaModel = never> = {

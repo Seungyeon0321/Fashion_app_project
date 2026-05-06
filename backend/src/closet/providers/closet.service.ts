@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { S3Service } from '../../s3/s3.service.js';
-import { RegisterClosetItemDto, UpdateClosetItemDto } from '../dtos/closet.dtos.js';
+import { RegisterClosetItemDto, UpdateClosetItemDto } from '../dto/closet.dto.js';
 
 @Injectable()
 export class ClosetService {

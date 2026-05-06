@@ -56,13 +56,14 @@ export type ClosetItemMinAggregateOutputType = {
   maxTemp: number | null
   isArchived: boolean | null
   isWashing: boolean | null
-  season: $Enums.Season | null
   brand: string | null
   memo: string | null
   isFavorite: boolean | null
   wearCount: number | null
   createdAt: Date | null
   updatedAt: Date | null
+  season: $Enums.Season | null
+  style: string | null
 }
 
 export type ClosetItemMaxAggregateOutputType = {
@@ -77,13 +78,14 @@ export type ClosetItemMaxAggregateOutputType = {
   maxTemp: number | null
   isArchived: boolean | null
   isWashing: boolean | null
-  season: $Enums.Season | null
   brand: string | null
   memo: string | null
   isFavorite: boolean | null
   wearCount: number | null
   createdAt: Date | null
   updatedAt: Date | null
+  season: $Enums.Season | null
+  style: string | null
 }
 
 export type ClosetItemCountAggregateOutputType = {
@@ -99,13 +101,14 @@ export type ClosetItemCountAggregateOutputType = {
   isArchived: number
   isWashing: number
   colors: number
-  season: number
   brand: number
   memo: number
   isFavorite: number
   wearCount: number
   createdAt: number
   updatedAt: number
+  season: number
+  style: number
   _all: number
 }
 
@@ -140,13 +143,14 @@ export type ClosetItemMinAggregateInputType = {
   maxTemp?: true
   isArchived?: true
   isWashing?: true
-  season?: true
   brand?: true
   memo?: true
   isFavorite?: true
   wearCount?: true
   createdAt?: true
   updatedAt?: true
+  season?: true
+  style?: true
 }
 
 export type ClosetItemMaxAggregateInputType = {
@@ -161,13 +165,14 @@ export type ClosetItemMaxAggregateInputType = {
   maxTemp?: true
   isArchived?: true
   isWashing?: true
-  season?: true
   brand?: true
   memo?: true
   isFavorite?: true
   wearCount?: true
   createdAt?: true
   updatedAt?: true
+  season?: true
+  style?: true
 }
 
 export type ClosetItemCountAggregateInputType = {
@@ -183,13 +188,14 @@ export type ClosetItemCountAggregateInputType = {
   isArchived?: true
   isWashing?: true
   colors?: true
-  season?: true
   brand?: true
   memo?: true
   isFavorite?: true
   wearCount?: true
   createdAt?: true
   updatedAt?: true
+  season?: true
+  style?: true
   _all?: true
 }
 
@@ -292,13 +298,14 @@ export type ClosetItemGroupByOutputType = {
   isArchived: boolean
   isWashing: boolean
   colors: string[]
-  season: $Enums.Season | null
   brand: string | null
   memo: string | null
   isFavorite: boolean
   wearCount: number
   createdAt: Date
   updatedAt: Date
+  season: $Enums.Season | null
+  style: string | null
   _count: ClosetItemCountAggregateOutputType | null
   _avg: ClosetItemAvgAggregateOutputType | null
   _sum: ClosetItemSumAggregateOutputType | null
@@ -337,13 +344,14 @@ export type ClosetItemWhereInput = {
   isArchived?: Prisma.BoolFilter<"ClosetItem"> | boolean
   isWashing?: Prisma.BoolFilter<"ClosetItem"> | boolean
   colors?: Prisma.StringNullableListFilter<"ClosetItem">
-  season?: Prisma.EnumSeasonNullableFilter<"ClosetItem"> | $Enums.Season | null
   brand?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
   memo?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
   isFavorite?: Prisma.BoolFilter<"ClosetItem"> | boolean
   wearCount?: Prisma.IntFilter<"ClosetItem"> | number
   createdAt?: Prisma.DateTimeFilter<"ClosetItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ClosetItem"> | Date | string
+  season?: Prisma.EnumSeasonNullableFilter<"ClosetItem"> | $Enums.Season | null
+  style?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   outfitItems?: Prisma.OutfitItemListRelationFilter
 }
@@ -361,13 +369,14 @@ export type ClosetItemOrderByWithRelationInput = {
   isArchived?: Prisma.SortOrder
   isWashing?: Prisma.SortOrder
   colors?: Prisma.SortOrder
-  season?: Prisma.SortOrderInput | Prisma.SortOrder
   brand?: Prisma.SortOrderInput | Prisma.SortOrder
   memo?: Prisma.SortOrderInput | Prisma.SortOrder
   isFavorite?: Prisma.SortOrder
   wearCount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  season?: Prisma.SortOrderInput | Prisma.SortOrder
+  style?: Prisma.SortOrderInput | Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
   outfitItems?: Prisma.OutfitItemOrderByRelationAggregateInput
 }
@@ -388,13 +397,14 @@ export type ClosetItemWhereUniqueInput = Prisma.AtLeast<{
   isArchived?: Prisma.BoolFilter<"ClosetItem"> | boolean
   isWashing?: Prisma.BoolFilter<"ClosetItem"> | boolean
   colors?: Prisma.StringNullableListFilter<"ClosetItem">
-  season?: Prisma.EnumSeasonNullableFilter<"ClosetItem"> | $Enums.Season | null
   brand?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
   memo?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
   isFavorite?: Prisma.BoolFilter<"ClosetItem"> | boolean
   wearCount?: Prisma.IntFilter<"ClosetItem"> | number
   createdAt?: Prisma.DateTimeFilter<"ClosetItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ClosetItem"> | Date | string
+  season?: Prisma.EnumSeasonNullableFilter<"ClosetItem"> | $Enums.Season | null
+  style?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   outfitItems?: Prisma.OutfitItemListRelationFilter
 }, "id">
@@ -412,13 +422,14 @@ export type ClosetItemOrderByWithAggregationInput = {
   isArchived?: Prisma.SortOrder
   isWashing?: Prisma.SortOrder
   colors?: Prisma.SortOrder
-  season?: Prisma.SortOrderInput | Prisma.SortOrder
   brand?: Prisma.SortOrderInput | Prisma.SortOrder
   memo?: Prisma.SortOrderInput | Prisma.SortOrder
   isFavorite?: Prisma.SortOrder
   wearCount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  season?: Prisma.SortOrderInput | Prisma.SortOrder
+  style?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.ClosetItemCountOrderByAggregateInput
   _avg?: Prisma.ClosetItemAvgOrderByAggregateInput
   _max?: Prisma.ClosetItemMaxOrderByAggregateInput
@@ -442,13 +453,14 @@ export type ClosetItemScalarWhereWithAggregatesInput = {
   isArchived?: Prisma.BoolWithAggregatesFilter<"ClosetItem"> | boolean
   isWashing?: Prisma.BoolWithAggregatesFilter<"ClosetItem"> | boolean
   colors?: Prisma.StringNullableListFilter<"ClosetItem">
-  season?: Prisma.EnumSeasonNullableWithAggregatesFilter<"ClosetItem"> | $Enums.Season | null
   brand?: Prisma.StringNullableWithAggregatesFilter<"ClosetItem"> | string | null
   memo?: Prisma.StringNullableWithAggregatesFilter<"ClosetItem"> | string | null
   isFavorite?: Prisma.BoolWithAggregatesFilter<"ClosetItem"> | boolean
   wearCount?: Prisma.IntWithAggregatesFilter<"ClosetItem"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ClosetItem"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ClosetItem"> | Date | string
+  season?: Prisma.EnumSeasonNullableWithAggregatesFilter<"ClosetItem"> | $Enums.Season | null
+  style?: Prisma.StringNullableWithAggregatesFilter<"ClosetItem"> | string | null
 }
 
 export type ClosetItemCreateInput = {
@@ -462,13 +474,14 @@ export type ClosetItemCreateInput = {
   isArchived?: boolean
   isWashing?: boolean
   colors?: Prisma.ClosetItemCreatecolorsInput | string[]
-  season?: $Enums.Season | null
   brand?: string | null
   memo?: string | null
   isFavorite?: boolean
   wearCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  season?: $Enums.Season | null
+  style?: string | null
   user: Prisma.UserCreateNestedOneWithoutClosetItemsInput
   outfitItems?: Prisma.OutfitItemCreateNestedManyWithoutClosetItemInput
 }
@@ -486,13 +499,14 @@ export type ClosetItemUncheckedCreateInput = {
   isArchived?: boolean
   isWashing?: boolean
   colors?: Prisma.ClosetItemCreatecolorsInput | string[]
-  season?: $Enums.Season | null
   brand?: string | null
   memo?: string | null
   isFavorite?: boolean
   wearCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  season?: $Enums.Season | null
+  style?: string | null
   outfitItems?: Prisma.OutfitItemUncheckedCreateNestedManyWithoutClosetItemInput
 }
 
@@ -507,13 +521,14 @@ export type ClosetItemUpdateInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isWashing?: Prisma.BoolFieldUpdateOperationsInput | boolean
   colors?: Prisma.ClosetItemUpdatecolorsInput | string[]
-  season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wearCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+  style?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user?: Prisma.UserUpdateOneRequiredWithoutClosetItemsNestedInput
   outfitItems?: Prisma.OutfitItemUpdateManyWithoutClosetItemNestedInput
 }
@@ -531,13 +546,14 @@ export type ClosetItemUncheckedUpdateInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isWashing?: Prisma.BoolFieldUpdateOperationsInput | boolean
   colors?: Prisma.ClosetItemUpdatecolorsInput | string[]
-  season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wearCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+  style?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   outfitItems?: Prisma.OutfitItemUncheckedUpdateManyWithoutClosetItemNestedInput
 }
 
@@ -554,13 +570,14 @@ export type ClosetItemCreateManyInput = {
   isArchived?: boolean
   isWashing?: boolean
   colors?: Prisma.ClosetItemCreatecolorsInput | string[]
-  season?: $Enums.Season | null
   brand?: string | null
   memo?: string | null
   isFavorite?: boolean
   wearCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  season?: $Enums.Season | null
+  style?: string | null
 }
 
 export type ClosetItemUpdateManyMutationInput = {
@@ -574,13 +591,14 @@ export type ClosetItemUpdateManyMutationInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isWashing?: Prisma.BoolFieldUpdateOperationsInput | boolean
   colors?: Prisma.ClosetItemUpdatecolorsInput | string[]
-  season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wearCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+  style?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ClosetItemUncheckedUpdateManyInput = {
@@ -596,13 +614,14 @@ export type ClosetItemUncheckedUpdateManyInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isWashing?: Prisma.BoolFieldUpdateOperationsInput | boolean
   colors?: Prisma.ClosetItemUpdatecolorsInput | string[]
-  season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wearCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+  style?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ClosetItemListRelationFilter = {
@@ -636,13 +655,14 @@ export type ClosetItemCountOrderByAggregateInput = {
   isArchived?: Prisma.SortOrder
   isWashing?: Prisma.SortOrder
   colors?: Prisma.SortOrder
-  season?: Prisma.SortOrder
   brand?: Prisma.SortOrder
   memo?: Prisma.SortOrder
   isFavorite?: Prisma.SortOrder
   wearCount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  season?: Prisma.SortOrder
+  style?: Prisma.SortOrder
 }
 
 export type ClosetItemAvgOrderByAggregateInput = {
@@ -666,13 +686,14 @@ export type ClosetItemMaxOrderByAggregateInput = {
   maxTemp?: Prisma.SortOrder
   isArchived?: Prisma.SortOrder
   isWashing?: Prisma.SortOrder
-  season?: Prisma.SortOrder
   brand?: Prisma.SortOrder
   memo?: Prisma.SortOrder
   isFavorite?: Prisma.SortOrder
   wearCount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  season?: Prisma.SortOrder
+  style?: Prisma.SortOrder
 }
 
 export type ClosetItemMinOrderByAggregateInput = {
@@ -687,13 +708,14 @@ export type ClosetItemMinOrderByAggregateInput = {
   maxTemp?: Prisma.SortOrder
   isArchived?: Prisma.SortOrder
   isWashing?: Prisma.SortOrder
-  season?: Prisma.SortOrder
   brand?: Prisma.SortOrder
   memo?: Prisma.SortOrder
   isFavorite?: Prisma.SortOrder
   wearCount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  season?: Prisma.SortOrder
+  style?: Prisma.SortOrder
 }
 
 export type ClosetItemSumOrderByAggregateInput = {
@@ -812,13 +834,14 @@ export type ClosetItemCreateWithoutUserInput = {
   isArchived?: boolean
   isWashing?: boolean
   colors?: Prisma.ClosetItemCreatecolorsInput | string[]
-  season?: $Enums.Season | null
   brand?: string | null
   memo?: string | null
   isFavorite?: boolean
   wearCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  season?: $Enums.Season | null
+  style?: string | null
   outfitItems?: Prisma.OutfitItemCreateNestedManyWithoutClosetItemInput
 }
 
@@ -834,13 +857,14 @@ export type ClosetItemUncheckedCreateWithoutUserInput = {
   isArchived?: boolean
   isWashing?: boolean
   colors?: Prisma.ClosetItemCreatecolorsInput | string[]
-  season?: $Enums.Season | null
   brand?: string | null
   memo?: string | null
   isFavorite?: boolean
   wearCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  season?: $Enums.Season | null
+  style?: string | null
   outfitItems?: Prisma.OutfitItemUncheckedCreateNestedManyWithoutClosetItemInput
 }
 
@@ -886,13 +910,14 @@ export type ClosetItemScalarWhereInput = {
   isArchived?: Prisma.BoolFilter<"ClosetItem"> | boolean
   isWashing?: Prisma.BoolFilter<"ClosetItem"> | boolean
   colors?: Prisma.StringNullableListFilter<"ClosetItem">
-  season?: Prisma.EnumSeasonNullableFilter<"ClosetItem"> | $Enums.Season | null
   brand?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
   memo?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
   isFavorite?: Prisma.BoolFilter<"ClosetItem"> | boolean
   wearCount?: Prisma.IntFilter<"ClosetItem"> | number
   createdAt?: Prisma.DateTimeFilter<"ClosetItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ClosetItem"> | Date | string
+  season?: Prisma.EnumSeasonNullableFilter<"ClosetItem"> | $Enums.Season | null
+  style?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
 }
 
 export type ClosetItemCreateWithoutOutfitItemsInput = {
@@ -906,13 +931,14 @@ export type ClosetItemCreateWithoutOutfitItemsInput = {
   isArchived?: boolean
   isWashing?: boolean
   colors?: Prisma.ClosetItemCreatecolorsInput | string[]
-  season?: $Enums.Season | null
   brand?: string | null
   memo?: string | null
   isFavorite?: boolean
   wearCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  season?: $Enums.Season | null
+  style?: string | null
   user: Prisma.UserCreateNestedOneWithoutClosetItemsInput
 }
 
@@ -929,13 +955,14 @@ export type ClosetItemUncheckedCreateWithoutOutfitItemsInput = {
   isArchived?: boolean
   isWashing?: boolean
   colors?: Prisma.ClosetItemCreatecolorsInput | string[]
-  season?: $Enums.Season | null
   brand?: string | null
   memo?: string | null
   isFavorite?: boolean
   wearCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  season?: $Enums.Season | null
+  style?: string | null
 }
 
 export type ClosetItemCreateOrConnectWithoutOutfitItemsInput = {
@@ -965,13 +992,14 @@ export type ClosetItemUpdateWithoutOutfitItemsInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isWashing?: Prisma.BoolFieldUpdateOperationsInput | boolean
   colors?: Prisma.ClosetItemUpdatecolorsInput | string[]
-  season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wearCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+  style?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user?: Prisma.UserUpdateOneRequiredWithoutClosetItemsNestedInput
 }
 
@@ -988,13 +1016,14 @@ export type ClosetItemUncheckedUpdateWithoutOutfitItemsInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isWashing?: Prisma.BoolFieldUpdateOperationsInput | boolean
   colors?: Prisma.ClosetItemUpdatecolorsInput | string[]
-  season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wearCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+  style?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ClosetItemCreateManyUserInput = {
@@ -1009,13 +1038,14 @@ export type ClosetItemCreateManyUserInput = {
   isArchived?: boolean
   isWashing?: boolean
   colors?: Prisma.ClosetItemCreatecolorsInput | string[]
-  season?: $Enums.Season | null
   brand?: string | null
   memo?: string | null
   isFavorite?: boolean
   wearCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  season?: $Enums.Season | null
+  style?: string | null
 }
 
 export type ClosetItemUpdateWithoutUserInput = {
@@ -1029,13 +1059,14 @@ export type ClosetItemUpdateWithoutUserInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isWashing?: Prisma.BoolFieldUpdateOperationsInput | boolean
   colors?: Prisma.ClosetItemUpdatecolorsInput | string[]
-  season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wearCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+  style?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   outfitItems?: Prisma.OutfitItemUpdateManyWithoutClosetItemNestedInput
 }
 
@@ -1051,13 +1082,14 @@ export type ClosetItemUncheckedUpdateWithoutUserInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isWashing?: Prisma.BoolFieldUpdateOperationsInput | boolean
   colors?: Prisma.ClosetItemUpdatecolorsInput | string[]
-  season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wearCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+  style?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   outfitItems?: Prisma.OutfitItemUncheckedUpdateManyWithoutClosetItemNestedInput
 }
 
@@ -1073,13 +1105,14 @@ export type ClosetItemUncheckedUpdateManyWithoutUserInput = {
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isWashing?: Prisma.BoolFieldUpdateOperationsInput | boolean
   colors?: Prisma.ClosetItemUpdatecolorsInput | string[]
-  season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   memo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wearCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
+  style?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -1126,13 +1159,14 @@ export type ClosetItemSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   isArchived?: boolean
   isWashing?: boolean
   colors?: boolean
-  season?: boolean
   brand?: boolean
   memo?: boolean
   isFavorite?: boolean
   wearCount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  season?: boolean
+  style?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   outfitItems?: boolean | Prisma.ClosetItem$outfitItemsArgs<ExtArgs>
   _count?: boolean | Prisma.ClosetItemCountOutputTypeDefaultArgs<ExtArgs>
@@ -1151,13 +1185,14 @@ export type ClosetItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   isArchived?: boolean
   isWashing?: boolean
   colors?: boolean
-  season?: boolean
   brand?: boolean
   memo?: boolean
   isFavorite?: boolean
   wearCount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  season?: boolean
+  style?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["closetItem"]>
 
@@ -1174,13 +1209,14 @@ export type ClosetItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   isArchived?: boolean
   isWashing?: boolean
   colors?: boolean
-  season?: boolean
   brand?: boolean
   memo?: boolean
   isFavorite?: boolean
   wearCount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  season?: boolean
+  style?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["closetItem"]>
 
@@ -1197,16 +1233,17 @@ export type ClosetItemSelectScalar = {
   isArchived?: boolean
   isWashing?: boolean
   colors?: boolean
-  season?: boolean
   brand?: boolean
   memo?: boolean
   isFavorite?: boolean
   wearCount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  season?: boolean
+  style?: boolean
 }
 
-export type ClosetItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "clothingItemId" | "imageUrl" | "cropS3Key" | "category" | "subCategory" | "minTemp" | "maxTemp" | "isArchived" | "isWashing" | "colors" | "season" | "brand" | "memo" | "isFavorite" | "wearCount" | "createdAt" | "updatedAt", ExtArgs["result"]["closetItem"]>
+export type ClosetItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "clothingItemId" | "imageUrl" | "cropS3Key" | "category" | "subCategory" | "minTemp" | "maxTemp" | "isArchived" | "isWashing" | "colors" | "brand" | "memo" | "isFavorite" | "wearCount" | "createdAt" | "updatedAt" | "season" | "style", ExtArgs["result"]["closetItem"]>
 export type ClosetItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   outfitItems?: boolean | Prisma.ClosetItem$outfitItemsArgs<ExtArgs>
@@ -1238,13 +1275,14 @@ export type $ClosetItemPayload<ExtArgs extends runtime.Types.Extensions.Internal
     isArchived: boolean
     isWashing: boolean
     colors: string[]
-    season: $Enums.Season | null
     brand: string | null
     memo: string | null
     isFavorite: boolean
     wearCount: number
     createdAt: Date
     updatedAt: Date
+    season: $Enums.Season | null
+    style: string | null
   }, ExtArgs["result"]["closetItem"]>
   composites: {}
 }
@@ -1682,13 +1720,14 @@ export interface ClosetItemFieldRefs {
   readonly isArchived: Prisma.FieldRef<"ClosetItem", 'Boolean'>
   readonly isWashing: Prisma.FieldRef<"ClosetItem", 'Boolean'>
   readonly colors: Prisma.FieldRef<"ClosetItem", 'String[]'>
-  readonly season: Prisma.FieldRef<"ClosetItem", 'Season'>
   readonly brand: Prisma.FieldRef<"ClosetItem", 'String'>
   readonly memo: Prisma.FieldRef<"ClosetItem", 'String'>
   readonly isFavorite: Prisma.FieldRef<"ClosetItem", 'Boolean'>
   readonly wearCount: Prisma.FieldRef<"ClosetItem", 'Int'>
   readonly createdAt: Prisma.FieldRef<"ClosetItem", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ClosetItem", 'DateTime'>
+  readonly season: Prisma.FieldRef<"ClosetItem", 'Season'>
+  readonly style: Prisma.FieldRef<"ClosetItem", 'String'>
 }
     
 

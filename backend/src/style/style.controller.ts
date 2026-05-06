@@ -1,6 +1,6 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { StylesService } from './providers/style.service.js';
-import { RecommendDto } from './dtos/style.dto.js';
+import { RecommendDto } from './dto/style.dto.js';
 
 @Controller('style')
 export class StyleController {

@@ -1,7 +1,7 @@
 import { Controller, Post, Req, UseGuards, Body, Get, Param, Patch, Delete, ParseIntPipe } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { ClosetService } from './providers/closet.service.js';
-import { RegisterClosetItemDto, UpdateClosetItemDto } from './dtos/closet.dtos.js';
+import { RegisterClosetItemDto, UpdateClosetItemDto } from './dto/closet.dto.js';
 
 @UseGuards(JwtAuthGuard)
 @Controller('closet')

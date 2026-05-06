@@ -82,3 +82,11 @@ export const AuthProvider = {
 } as const
 
 export type AuthProvider = (typeof AuthProvider)[keyof typeof AuthProvider]
+
+
+export const StyleRefType = {
+  PRESET: 'PRESET',
+  CUSTOM: 'CUSTOM'
+} as const
+
+export type StyleRefType = (typeof StyleRefType)[keyof typeof StyleRefType]
