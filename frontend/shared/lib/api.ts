@@ -90,6 +90,8 @@ export const uploadClothingImage = async (
   // add category field to formData
   formData.append('category', category);
 
+  console.log('formData:', formData);
+
   const res = await api.post('/posts/registerMyClothes', formData, {
     headers: {
       'Content-Type': undefined,

@@ -28,6 +28,7 @@ export class PostsController {
     public async registerMyClothes(
         @UploadedFile() file: Express.Multer.File, 
         @Req() req: any) {
+            console.log('are you sure?')
             const validation = (req as any).clothingValidation;
             const userId = req.user.id;
             const category = req.body.category as 'TOP' | 'BOTTOM' | 'FULL';

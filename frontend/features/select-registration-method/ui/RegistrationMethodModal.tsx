@@ -47,7 +47,7 @@ export function RegistrationMethodModal({
             <Feather name="arrow-left" size={24} color={colors.primary} />
           </Pressable>
           <Text style={styles.headerTitle}>NEW ADDITION</Text>
-          <View style={{ width: 40 }} /> {/* Spacer for center alignment */}
+          <View style={{ width: 40 }} />{/* Spacer for center alignment */}
         </View>
 
         {/* Divider */}

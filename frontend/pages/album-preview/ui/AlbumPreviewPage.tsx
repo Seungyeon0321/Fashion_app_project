@@ -1,17 +1,19 @@
-import { View, Image, StyleSheet } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { View, Image, StyleSheet, Text } from 'react-native'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
-import { spacing } from '@/shared/lib/tokens'
-import { useAlbumUpload } from '../model/useAlbumUpload'
-import { AlbumUploadingOverlay } from './AlbumUploadingOverlay'
-import { AlbumCategorySelector } from './AlbumCategorySelector'
-import { AlbumPreviewActions } from './AlbumPreviewActions'
+import { spacing, fonts } from '@/shared/lib/tokens'
+import { useAlbumUpload } from '../../../features/album-preview/model/useAlbumUpload'
+import { AlbumUploadingOverlay } from '../../../features/album-preview/ui/AlbumUploadingOverlay'
+import { AlbumCategorySelector } from '../../../features/album-preview/ui/AlbumCategorySelector'
+import { AlbumPreviewActions } from '../../../features/album-preview/ui/AlbumPreviewActions'
+
 
 type Props = {
   imageUri: string
 }
 
 export const AlbumPreviewPage = ({ imageUri }: Props) => {
+  const insets = useSafeAreaInsets()
   const router = useRouter()
   const {
     selectedCategory,
@@ -21,7 +23,7 @@ export const AlbumPreviewPage = ({ imageUri }: Props) => {
   } = useAlbumUpload(imageUri)
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.container} edges={['top']}>
 
       <Image
         source={{ uri: imageUri }}
@@ -32,11 +34,19 @@ export const AlbumPreviewPage = ({ imageUri }: Props) => {
       {isUploading && <AlbumUploadingOverlay />}
 
       {!isUploading && (
-        <View style={styles.bottom}>
+        <View style={[styles.bottom, { paddingBottom: insets.bottom}]}>
           <AlbumCategorySelector
             selected={selectedCategory}
             onSelect={setSelectedCategory}
           />
+          {!selectedCategory && (
+            <View style={{ height: 16 }}>
+              <Text style={styles.text}>
+                Please select a category for your outfit.
+              </Text>
+            </View>
+          )}
+
           <AlbumPreviewActions
             selectedCategory={selectedCategory}
             onConfirm={handleConfirm}
@@ -64,9 +74,13 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: spacing.outerMargin,
-    paddingBottom: 40,
     paddingTop: 20,
     backgroundColor: 'rgba(0,0,0,0.45)',
     gap: 16,
   },
+  text : {
+    ...fonts.bodyMd,
+    color: '#fff',
+    textAlign: 'center',
+  }
 })

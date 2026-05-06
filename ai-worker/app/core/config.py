@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from pydantic import Field, AliasChoices
+import os
 
 
 class Settings(BaseSettings):
@@ -66,7 +67,7 @@ class Settings(BaseSettings):
 
     class Config:
         # .env 파일 위치 (ai-worker 루트에 있어야 함)
-        env_file = ".env"
+        env_file = ".env" if os.path.exists(".env") else None
         env_file_encoding = "utf-8"
         # 대소문자 구분 없이 환경변수 읽기
         case_sensitive = False
