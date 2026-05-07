@@ -16,4 +16,5 @@ export type StylePreset = {
   description: string
   gender: string[]
   keywords: string[]
+  imageUrl: string
 }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useClosetItems } from '@/features/closet/api/useCloset'
+import { all } from 'axios'
 
 export const CATEGORIES = ['ALL', 'TOP', 'BOTTOM', 'OUTER', 'DRESS', 'SHOES', 'BAG', 'ACC'] as const
 export type CategoryId = typeof CATEGORIES[number]
@@ -16,14 +17,9 @@ export const useClosetFilter = () => {
         item.category.toUpperCase() === selectedCategory
       )
 
-  const leftItems  = filtered.filter((_, i) => i % 2 === 0)
-  const rightItems = filtered.filter((_, i) => i % 2 === 1)
-
   return {
-    allItems,
-    filtered,
-    leftItems,
-    rightItems,
+    allItems,         // ← 전체 아이템 배열도 반환
+    filtered,         // ← 배열 하나만 반환
     selectedCategory,
     setSelectedCategory,
     isLoading,
