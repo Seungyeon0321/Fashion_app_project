@@ -9,6 +9,9 @@ import { AddClothingFab } from '@/features/add-clothing/ui/AddClothingFab'
 import { RegistrationMethodModal } from '@/features/select-registration-method/ui/RegistrationMethodModal'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { ScreenLayout } from '@/shared/ui/ScreenLayout'
+import { useEffect } from 'react'
+import { useMyStyles } from '@/features/style-reference/api/useMyStyles'
+import { useStyleStore } from '@/features/style-reference/model/styleStore'
 
 export function HomePage() {
   const {
@@ -26,6 +29,13 @@ export function HomePage() {
     closeModal,
     handleSelectMethod,
   } = useAddClothing()
+
+  const setSavedStyles = useStyleStore((s) => s.setSavedStyles)
+  const { data: myStyles } = useMyStyles()
+
+  useEffect(() => {
+    if (myStyles) setSavedStyles(myStyles)
+}, [myStyles])
 
   if (isLoading) {
     return (

@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { use, useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { getStylePresets, savePresetStyles } from '../api/styleReferenceApi';
 import { useToastStore } from '@/shared/store/toastStore';
+import { useStyleStore } from './styleStore';
 import { PresetKey } from './types';
 
 export function useStylePresets() {
-  const [selected, setSelected] = useState<PresetKey[]>([]);
+  const savedStyles = useStyleStore((s) => s.savedStyles);
+  const [selected, setSelected] = useState<PresetKey[]>(savedStyles as PresetKey[]);
   const showToast = useToastStore((s) => s.show);
 
   const { data: presets = [], isLoading } = useQuery({

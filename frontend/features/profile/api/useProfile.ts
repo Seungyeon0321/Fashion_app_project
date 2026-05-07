@@ -6,6 +6,7 @@ type ProfileData = {
   email: string;
   name: string;
   avatarUrl: string | null;
+  gender: 'MALE' | 'FEMALE' | 'UNISEX';
 };
 
 async function fetchProfile(): Promise<ProfileData> {

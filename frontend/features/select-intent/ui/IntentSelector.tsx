@@ -2,11 +2,12 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ImageBackground } from 'react-native';
 import { type Intent, useIntentStore } from '@/features/select-intent/model/intentStore.ts';
 import { colors, spacing } from '@/shared/lib/tokens';
+const S3 = process.env.EXPO_PUBLIC_S3_BASE_URL;
 
 const INTENTS: { key: Intent; label: string; image: string }[] = [
-  { key: 'formal', label: 'FORMAL', image: 'https://my-fashion-app-media.s3.ca-central-1.amazonaws.com/formal.png' },
-  { key: 'casual', label: 'CASUAL', image: 'https://my-fashion-app-media.s3.ca-central-1.amazonaws.com/casual.png' },
-  { key: 'sports', label: 'SPORTS', image: 'https://my-fashion-app-media.s3.ca-central-1.amazonaws.com/sports.png' },
+  { key: 'formal', label: 'FORMAL', image: `${S3}/formal.png` },
+  { key: 'casual', label: 'CASUAL', image: `${S3}/casual.png` },
+  { key: 'sports', label: 'SPORTS', image: `${S3}/sports.png` },
 ];
 
 export function IntentSelector() {

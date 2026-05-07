@@ -9,9 +9,10 @@ type Props = {
   preset: StylePreset;
   isSelected: boolean;
   onPress: () => void;
+  imageUrl: string; // 이미지 URL 추가
 };
 
-export function StyleCard({ preset, isSelected, onPress }: Props) {
+export function StyleCard({ preset, isSelected, onPress, imageUrl }: Props) {
   return (
     <Pressable onPress={onPress} style={styles.container}>
       {/* 이미지 영역 */}
@@ -22,7 +23,7 @@ export function StyleCard({ preset, isSelected, onPress }: Props) {
         ]}
       >
         <Image
-          source={{ uri: preset.imageUrl }}
+          source={{ uri: imageUrl }}
           style={[styles.image, !isSelected && styles.grayscale]}
           resizeMode="cover"
         />
@@ -44,9 +45,7 @@ const styles = StyleSheet.create({
   },
 
   imageWrapper: {
-    overflow: 'hidden',
-    position: 'relative',
-    height: 180,
+    height: 260, overflow: 'hidden', position: 'relative',
   },
 
   selectedBorder: {

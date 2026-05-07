@@ -143,3 +143,5 @@ docker-compose.yml
 
 /ai-worker/stylist/token.json
 /ai-worker/stylist/credentials.json
+
+/scripts
