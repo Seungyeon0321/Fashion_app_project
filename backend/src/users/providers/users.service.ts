@@ -23,13 +23,14 @@ export class UsersService {
   }
 
   // 로컬 회원가입 (이메일 + 비밀번호)
-  async createLocalUser(email: string, password: string, nickname?: string) {
+  async createLocalUser(email: string, password: string, nickname?: string, gender?: 'MALE' | 'FEMALE' | 'UNISEX') {
     const hashedPassword = await bcrypt.hash(password, 10);
     return this.prisma.user.create({
       data: {
         email,
         password: hashedPassword,
         nickname,
+        gender,
         provider: AuthProvider.LOCAL,
       },
     });
@@ -69,4 +70,11 @@ export class UsersService {
       },
     });
   }
+
+  async updateGender(userId: number, gender: 'MALE' | 'FEMALE' | 'UNISEX') {
+  return this.prisma.user.update({
+    where: { id: userId },
+    data: { gender },
+  });
+}
 }

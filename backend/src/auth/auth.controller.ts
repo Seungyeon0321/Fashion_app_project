@@ -11,9 +11,8 @@ export class AuthController {
   // POST /auth/register — 로컬 회원가입
   @Post('register')
   async register(
-    @Body() body: { email: string; password: string; nickname?: string },
-  ) {
-    return this.authService.register(body.email, body.password, body.nickname);
+    @Body() body: { email: string; password: string; nickname?: string; gender?: 'MALE' | 'FEMALE' | 'UNISEX' },) {
+    return this.authService.register(body.email, body.password, body.nickname, body.gender);
   }
 
   // POST /auth/login — 로컬 로그인

@@ -1,6 +1,6 @@
 // features/auth/components/AuthForm.tsx
 import { useState } from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { Button } from '@/shared/ui/Button';
 import { useAuthStore } from '@/shared/store/authStore';
@@ -8,6 +8,7 @@ import { api } from '@/shared/lib/api';
 import Svg, { Path } from 'react-native-svg';
 
 type Tab = 'signup' | 'signin';
+type Gender = 'MALE' | 'FEMALE' | 'UNISEX';
 
 type Props = {
   activeTab: Tab;
@@ -22,9 +23,16 @@ const GoogleIcon = (
   </Svg>
 );
 
+const GENDER_OPTIONS: { key: Gender; label: string }[] = [
+  { key: 'MALE', label: 'MALE' },
+  { key: 'FEMALE', label: 'FEMALE' },
+  { key: 'UNISEX', label: 'UNISEX' },
+];
+
 export function AuthForm({ activeTab }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [gender, setGender] = useState<Gender | null>(null);  // ← 추가
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -35,11 +43,19 @@ export function AuthForm({ activeTab }: Props) {
       setError('Please fill in all fields.');
       return;
     }
+    // signup일 때 gender 필수 체크
+    if (activeTab === 'signup' && !gender) {
+      setError('Please select your gender.');
+      return;
+    }
     setError('');
     setLoading(true);
     try {
       const endpoint = activeTab === 'signup' ? '/auth/register' : '/auth/login';
-      const { data } = await api.post(endpoint, { email, password });
+      const payload = activeTab === 'signup'
+        ? { email, password, gender }   // ← gender 포함
+        : { email, password };
+      const { data } = await api.post(endpoint, payload);
       await login(data.accessToken);
       router.replace('/(tabs)/home');
     } catch {
@@ -85,6 +101,34 @@ export function AuthForm({ activeTab }: Props) {
         />
         <View style={styles.fieldLine} />
       </View>
+
+      {/* Gender 선택 — signup 탭에서만 표시 */}
+      {activeTab === 'signup' && (
+        <View style={styles.field}>
+          <Text style={styles.fieldLabel}>Gender</Text>
+          <View style={styles.genderRow}>
+            {GENDER_OPTIONS.map((option) => (
+              <Pressable
+                key={option.key}
+                onPress={() => setGender(option.key)}
+                style={[
+                  styles.genderBtn,
+                  gender === option.key && styles.genderBtnSelected,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.genderBtnText,
+                    gender === option.key && styles.genderBtnTextSelected,
+                  ]}
+                >
+                  {option.label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      )}
 
       {/* 에러 */}
       {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -157,5 +201,32 @@ const styles = StyleSheet.create({
     fontSize: 9,
     letterSpacing: 3,
     color: 'rgba(255,255,255,0.2)',
+  },
+
+  // ── Gender 선택 버튼 ──────────────────────────────────────
+  genderRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 4,
+  },
+  genderBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+  },
+  genderBtnSelected: {
+    borderColor: '#e24b4a',
+    backgroundColor: 'rgba(226,75,74,0.08)',
+  },
+  genderBtnText: {
+    fontFamily: 'Manrope_400Regular',
+    fontSize: 10,
+    letterSpacing: 2,
+    color: 'rgba(255,255,255,0.3)',
+  },
+  genderBtnTextSelected: {
+    color: '#e24b4a',
   },
 });

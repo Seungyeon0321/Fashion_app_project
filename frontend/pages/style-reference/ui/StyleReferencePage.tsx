@@ -9,6 +9,9 @@ import { StyleTabs } from '@/features/style-reference/ui/StyleTabs';
 import { StylePresetGrid } from '@/features/style-reference/ui/StylePresetGrid';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { ScreenLayout } from '@/shared/ui/ScreenLayout';
+import { useProfile } from '@/features/profile/api/useProfile';  // ← 추가
+import { GenderSetupModal } from '@/features/gender-setup/ui/GenderSetupModal';
+import { G } from 'react-native-svg';
 
 type TabId = 'PRESET' | 'CUSTOM';
 
@@ -16,6 +19,8 @@ export function StyleReferencePage() {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<TabId>('PRESET');
   const { presets, isLoading, selected, toggle, save, isSaving } = useStylePresets();
+
+  const { data: profile } = useProfile();
 
   return (
     <ScreenLayout hasFooter>
@@ -62,6 +67,7 @@ export function StyleReferencePage() {
           </Text>
         </Pressable>
       </View>
+      <GenderSetupModal visible={!profile?.gender} />
     </ScreenLayout>
   );
 }

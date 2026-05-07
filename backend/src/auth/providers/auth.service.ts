@@ -24,14 +24,14 @@ export class AuthService {
         return {accessToken: this.jwtService.sign(payload)};
     }
 
-    async register(email: string, password: string, nickname?: string) {
+    async register(email: string, password: string, nickname?: string, gender?: 'MALE' | 'FEMALE' | 'UNISEX') {
         // check if the email is already in use
         const existingUser = await this.usersService.findByEmail(email);
         if (existingUser) {
             throw new BadRequestException('Email already in use');
         }
         // create a new user
-        const user = await this.usersService.createLocalUser(email, password, nickname);
+        const user = await this.usersService.createLocalUser(email, password, nickname, gender);
         return this.generateToken(user);
     }
 
