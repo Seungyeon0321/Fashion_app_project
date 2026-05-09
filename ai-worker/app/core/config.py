@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, AliasChoices
 import os
 
@@ -65,13 +65,13 @@ class Settings(BaseSettings):
     WEATHER_LAT: str = Field(default="")
     WEATHER_LON: str = Field(default="")
 
-    class Config:
-        # .env 파일 위치 (ai-worker 루트에 있어야 함)
-        env_file = ".env" if os.path.exists(".env") else None
-        env_file_encoding = "utf-8"
-        # 대소문자 구분 없이 환경변수 읽기
-        case_sensitive = False
-
+    model_config = SettingsConfigDict(
+        env_file=(
+            ".env.docker" if os.path.exists(".env.docker") else ".env" if os.path.exists(".env") else None
+        ),
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+    )
 
 # 싱글톤 패턴: 이 파일을 import하면 항상 같은 settings 객체를 사용
 # NestJS의 ConfigService와 같은 개념

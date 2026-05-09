@@ -3,6 +3,7 @@ import { StyleSheet, View, Image, Text } from 'react-native';
 import {
   Gesture,
   GestureDetector,
+  GestureHandlerRootView,
 } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
@@ -87,6 +88,7 @@ export function MoodboardCanvas() {
   };
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <View style={styles.canvas}>
       {canvasItems.map((item) => (
         <DraggableItem
@@ -104,6 +106,7 @@ export function MoodboardCanvas() {
         </View>
       )}
     </View>
+    </GestureHandlerRootView>
   );
 }
 

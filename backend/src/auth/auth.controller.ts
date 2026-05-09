@@ -42,4 +42,12 @@ export class AuthController {
   async getMe(@Req() req: any) {
     return req.user;
   }
+
+  // POST /auth/google/mobile — 모바일에서 Google 로그인 처리
+  @Post('google/mobile')
+  async googleMobileLogin(
+  @Body() body: { idToken: string },
+) {
+  return this.authService.handleGoogleMobileLogin(body.idToken);
+}
 }

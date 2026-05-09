@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from langchain_anthropic import ChatAnthropic
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
+from google.auth.transport.requests import Request
 from .state import OutfitState
 
 load_dotenv()
@@ -43,6 +44,12 @@ def get_weather() -> dict:
 def get_calendar() -> list[str]:
     token_path = os.path.join(os.path.dirname(__file__), "..", "token.json")
     creds = Credentials.from_authorized_user_file(token_path, SCOPES)
+
+    if creds.expired and creds.refresh_token:
+        creds.refresh(Request())
+        with open(token_path, "w") as token_file:
+            token_file.write(creds.to_json())
+
     service = build("calendar", "v3", credentials=creds)
 
     now = datetime.now(timezone.utc).isoformat()

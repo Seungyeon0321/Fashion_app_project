@@ -1,5 +1,6 @@
 // features/auth/components/AuthForm.tsx
 import { useState } from 'react';
+import { useGoogleLogin } from '../api/useGoogleLogin';
 import { View, Text, TextInput, StyleSheet, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { Button } from '@/shared/ui/Button';
@@ -68,6 +69,8 @@ export function AuthForm({ activeTab }: Props) {
       setLoading(false);
     }
   };
+
+  const { promptAsync, disabled } = useGoogleLogin();
 
   return (
     <View>
@@ -152,7 +155,7 @@ export function AuthForm({ activeTab }: Props) {
       {/* Google */}
       <Button
         label="GOOGLE"
-        onPress={() => {}}
+        onPress={() => promptAsync()}
         variant="ghost"
         icon={GoogleIcon}
       />

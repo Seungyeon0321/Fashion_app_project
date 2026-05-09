@@ -5,6 +5,7 @@ import { View, Text, Modal, Pressable, StyleSheet } from 'react-native';
 import { colors, fonts, spacing } from '@/shared/lib/tokens';
 import { useUpdateGender } from '../api/useUpdateGender';
 import type { Gender } from '../model/type';
+
 const GENDER_OPTIONS: { key: Gender; label: string }[] = [
   { key: 'MALE', label: 'MALE' },
   { key: 'FEMALE', label: 'FEMALE' },

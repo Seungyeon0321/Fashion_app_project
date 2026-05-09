@@ -14,6 +14,10 @@
     "android": {
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundColor": "#1a1a1a"
+      },
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
@@ -21,6 +25,7 @@
       ],
       "package": "com.simonji.frontend"
     },
+    "icon": "./assets/images/icon.png",
     "web": {
       "output": "static"
     },
@@ -28,17 +33,7 @@
       "expo-router",
       "expo-font",
       "expo-secure-store",
-      [
-        "react-native-vision-camera",
-        {
-          "cameraPermissionText": "Allow $(PRODUCT_NAME) to access your camera to analyze your clothes",
-          "enableMicrophonePermission": true,
-          "microphonePermissionText": "Allow $(PRODUCT_NAME) to access your microphone to analyze your clothes",
-          "enableLocation": true,
-          "locationPermissionText": "Allow $(PRODUCT_NAME) to access your location to analyze your clothes",
-          "enableCodeScanner": true
-        }
-      ]
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true,

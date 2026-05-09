@@ -2,7 +2,7 @@ import { RefObject, useEffect, useRef, useState } from "react";
 import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView } from "expo-camera";
-import { GestureDetector, Gesture, GestureHandlerRootView } from "react-native-gesture-handler";
+import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import { useTakePhoto } from "@/features/take_photo/model/useTakePhoto";
 import { PhotoPreview } from "@/features/take_photo/ui/PhotoPreview";
 import { useToggleFacing } from "@/features/camera_controls/model/useToggleFacing";
@@ -97,7 +97,6 @@ export const CameraPage = () => {
     };
 
     return (
-        <GestureHandlerRootView style={styles.container}>
             <SafeAreaView edges={['top']} style={styles.container}>
                 {photo ? (
                     <PhotoPreview
@@ -132,7 +131,6 @@ export const CameraPage = () => {
                     </GestureDetector>
                 )}
             </SafeAreaView>
-        </GestureHandlerRootView>
     );
 };
 
