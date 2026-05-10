@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { tokenStorage } from '../lib/token';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 type AuthState = {
   token: string | null;
@@ -23,9 +24,17 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: async () => {
-    await tokenStorage.remove();
-    set({ token: null, isAuthenticated: false });
-  },
+  await tokenStorage.remove();
+
+  // 구글 세션도 같이 초기화
+  try {
+    await GoogleSignin.signOut();
+  } catch (e) {
+    // 구글로 로그인 안 한 유저일 수도 있으니 에러 무시
+  }
+
+  set({ token: null, isAuthenticated: false });
+},
 
   initialize: async () => {
     const token = tokenStorage.get();

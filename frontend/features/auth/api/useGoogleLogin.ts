@@ -16,6 +16,8 @@ export function useGoogleLogin() {
   const signIn = async () => {
     try {
       await GoogleSignin.hasPlayServices();
+      // 기존 세션 초기화 — 구글 로그인 시 가끔 이전 세션이 꼬이는 문제 방지
+      await GoogleSignin.signOut(); // ← 여기 추가
       const userInfo = await GoogleSignin.signIn();
 
       // idToken을 백엔드로 전송

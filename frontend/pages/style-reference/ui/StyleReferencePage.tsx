@@ -12,6 +12,7 @@ import { ScreenLayout } from '@/shared/ui/ScreenLayout';
 import { useProfile } from '@/features/profile/api/useProfile';  // ← 추가
 import { GenderSetupModal } from '@/features/gender-setup/ui/GenderSetupModal';
 import { G } from 'react-native-svg';
+import { is } from 'zod/v4/locales';
 
 type TabId = 'PRESET' | 'CUSTOM';
 
@@ -20,7 +21,9 @@ export function StyleReferencePage() {
   const [activeTab, setActiveTab] = useState<TabId>('PRESET');
   const { presets, isLoading, selected, toggle, save, isSaving } = useStylePresets();
 
-  const { data: profile } = useProfile();
+  const { data: profile, isLoading: isProfileLoading } = useProfile();
+
+  const showGenderModal = profile !== undefined && !profile.gender;
 
   return (
     <ScreenLayout hasFooter>
@@ -67,7 +70,7 @@ export function StyleReferencePage() {
           </Text>
         </Pressable>
       </View>
-      <GenderSetupModal visible={!profile?.gender} />
+      <GenderSetupModal visible={showGenderModal} />
     </ScreenLayout>
   );
 }

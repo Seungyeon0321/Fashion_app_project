@@ -18,5 +18,6 @@ export function useProfile() {
   return useQuery({
     queryKey: ['profile'],
     queryFn: fetchProfile,
+    staleTime: 1000 * 60 * 5, // 5분간 캐시 유지 → 탭 이동해도 재요청 안 함
   });
 }
