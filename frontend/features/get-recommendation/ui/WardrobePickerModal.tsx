@@ -1,3 +1,11 @@
+// features/get-recommendation/ui/WardrobePickerModal.tsx
+//
+// 변경:
+//   - pickerMode: 'multi' | 'single' prop 추가
+//   - single: 1개 선택 → onSelectSingle 콜백 → 자동 닫힘
+//   - multi: 기존 토글 동작 유지
+//   - 헤더에 single 모드 안내 문구 추가
+
 import React, { useState, useMemo } from 'react';
 import {
   Modal,
@@ -11,11 +19,12 @@ import {
   Dimensions,
 } from 'react-native';
 import { useClosetItems } from '@/features/closet/api/useCloset';
-import { useCanvasStore, CanvasItem } from '@/features/get-recommendation/model/canvasStore';
+import { useCanvasStore, type CanvasItem } from '@/features/get-recommendation/model/canvasStore';
 import { colors, fonts, spacing, radius } from '@/shared/lib/tokens';
+import type { AnchorClosetItem } from '@/features/get-recommendation/model/sourcePickerStore';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const ITEM_SIZE = (SCREEN_WIDTH - spacing.outerMargin * 2 - 16) / 3; // 3열
+const ITEM_SIZE = (SCREEN_WIDTH - spacing.outerMargin * 2 - 16) / 3;
 
 const CATEGORY_TABS = [
   { key: 'ALL',       label: 'ALL' },
@@ -31,20 +40,24 @@ type TabKey = typeof CATEGORY_TABS[number]['key'];
 interface WardrobePickerModalProps {
   visible: boolean;
   onClose: () => void;
+  pickerMode?: 'multi' | 'single';
+  onSelectSingle?: (item: AnchorClosetItem) => void;
 }
 
-export const WardrobePickerModal = ({ visible, onClose }: WardrobePickerModalProps) => {
+export const WardrobePickerModal = ({
+  visible,
+  onClose,
+  pickerMode = 'multi',
+  onSelectSingle,
+}: WardrobePickerModalProps) => {
   const [selectedTab, setSelectedTab] = useState<TabKey>('ALL');
-
   const { data: closetItems = [] } = useClosetItems();
   const { trayItems, addCustomItem } = useCanvasStore();
 
   const filteredItems = useMemo(() => {
     const validItems = closetItems.filter((item) => item.imageUrl);
     if (selectedTab === 'ALL') return validItems;
-    return validItems.filter(
-      (item) => item.category.toUpperCase() === selectedTab
-    );
+    return validItems.filter((item) => item.category.toUpperCase() === selectedTab);
   }, [closetItems, selectedTab]);
 
   const trayItemIds = useMemo(
@@ -53,6 +66,16 @@ export const WardrobePickerModal = ({ visible, onClose }: WardrobePickerModalPro
   );
 
   const handleSelectItem = (closetItem: typeof closetItems[0]) => {
+    if (pickerMode === 'single') {
+      onSelectSingle?.({
+        id: closetItem.id,
+        imageUrl: closetItem.imageUrl,
+        category: closetItem.category,
+        name: closetItem.name,
+      });
+      onClose();
+      return;
+    }
     const canvasItem: CanvasItem = {
       id: closetItem.id,
       imageUrl: closetItem.imageUrl!,
@@ -74,7 +97,12 @@ export const WardrobePickerModal = ({ visible, onClose }: WardrobePickerModalPro
 
         {/* 헤더 */}
         <View style={styles.header}>
-          <Text style={styles.title}>MY CLOSET</Text>
+          <View>
+            <Text style={styles.title}>MY CLOSET</Text>
+            {pickerMode === 'single' && (
+              <Text style={styles.subtitle}>PICK ONE ANCHOR ITEM</Text>
+            )}
+          </View>
           <TouchableOpacity
             onPress={onClose}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -83,7 +111,7 @@ export const WardrobePickerModal = ({ visible, onClose }: WardrobePickerModalPro
           </TouchableOpacity>
         </View>
 
-        {/* 카테고리 탭 — 스크린샷처럼 얇은 테두리 박스 */}
+        {/* 카테고리 탭 */}
         <View style={styles.tabContainer}>
           {CATEGORY_TABS.map((tab) => (
             <TouchableOpacity
@@ -98,10 +126,9 @@ export const WardrobePickerModal = ({ visible, onClose }: WardrobePickerModalPro
           ))}
         </View>
 
-        {/* 구분선 */}
         <View style={styles.divider} />
 
-        {/* 아이템 그리드 */}
+        {/* 그리드 */}
         <FlatList
           data={filteredItems}
           keyExtractor={(item) => String(item.id)}
@@ -109,7 +136,7 @@ export const WardrobePickerModal = ({ visible, onClose }: WardrobePickerModalPro
           contentContainerStyle={styles.grid}
           columnWrapperStyle={styles.row}
           renderItem={({ item }) => {
-            const isSelected = trayItemIds.has(item.id);
+            const isSelected = pickerMode === 'multi' && trayItemIds.has(item.id);
             return (
               <TouchableOpacity
                 style={styles.itemBox}
@@ -118,12 +145,13 @@ export const WardrobePickerModal = ({ visible, onClose }: WardrobePickerModalPro
               >
                 <Image
                   source={{ uri: item.imageUrl! }}
-                  style={[styles.itemImage, !isSelected && styles.itemDim]}
+                  style={[
+                    styles.itemImage,
+                    pickerMode === 'multi' && !isSelected && styles.itemDim,
+                  ]}
                   resizeMode="cover"
                 />
-                {/* 선택 시 — 얇은 테두리 오버레이 */}
                 {isSelected && <View style={styles.selectedOverlay} />}
-                {/* 체크 뱃지 */}
                 {isSelected && (
                   <View style={styles.checkBadge}>
                     <Text style={styles.checkIcon}>✓</Text>
@@ -133,7 +161,6 @@ export const WardrobePickerModal = ({ visible, onClose }: WardrobePickerModalPro
             );
           }}
         />
-
       </SafeAreaView>
     </Modal>
   );
@@ -142,29 +169,32 @@ export const WardrobePickerModal = ({ visible, onClose }: WardrobePickerModalPro
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,  // #faf9f6
+    backgroundColor: colors.background,
   },
-
-  // ── 헤더 ──────────────────────────────────────
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingHorizontal: spacing.outerMargin,
     paddingTop: 20,
     paddingBottom: 16,
   },
   title: {
-    fontSize: fonts.title.fontSize,
+    // fonts.title spread — fontSize만 따로 빼지 않음
+    ...fonts.title,
     color: colors.primary,
     letterSpacing: 3,
   },
+  subtitle: {
+    ...fonts.caption,
+    color: colors.hint,
+    letterSpacing: 2,
+    marginTop: 3,
+  },
   closeButton: {
-    fontSize: fonts.title.fontSize,
+    ...fonts.title,
     color: colors.hint,
   },
-
-  // ── 탭 ────────────────────────────────────────
   tabContainer: {
     flexDirection: 'row',
     paddingHorizontal: spacing.outerMargin,
@@ -175,23 +205,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderWidth: 1,
-    borderColor: colors.divider,           // #e0ddd8 얇은 테두리
-    borderRadius: radius.none,             // 각진 형태
+    borderColor: colors.divider,
+    borderRadius: radius.none,  // 0 — editorial 각진 형태
   },
   tabActive: {
-    borderColor: colors.primary,           // 선택 시 진한 테두리
-    backgroundColor: colors.primary,      // #1a1a1a 채움
+    borderColor: colors.primary,
+    backgroundColor: colors.primary,
   },
   tabText: {
-    fontSize: fonts.body.fontSize,                          // Manrope 9pt 대문자
+    ...fonts.tab,
     color: colors.hint,
     letterSpacing: 2,
   },
   tabTextActive: {
-    color: colors.background,             // 흰색에 가까운 #faf9f6
+    ...fonts.tab,
+    color: colors.background,
+    letterSpacing: 2,
   },
-
-  // ── 구분선 ────────────────────────────────────
   divider: {
     height: 1,
     backgroundColor: colors.divider,
@@ -199,8 +229,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 4,
   },
-
-  // ── 그리드 ────────────────────────────────────
   grid: {
     padding: spacing.outerMargin,
   },
@@ -210,7 +238,7 @@ const styles = StyleSheet.create({
   },
   itemBox: {
     width: ITEM_SIZE,
-    height: ITEM_SIZE * 1.25,              // 세로로 약간 긴 비율 (옷 카드)
+    height: ITEM_SIZE * 1.25,
     backgroundColor: colors.surface,
     overflow: 'hidden',
   },
@@ -220,18 +248,14 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   itemDim: {
-    opacity: 0.45,                         // 미선택 시 흐리게 (ItemTray와 동일 기준)
+    opacity: 0.45,
   },
-
-  // 선택 시 테두리 오버레이
   selectedOverlay: {
     position: 'absolute',
     top: 0, left: 0, right: 0, bottom: 0,
     borderWidth: 1.5,
-    borderColor: colors.primary,           // #1a1a1a
+    borderColor: colors.primary,
   },
-
-  // 체크 뱃지
   checkBadge: {
     position: 'absolute',
     top: 6,
