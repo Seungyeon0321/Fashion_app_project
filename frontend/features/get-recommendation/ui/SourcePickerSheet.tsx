@@ -1,12 +1,4 @@
 // features/get-recommendation/ui/SourcePickerSheet.tsx
-//
-// 디자인 기준: Stitch 생성 디자인
-//   - 크럼: 둥근 pill (filled black / outlined / dimmed text)
-//   - 카드: 컴팩트, 왼쪽 세로 액센트 바, 아이콘 상단 / 라벨 하단
-//   - 하단: Button(primary) — disabled → 조건 충족 시 활성화
-//   - SESSION / CANCEL 하단 행 (스티치 디자인 참고)
-//
-// 닫힘 애니메이션: isRendered 패턴으로 스르륵 내려감
 
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -20,7 +12,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { colors, fonts, spacing } from '@/shared/lib/tokens';
-import { Button } from '@/shared/ui/Button';
+import { useBottomInset } from '@/shared/lib/useBottomInset';
 import {
   useSourcePickerStore,
   type RecommendSource,
@@ -28,10 +20,14 @@ import {
 } from '@/features/get-recommendation/model/sourcePickerStore';
 import { useIntentStore } from '@/features/select-intent/model/intentStore';
 import { WardrobePickerModal } from '@/features/get-recommendation/ui/WardrobePickerModal';
+import { SourceCard } from '@/features/get-recommendation/ui/SourceCard';
+import { AnchorCard } from '@/features/get-recommendation/ui/AnchorCard';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const SHEET_HEIGHT = SCREEN_HEIGHT * 0.52;
+const SHEET_HEIGHT = SCREEN_HEIGHT * 0.62;
 const CLOSE_DURATION = 260;
+
+const S3 = 'https://my-fashion-app-media.s3.ca-central-1.amazonaws.com';
 
 type Props = {
   onConfirm: (params: {
@@ -54,6 +50,7 @@ export function SourcePickerSheet({ onConfirm }: Props) {
   } = useSourcePickerStore();
 
   const selectedIntent = useIntentStore((s) => s.selectedIntent);
+  const bottomPadding = useBottomInset();
   const [wardrobeVisible, setWardrobeVisible] = useState(false);
   const [isRendered, setIsRendered] = useState(false);
 
@@ -130,12 +127,12 @@ export function SourcePickerSheet({ onConfirm }: Props) {
     outputRange: [0, 0.55],
   });
 
-  // 하단 버튼 라벨
-  const confirmLabel = anchorItem != null
-    ? `STYLE WITH "${(anchorItem.name ?? anchorItem.category).toUpperCase()}"`
-    : step === 'anchor'
-    ? 'CONFIRM — NO ANCHOR'
-    : 'SELECT A SOURCE';
+  const confirmLabel =
+    anchorItem != null
+      ? `STYLE WITH "${(anchorItem.name ?? anchorItem.category).toUpperCase()}"`
+      : step === 'anchor'
+      ? 'CONFIRM — NO ANCHOR'
+      : 'SELECT A SOURCE';
 
   if (!isRendered) return null;
 
@@ -150,24 +147,25 @@ export function SourcePickerSheet({ onConfirm }: Props) {
       >
         {/* 딤 배경 */}
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
-          <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={handleClose} />
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={handleClose}
+          />
         </Animated.View>
 
         {/* 시트 */}
         <Animated.View style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}>
 
-          {/* 드래그 핸들 */}
           <View style={styles.handle} />
 
-          {/* 크럼 — pill 스타일 */}
+          {/* 크럼 */}
           <View style={styles.crumbs}>
-            {/* INTENT — filled black pill */}
             <View style={styles.pillFilled}>
               <Text style={styles.pillFilledText}>{intentLabel}</Text>
             </View>
             <Text style={styles.crumbArrow}>›</Text>
 
-            {/* SOURCE */}
             {sourceLabel ? (
               <TouchableOpacity
                 style={styles.pillFilled}
@@ -182,7 +180,6 @@ export function SourcePickerSheet({ onConfirm }: Props) {
             )}
             <Text style={styles.crumbArrow}>›</Text>
 
-            {/* ANCHOR */}
             {anchorLabel ? (
               <View style={styles.pillFilled}>
                 <Text style={styles.pillFilledText}>{anchorLabel}</Text>
@@ -198,11 +195,13 @@ export function SourcePickerSheet({ onConfirm }: Props) {
           {step === 'source' && (
             <View style={styles.cardRow}>
               <SourceCard
+                imageUrl={`${S3}/myCloset.webp`}
                 label={'MY\nCLOSET'}
                 desc="Use items you already own"
                 onPress={() => selectSource('closet')}
               />
               <SourceCard
+                imageUrl={`${S3}/shopOutside.webp`}
                 label={'SHOP\nOUTSIDE'}
                 desc="Explore new pieces to buy"
                 onPress={() => selectSource('external')}
@@ -212,34 +211,49 @@ export function SourcePickerSheet({ onConfirm }: Props) {
 
           {/* ── STEP 2: 앵커 선택 ── */}
           {step === 'anchor' && (
-            <View style={styles.AnchorCardRow}>
+            <View style={styles.anchorCardRow}>
+              {/* SET ANCHOR: 아이템 선택 시 해당 이미지가 배경으로 표시 */}
               <AnchorCard
-                icon="＋"
-                label={anchorItem != null
-                  ? (anchorItem.name ?? anchorItem.category).toUpperCase()
-                  : 'SET\nANCHOR'}
-                desc={anchorItem != null ? 'TAP TO CHANGE' : '특정 아이템 기준 코디'}
+                lines={
+                  anchorItem != null
+                    ? [(anchorItem.name ?? anchorItem.category).toUpperCase()]
+                    : ['SET', 'ANCHOR']
+                }
+                icon="+"
+                desc={
+                  anchorItem != null
+                    ? 'TAP TO CHANGE'
+                    : 'Pin one item — the rest will be styled around it'
+                }
                 selected={anchorItem != null}
+                imageUrl={anchorItem?.imageUrl}
                 onPress={() => setWardrobeVisible(true)}
               />
+              {/* NO ANCHOR: 항상 흰 배경 */}
               <AnchorCard
+                lines={['NO', 'ANCHOR']}
                 icon="✦"
-                label={'NO\nANCHOR'}
-                desc={source === 'closet' ? '옷장 전체 랜덤' : '전부 외부 아이템'}
+                desc={
+                  source === 'closet'
+                    ? 'Let AI freely pick from your entire wardrobe'
+                    : 'Get a full outfit sourced from outside shops'
+                }
                 selected={anchorItem === null}
                 onPress={() => selectAnchor(null)}
               />
             </View>
           )}
 
-          {/* 하단 영역 — SESSION 정보 + 버튼 */}
-          <View style={styles.footer}>
-            <Button
-              label={confirmLabel}
+          {/* 하단 CTA */}
+          <View style={[styles.footer, { paddingBottom: bottomPadding }]}>
+            <TouchableOpacity
+              style={[styles.ctaButton, !confirmReady && styles.ctaDisabled]}
               onPress={handleConfirm}
               disabled={!confirmReady}
-              variant="primary"
-            />
+              activeOpacity={0.9}
+            >
+              <Text style={styles.ctaLabel}>{confirmLabel}</Text>
+            </TouchableOpacity>
           </View>
 
         </Animated.View>
@@ -255,45 +269,6 @@ export function SourcePickerSheet({ onConfirm }: Props) {
   );
 }
 
-// ── 소스 카드 ──
-function SourceCard({
-  label, desc, onPress,
-}: {
-  label: string; desc: string; onPress: () => void;
-}) {
-  return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.82}>
-      <View style={styles.cardAccentBar} />
-      <View style={styles.cardBottom}>
-        <Text style={styles.cardLabel}>{label}</Text>
-        <Text style={styles.cardDesc}>{desc}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-}
-
-// ── 앵커 카드 ──
-function AnchorCard({
-  icon, label, desc, selected, onPress,
-}: {
-  icon: string; label: string; desc: string; selected: boolean; onPress: () => void;
-}) {
-  return (
-    <TouchableOpacity
-      style={[styles.card, selected && styles.cardSelected]}
-      onPress={onPress}
-      activeOpacity={0.82}
-    >
-      {selected && <View style={styles.cardAccentBar} />}
-      <Text style={styles.cardIcon}>{icon}</Text>
-      <View style={styles.cardBottom}>
-        <Text style={styles.cardLabel}>{label}</Text>
-        <Text style={styles.cardDesc}>{desc}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-}
-
 const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
@@ -305,15 +280,10 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: SHEET_HEIGHT,
-    backgroundColor: colors.background,  // #faf9f6
+    backgroundColor: colors.background,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    paddingBottom: 0,
-    borderWidth: 1,
-    borderColor: 'red'
   },
-
-  // 핸들
   handle: {
     width: 40,
     height: 3,
@@ -323,8 +293,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 4,
   },
-
-  // 크럼 — 스티치 디자인 pill 스타일
   crumbs: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -370,82 +338,38 @@ const styles = StyleSheet.create({
     ...fonts.body,
     color: colors.hint,
   },
-
-  // 카드 영역
   cardRow: {
     flexDirection: 'column',
-    gap: spacing.cardGap,         // 12
+    gap: spacing.cardGap,
     paddingHorizontal: spacing.outerMargin,
     flex: 1,
-    marginBottom: 0,
   },
-  AnchorCardRow: {
-    flex: 1,
+  anchorCardRow: {
     flexDirection: 'row',
     gap: spacing.cardGap,
     paddingHorizontal: spacing.outerMargin,
-  },         // 12
-  card: {
     flex: 1,
-    backgroundColor: colors.surfaceHigh,  // #ffffff
-    borderRadius: 4,
-    padding: 16,
-    justifyContent: 'space-between',
-    overflow: 'hidden'
   },
-  cardSelected: {
-    borderWidth: 1.5,
-    borderColor: colors.primary,
-  },
-  cardAccentBar: {
-    position: 'absolute',
-    left: 0, top: 0, bottom: 0,
-    width: 3,
-    backgroundColor: colors.primary,
-  },
-  cardIcon: {
-    fontSize: 20,
-    color: colors.primary,
-    marginLeft: 4,
-  },
-  cardBottom: {
-    gap: 6,
-    paddingLeft: 4,
-  },
-  cardLabel: {
-    fontFamily: 'Epilogue_700Bold',
-    fontSize: 18,
-    lineHeight: 22,
-    color: colors.primary,
-    letterSpacing: 0.5,
-  },
-  cardDesc: {
-    ...fonts.caption,
-    color: colors.primaryMuted,
-    lineHeight: 16,
-  },
-
-  // 하단 푸터
   footer: {
     paddingHorizontal: spacing.outerMargin,
     paddingTop: 16,
-    paddingBottom: 32,
-    gap: 12,
   },
-  footerMeta: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
+  ctaButton: {
+    width: '100%',
+    paddingVertical: 16,
+    backgroundColor: 'rgba(250,249,246,0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'black',
   },
-  footerMetaLabel: {
-    ...fonts.caption,
-    color: colors.hint,
-    letterSpacing: 2,
+  ctaDisabled: {
+    opacity: 0.4,
   },
-  footerMetaValue: {
+  ctaLabel: {
     fontFamily: 'Manrope_500Medium',
-    fontSize: 12,
-    letterSpacing: 1,
-    color: colors.primaryMuted,
+    fontSize: 11,
+    letterSpacing: 2,
+    color: 'black',
   },
 });

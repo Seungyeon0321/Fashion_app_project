@@ -18,7 +18,7 @@ export const REGISTRATION_METHODS: RegistrationMethod[] = [
     title: 'TAKE PHOTO',
     subtitle: 'Capture a new item in real-time',
     icon: 'camera',
-    image: `${S3}/takePhoto.png`, // 카메라 이미지 (삼각대 위 카메라)
+    image: { uri: `${S3}/takePhoto.webp` }, // 카메라 이미지 (삼각대 위 카메라)
     enabled: true,
   },
   {
@@ -26,7 +26,7 @@ export const REGISTRATION_METHODS: RegistrationMethod[] = [
     title: 'CHOOSE FROM LIBRARY',
     subtitle: 'Pick from your existing gallery',
     icon: 'image',
-    image: `${S3}/library.png`, // 옷장 이미지
+    image: { uri: `${S3}/library.webp` }, // 옷장 이미지
     enabled: true,
   },
   {

@@ -14,6 +14,8 @@ interface RegistrationMethodCardProps {
 
 
 export function RegistrationMethodCard({ method, onPress }: RegistrationMethodCardProps) {
+  
+  console.log(method, 'method in card');
   return (
     <Pressable
       onPress={method.enabled ? onPress : undefined}

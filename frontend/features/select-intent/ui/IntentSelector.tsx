@@ -13,9 +13,9 @@ import { colors, fonts, spacing } from '@/shared/lib/tokens';
 const S3 = process.env.EXPO_PUBLIC_S3_BASE_URL;
 
 const INTENTS: { key: Intent; label: string; image: string }[] = [
-  { key: 'formal', label: 'FORMAL', image: `${S3}/formal.png` },
-  { key: 'casual', label: 'CASUAL', image: `${S3}/casual.png` },
-  { key: 'sports', label: 'SPORTS', image: `${S3}/sports.png` },
+  { key: 'formal', label: 'FORMAL', image: `${S3}/formal.webp` },
+  { key: 'casual', label: 'CASUAL', image: `${S3}/casual.webp` },
+  { key: 'sports', label: 'SPORTS', image: `${S3}/sports.webp` },
 ];
 
 type Props = {

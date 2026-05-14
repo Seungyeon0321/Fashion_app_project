@@ -8,7 +8,7 @@ import { PhotoPreview } from "@/features/take_photo/ui/PhotoPreview";
 import { useToggleFacing } from "@/features/camera_controls/model/useToggleFacing";
 import { BodyFrameEnum, useChangeBodyFrame } from "@/features/camera_controls/model/useSelectLayout";
 import { useCountdown } from "@/shared/lib/hooks/useCountdown";
-import PhotoView from "@/features/take_photo/ui/CameraScreen";
+import { PhotoView } from "@/features/take_photo/ui/PhotoView";
 import { useRouter } from "expo-router";
 import { ClothingCategory, uploadClothingImage } from "@/shared/lib/api";
 import { useToastStore } from "@/shared/store/toastStore";
