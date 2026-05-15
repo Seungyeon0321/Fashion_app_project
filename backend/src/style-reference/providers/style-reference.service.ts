@@ -11,6 +11,7 @@ export class StyleReferenceService {
   constructor(private readonly prisma: PrismaService) {}
 
   // ── 1. 유저 gender 기반 프리셋 목록 반환 ──────────────────
+  // 변경 없음
   async getPresets(userId: number) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -19,8 +20,6 @@ export class StyleReferenceService {
 
     const gender = user?.gender ?? Gender.UNISEX
 
-    // gender 기반 필터링
-    // UNISEX 유저는 전체 다 보여줌
     const filtered = STYLE_PRESETS.filter((preset) =>
       gender === Gender.UNISEX
         ? true
@@ -30,17 +29,11 @@ export class StyleReferenceService {
     return filtered
   }
 
-  // ── 2. 선택한 스타일 저장 (기존 삭제 후 새로 저장) ──────────
+  // ── 2. 선택한 프리셋 스타일 저장 ──────────────────────────
+  // 변경 없음
   async savePresetStyles(userId: number, dto: SavePresetStylesDto) {
-    // 기존 PRESET 스타일 전부 삭제 후 새로 저장
-    // 왜? 3개 제한 관리가 단순해지고
-    //     "이전 선택 유지하면서 1개만 추가" 같은
-    //     복잡한 로직 불필요
     await this.prisma.styleReference.deleteMany({
-      where: {
-        userId,
-        type: 'PRESET',
-      },
+      where: { userId, type: 'PRESET' },
     })
 
     const created = await this.prisma.styleReference.createMany({
@@ -55,23 +48,48 @@ export class StyleReferenceService {
   }
 
   // ── 3. 저장된 내 스타일 조회 ──────────────────────────────
+  //
+  // 변경 전: PRESET만 조회, presetKey 기반 string 반환
+  //   → ["minimal", "old_money"]
+  //
+  // 변경 후: PRESET + CUSTOM 전체 조회, id 포함 반환
+  //   → [{ id, type, presetKey, imageUrl, preset }, ...]
+  //
+  // 왜 변경했냐면:
+  //   추천 요청 시 style_reference_ids: [1, 2, 3] 을 보내야 하는데
+  //   id가 없으면 Style Analyzer가 DB에서 벡터를 못 꺼냄
+  //   CUSTOM 레퍼런스도 추천에 반영돼야 함
+  //   (CUSTOM 있으면 CUSTOM 우선 사용, CUSTOM 없으면 PRESET 사용)
   async getMyStyles(userId: number) {
     const styles = await this.prisma.styleReference.findMany({
-      where: {
-        userId,
-        type: 'PRESET',
-      },
+      where: { userId },           // ← PRESET/CUSTOM 구분 없이 전체 조회
+      orderBy: { createdAt: 'desc' },
       select: {
-        id: true,
+        id: true,                  // ← 신규: style_reference_ids 생성용
+        type: true,                // ← 신규: 프론트에서 PRESET/CUSTOM 구분용
         presetKey: true,
+        originalImageUrl: true,    // ← 신규: CUSTOM 썸네일 표시용
         createdAt: true,
       },
     })
 
-    // presetKey 기반으로 전체 프리셋 데이터 붙여서 반환
     return styles.map((style) => ({
-      ...style,
-      preset: STYLE_PRESETS.find((p) => p.key === style.presetKey),
+      id: style.id,
+      type: style.type,
+
+      // PRESET 전용: name, description 등 프리셋 메타데이터
+      // CUSTOM이면 undefined (UI에서 imageUrl로 표시)
+      preset: style.presetKey
+        ? STYLE_PRESETS.find((p) => p.key === style.presetKey)
+        : undefined,
+
+      presetKey: style.presetKey ?? null,
+
+      // CUSTOM 전용: S3 이미지 URL
+      // PRESET이면 null
+      imageUrl: style.originalImageUrl ?? null,
+
+      createdAt: style.createdAt,
     }))
   }
 }

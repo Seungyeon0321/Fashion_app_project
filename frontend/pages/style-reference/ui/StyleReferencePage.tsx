@@ -59,7 +59,7 @@ export function StyleReferencePage() {
       </ScrollView>
 
       {/* 하단 고정 버튼 — SafeArea 밖 */}
-      <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
+      <View style={styles.footer}>
         <Pressable
           style={[styles.saveButton, (isSaving || selected.length === 0) && styles.saveButtonDisabled]}
           onPress={() => save()}
@@ -78,6 +78,7 @@ export function StyleReferencePage() {
 const styles = StyleSheet.create({
   scroll: {
     flex: 1,
+    
   },
 
   comingSoon: {
@@ -93,7 +94,7 @@ const styles = StyleSheet.create({
 
   footer: {
     paddingHorizontal: spacing.outerMargin,
-    paddingTop: 12,
+    paddingVertical: 12,
     backgroundColor: colors.background,
     borderTopWidth: 1,
     borderTopColor: colors.divider,
@@ -102,7 +103,7 @@ const styles = StyleSheet.create({
   saveButton: {
     backgroundColor: colors.primary,
     paddingVertical: 16,
-    alignItems: 'center',
+    alignItems: 'center',  
   },
 
   saveButtonDisabled: {

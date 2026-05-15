@@ -1,15 +1,14 @@
 // schema.prisma
 
-// 1. Configuration and Extension Activation
 generator client {
   provider        = "prisma-client"
   output          = "../src/generated/prisma"
-  previewFeatures = ["postgresqlExtensions"] // Required for pgvector usage
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
   provider   = "postgresql"
-  extensions = [vector] // Activate PostgreSQL vector extension
+  extensions = [vector]
 }
 
 // ==========================================
@@ -18,20 +17,18 @@ datasource db {
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
-  password  String?  // ← String에서 String?으로 변경 (Google 사용자는 비밀번호 없음)
+  password  String?
   nickname  String?
   gender    Gender?
 
-  // OAuth 관련 필드 추가
-  provider  AuthProvider @default(LOCAL)  // 가입 경로
-  googleId  String?      @unique          // Google 고유 ID
-  avatarUrl String?                       // 프로필 이미지
+  provider  AuthProvider @default(LOCAL)
+  googleId  String?      @unique
+  avatarUrl String?
 
-  // Relations (기존 그대로)
   closetItems   ClosetItem[]
   styleRefs     StyleReference[]
   outfits       Outfit[]
-  wishlist      WishlistItem[]
+  externalItems ExternalItem[]   // ← WishlistItem에서 교체
 
   location  String?
 
@@ -39,6 +36,9 @@ model User {
   updatedAt DateTime @updatedAt
 }
 
+// ==========================================
+// 2. ClothingItem (AI 분석 임시 테이블)
+// ==========================================
 model ClothingItem {
   id          Int      @id @default(autoincrement())
   userId      Int      @map("user_id")
@@ -61,43 +61,52 @@ model ClothingItem {
 }
 
 // ==========================================
-// 2. Closet Item - Core Table
+// 3. ClosetItem
 // ==========================================
 model ClosetItem {
   id           Int          @id @default(autoincrement())
   userId       Int          @map("user_id")
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    // ✅ 추가: clothing_items 추적용
-  clothingItemId  Int?         @map("clothing_item_id")
-
+  clothingItemId  Int?      @map("clothing_item_id")
   imageUrl        String?
-  // ✅ 추가: AI 크롭 이미지 S3 경로
-  cropS3Key       String?      @map("crop_s3_key")
+  cropS3Key       String?   @map("crop_s3_key")
+
+  // ── AI 자동 생성 이름 ──────────────────────────────────────
+  // 저장 시점에 자동 생성: "Navy Zara Slim Jacket"
+  // 생성 기준: colors + brand + fit + subCategory
+  // 나중에 유저가 material/fit 추가 입력하면 name도 업데이트
+  // LLM Response 노드에서 자연어 코디 설명 생성에 활용
+  name         String?
 
   category     Category
-  subCategory  SubCategory  // String? 에서 필수 Enum으로 변경
-  
-  // [신규] 기온 대응 로직을 위한 필드
-  // AI가 추천할 때 "현재 기온"과 비교할 핵심 데이터
-  minTemp      Float?       // 이 옷을 입을 수 있는 최저 기온 (예: 패딩은 -20)
-  maxTemp      Float?       // 이 옷을 입을 수 있는 최고 기온 (예: 반팔은 35)
-  
-  // [신규] 옷의 상태 관리
-  isArchived   Boolean      @default(false) // 버렸거나 안 입는 옷 제외
-  isWashing    Boolean      @default(false) // 세탁 중이라 오늘 못 입는 옷
+  subCategory  SubCategory
 
-  embedding    Unsupported("vector(512)")? 
+  minTemp      Float?
+  maxTemp      Float?
+
+  isArchived   Boolean      @default(false)
+  isWashing    Boolean      @default(false)
+
+  embedding    Unsupported("vector(512)")?
   colors       String[]
   brand        String?
-
-    // ✅ 추가: 자유 메모
-  memo            String?
-  // ✅ 추가: 즐겨찾기
-  isFavorite      Boolean      @default(false) @map("is_favorite")
-  
+  memo         String?
+  isFavorite   Boolean      @default(false) @map("is_favorite")
   wearCount    Int          @default(0)
-  
+
+  // ── 유저 추가 입력 필드 (팝업으로 수집) ─────────────────────
+  // 옷 등록 후 팝업: "재질/핏을 추가하면 AI 추천이 더 정확해져요!"
+  // 입력하면 name 자동 업데이트 + LLM 코디 설명 품질 향상
+
+  material     String?
+  // 재질: "cotton" | "wool" | "linen" | "polyester" | "denim" | "leather" | "knit" 등
+  // 자유 입력 (enum 아님 — 재질은 너무 다양해서 enum으로 관리 어려움)
+
+  fit          FitType?
+  // 핏: SLIM | REGULAR | OVERSIZED | RELAXED
+  // enum으로 관리 (선택지가 명확하기 때문)
+
   outfitItems  OutfitItem[]
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
@@ -105,37 +114,62 @@ model ClosetItem {
   season       Season?
   style        String?
 
-
   @@map("closet_items")
   @@index([userId])
-  @@index([category, subCategory]) // 복합 인덱스로 조회 성능 최적화
+  @@index([category, subCategory])
 }
 
 // ==========================================
-// 3. Style Reference - Core Feature #1
+// 4. StyleReference
 // ==========================================
 model StyleReference {
-  id               Int      @id @default(autoincrement())
+  id               Int          @id @default(autoincrement())
   userId           Int
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  type             StyleRefType  // 추가
+  type             StyleRefType
 
-  // PRESET용
-  presetKey        String?       // "minimal", "streetwear"...
-
-  // CUSTOM용 (기존 필드 그대로)
-  originalImageUrl String?       // nullable로 변경
-  rating           Int           @default(5)
+  presetKey        String?
+  originalImageUrl String?
+  rating           Int          @default(5)
   analysisResult   Json?
   embedding        Unsupported("vector(512)")?
-  wishlistItems    WishlistItem[]
 
-  createdAt        DateTime @default(now())
+  createdAt        DateTime     @default(now())
 }
 
 // ==========================================
-// 4. Outfit Combination - Core Feature #2
+// 5. ExternalItem (WishlistItem 대체)
+// ==========================================
+// 네이버 쇼핑 API에서 가져온 외부 아이템
+// ⚠️ 이미지는 원본 URL 참조만 — S3에 저장하지 않음 (저작권)
+model ExternalItem {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name         String
+  brand        String?
+  category     Category
+  price        Int?
+  currency     String   @default("KRW")
+
+  imageUrl     String            // 원본 이미지 URL (S3 저장 X)
+  purchaseUrl  String            // 구매 링크
+
+  source       String   @default("naver_shopping")
+  styleKeywords String[]
+
+  outfitItems  OutfitItem[]
+
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@index([source])
+}
+
+// ==========================================
+// 6. Outfit (확장)
 // ==========================================
 model Outfit {
   id              Int          @id @default(autoincrement())
@@ -143,76 +177,49 @@ model Outfit {
   user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   title           String?
-  imageUrl        String?      // 완성된 코디 이미지
-  
-  // [신규] 추천 당시의 환경 데이터 (나중에 AI 학습 데이터로 활용)
-  recordedTemp    Float?       // 당시 기온
-  recordedWeather String?      // 당시 날씨 (Rainy, Snowy...)
-  
+  imageUrl        String?
+
+  recordedTemp    Float?
+  recordedWeather String?
+
   source          OutfitSource @default(MANUAL)
-  items           OutfitItem[] 
+  items           OutfitItem[]
+
+  // AI 추천 히스토리 필드
+  intent          String?
+  recommendSource String?
+  anchorItemId    Int?
+  aiComment       String?
+  conflictWarning String?
+  feedback        String?      // "like" | "dislike" | null
 
   createdAt       DateTime     @default(now())
-  
+
   @@index([userId])
+  @@index([userId, source])
+  @@index([userId, feedback])
 }
 
 // ==========================================
-// 5. Outfit-Item Connection (OutfitItem)
-// ==========================================
-// ==========================================
-// 5. OutfitItem (관계 개선)
+// 7. OutfitItem
 // ==========================================
 model OutfitItem {
-  id              Int          @id @default(autoincrement())
+  id              Int           @id @default(autoincrement())
   outfitId        Int
-  outfit          Outfit       @relation(fields: [outfitId], references: [id], onDelete: Cascade)
-  
-  // 상황 1: 내가 이미 가지고 있는 옷을 매칭한 경우
+  outfit          Outfit        @relation(fields: [outfitId], references: [id], onDelete: Cascade)
+
   closetItemId    Int?
-  closetItem      ClosetItem?  @relation(fields: [closetItemId], references: [id])
-  
-  // 상황 2: 없는 옷이라 AI가 추천(구매 제안)한 경우
-  wishlistItemId  Int?
-  wishlistItem    WishlistItem? @relation(fields: [wishlistItemId], references: [id])
+  closetItem      ClosetItem?   @relation(fields: [closetItemId], references: [id])
 
-  position        String?      // "INNER", "OUTER"
+  externalItemId  Int?
+  externalItem    ExternalItem? @relation(fields: [externalItemId], references: [id])
+
+  position        String?
+  isAnchor        Boolean       @default(false)
 }
 
 // ==========================================
-// [NEW] 6. Wishlist / Recommended Item
-// ==========================================
-model WishlistItem {
-  id            Int             @id @default(autoincrement())
-  userId        Int
-  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // [수익 핵심] 추천된 상품 정보
-  productName   String?
-  brand         String?
-  price         Float?
-  currency      String          @default("CAD") // 거주지 반영 (캐나다 달러)
-  imageUrl      String          // 쇼핑몰의 상품 이미지
-  purchaseUrl   String          // [수익 핵심] 제휴 마케팅 링크 (Affiliate Link)
-
-  // AI 분석용 데이터 (이미 가지고 있는 옷과 비교하기 위함)
-  embedding     Unsupported("vector(512)")? 
-  category      Category
-  subCategory   SubCategory
-
-  // [중요] 어떤 사진(스타일북)을 보고 이 추천이 생성되었는가?
-  originStyleId Int?
-  originStyle   StyleReference? @relation(fields: [originStyleId], references: [id])
-
-  // 역관계: 이 추천 아이템이 어느 OutfitItem에 사용되었는지
-  outfitItems   OutfitItem[]
-
-  isPurchased   Boolean         @default(false)
-  createdAt     DateTime        @default(now())
-}
-
-// ==========================================
-// 7. Enums (Constants)
+// 8. Enums
 // ==========================================
 enum Gender {
   MALE
@@ -231,7 +238,6 @@ enum Category {
 }
 
 enum SubCategory {
-  // TOP
   T_SHIRT_SHORT
   T_SHIRT_LONG
   SHIRT
@@ -239,24 +245,25 @@ enum SubCategory {
   SWEATSHIRT
   HOODIE
   VEST
-  
-  // OUTER
   CARDIGAN
   WINDBREAKER
   JACKET
   COAT
-  PADDED_LIGHT  // 경량 패딩
-  PADDED_HEAVY  // 대장급 패딩
-  
-  // BOTTOM
+  PADDED_LIGHT
+  PADDED_HEAVY
   DENIM
   SLACKS
   COTTON_PANTS
   SWEATPANTS
   SHORTS
   SKIRT
+}
 
-  // ... 필요에 따라 추가
+enum FitType {
+  SLIM
+  REGULAR
+  OVERSIZED
+  RELAXED
 }
 
 enum Season {
@@ -268,9 +275,9 @@ enum Season {
 }
 
 enum OutfitSource {
-  MANUAL      // Registered by user
-  AI_SUGGEST  // Result of style photo analysis
-  CALENDAR    // From OOTD Calendar
+  MANUAL
+  AI_SUGGEST
+  CALENDAR
 }
 
 enum AuthProvider {
