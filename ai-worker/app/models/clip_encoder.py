@@ -2,14 +2,24 @@
 CLIP 벡터 인코더
 
 역할: SegFormer가 크롭한 옷 이미지를 512차원 벡터로 변환
+      + presetKey 텍스트를 512차원 벡터로 변환 (StyleReference PRESET용)
 모델: openai/clip-vit-base-patch32 (HuggingFace)
 
-흐름:
+흐름 (이미지):
   PIL Image (크롭된 옷 이미지)
       ↓
   CLIP 전처리 (224×224 리사이즈 + 정규화)
       ↓
   CLIP 비전 인코더 → 512차원 벡터
+      ↓
+  numpy array 반환 → pgvector에 저장 가능한 형태
+
+흐름 (텍스트):
+  presetKey 문자열 ("minimal", "street" 등)
+      ↓
+  PRESET_TEXT_MAP으로 의미 확장
+      ↓
+  CLIP 텍스트 인코더 → 512차원 벡터
       ↓
   numpy array 반환 → pgvector에 저장 가능한 형태
 """
@@ -22,19 +32,43 @@ from transformers import CLIPProcessor, CLIPModel
 from app.core.config import settings
 
 
-# 어떠한 라이브러리를 사용하든, get_image_features()의 반환 타입이 버전에 따라 달라질 수 있음
+# ──────────────────────────────────────────────────────────────────────────────
+# PRESET 텍스트 확장 맵
+#
+# 왜 확장하는가?
+#   CLIP은 문장 수준의 텍스트를 잘 이해함.
+#   "minimal" 한 단어보다 "minimal clean simple style fashion outfit" 처럼
+#   패션 도메인 키워드를 붙여줘야 더 정확한 벡터가 생성됨.
+#
+# 키: StyleReference.presetKey (DB에 저장된 값)
+# 값: CLIP 텍스트 인코더에 넘길 확장 문장
+# ──────────────────────────────────────────────────────────────────────────────
+PRESET_TEXT_MAP: dict[str, str] = {
+    # key: StyleReference.presetKey (style-presets.ts의 key 값과 1:1 매핑)
+    # value: presetKey + keywords → CLIP이 잘 이해하는 패션 도메인 문장으로 확장
+    #        구성: "{key} {keywords joined} style fashion outfit"
+
+    "minimal":       "minimal monochrome clean simple neutral style fashion outfit",
+    "old_money":     "old money classic preppy tailored luxury style fashion outfit",
+    "streetwear":    "streetwear oversized graphic urban sneakers style fashion outfit",
+    "y2k":           "y2k crop lowrise colorful bold nostalgic style fashion outfit",
+    "coquette":      "coquette feminine ribbon satin romantic delicate style fashion outfit",
+    "dark_academia": "dark academia tweed vintage dark scholarly moody style fashion outfit",
+    "athleisure":    "athleisure sporty comfortable activewear casual style fashion outfit",
+    "vintage":       "vintage retro thrift secondhand classic timeless style fashion outfit",
+    "quiet_luxury":  "quiet luxury logoless cashmere beige elegant subtle style fashion outfit",
+    "gorpcore":      "gorpcore outdoor fleece cargo functional layered rugged style fashion outfit",
+}
+
+
 def _clip_image_features_to_tensor(image_features: torch.Tensor | object) -> torch.Tensor:
     """
     Transformers 5.x: get_image_features()가 BaseModelOutputWithPooling을 반환하고,
     투영된 이미지 임베딩은 .pooler_output에 있음.
     이전 버전: torch.Tensor를 그대로 반환.
     """
-
-    # 지금 들어오는 image_features는 tourch.Tensor이거나, BaseModelOutputWithPooling 객체일 수 있음
     if isinstance(image_features, torch.Tensor):
         return image_features
-    # 만약 데이터가 신버전 라이브러리가 뱉어낸 복잡한 객체일 경우, getattr(객체, "찾을_이름", 없을 때 반환할 기본값) 을 이용해서 
-    # poorler에 변수에 할당, 이는 신 버전에서는 결과값이 바로 텐서로 나오지 않고, 여러 정보가 담긴 박스 형태로 나옵니다.
     pooler = getattr(image_features, "pooler_output", None)
     if pooler is not None:
         return pooler
@@ -48,15 +82,18 @@ class CLIPEncoder:
     """
     CLIP 모델을 감싼 클래스.
 
-    사용법:
+    사용법 (이미지):
         encoder = CLIPEncoder()
         vector = encoder.encode(cropped_image)
-        # vector.shape = (512,)  ← 512차원 numpy 배열
+        # vector.shape = (512,)
+
+    사용법 (텍스트 - PRESET):
+        vector = encoder.encode_text("minimal")
+        # vector.shape = (512,)
+        # 이미지 벡터와 동일한 공간 → pgvector 비교 가능
     """
 
     def __init__(self):
-        # SegFormer와 동일한 lazy loading 패턴
-        # 처음 encode()가 호출될 때 모델을 로드함
         self._processor = None
         self._model = None
         self._device = None
@@ -64,38 +101,26 @@ class CLIPEncoder:
     def _load_model(self):
         """
         처음 한 번만 실행되는 모델 로드 함수.
-        HuggingFace 캐시에 저장됨 (~600MB, 첫 실행만 느림)
+        이미지/텍스트 인코더 둘 다 같은 CLIPModel 안에 있으므로 한 번만 로드하면 됨.
         """
         if self._model is not None:
             return
 
         print(f"[CLIP] 모델 로드 중: {settings.CLIP_MODEL_NAME}")
 
-        # tource.device: 데이터가 일할 '작업장' 설정 (GPU 우선, 없으면 CPU)
-        # torch.cuda.is_available()로 CUDA 지원 여부 확인 → GPU 사용 가능하면 "cuda", 아니면 "cpu" 반환
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(f"[CLIP] 디바이스: {self._device}")
 
-        # CLIPProcessor: 이미지를 CLIP 입력 형식으로 변환
-        # 내부적으로 224×224 리사이즈 + 정규화 처리
-        # from_pretained() : 모델을 하드디스크에서 메모리로 끌어올리는 함수, 
-        # 
-        # 처음에는 컴퓨터의 로컬 캐시 폴더에 해당 모델 파일이 있는지 찾아봄, 없으면 인터넷에서 다운로드 함.
-        # 이후 하드디스크에 저장된 수백 MB의 모델 가중치 파일을 읽어서, 우리가 파이썬 코드에서 조작할 수 있도록 객체형태로 시스템 메모리에 띄웁니다.
         self._processor = CLIPProcessor.from_pretrained(settings.CLIP_MODEL_NAME)
-
-        # CLIPModel: 이미지 → 벡터 변환 모델
         self._model = CLIPModel.from_pretrained(settings.CLIP_MODEL_NAME)
-
-        # .to(device): 해당 코드에 인해 우리 모델이 RAM 혹은 VRAM(GPU 메모리) 중 어디에서 상주해서 연산하게 될지 정해진다.
         self._model.to(self._device)
-
-        # model.train()은 학습모드이고 model.eval()은 추론모드입니다.
-        # CLIP 모델은 사전 학습된 모델이므로, 우리는 학습이 필요 없고, 단지 추론(이미지 → 벡터 변환)만 필요하기 때문에 model.eval()로 설정합니다.
-        # 추론 모드를 사용하면 1. 드롭아웃을 비활성화하며, 2. 배치 정규화 레이어가 고정된 통계값을 사용하도록 설정하여, 일관된 결과를 보장합니다.
         self._model.eval()
 
         print(f"[CLIP] 모델 로드 완료")
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # 이미지 인코딩 (기존 코드 그대로)
+    # ──────────────────────────────────────────────────────────────────────────
 
     def encode(self, image: Image.Image) -> np.ndarray:
         """
@@ -106,51 +131,33 @@ class CLIPEncoder:
 
         Returns:
             np.ndarray, shape=(512,), dtype=float32
-            → pgvector의 vector(512) 타입으로 바로 저장 가능
         """
         self._load_model()
 
-        # CLIP 모델은 RGB 이미지만 처리할 수 있으므로, 입력 이미지가 RGB가 아니면 변환
         if image.mode != "RGB":
             image = image.convert("RGB")
 
-        # 1. 이미지 → 모델 입력 텐서 변환
-        # CLIPProcessor가 224×224 리사이즈 + 정규화를 자동 처리
         inputs = self._processor(images=image, return_tensors="pt")
-        # Dictionary Comprehension: inputs는 {'pixel_values': tensor} 형태인데, 이 코드는 모든 텐서를 GPU로 이동시킵니다.
         inputs = {k: v.to(self._device) for k, v in inputs.items()}
 
-        # 2. 비전 인코더만 실행 (텍스트 인코더는 사용 안 함)
-        # get_image_features()는 이미지 → 벡터 변환만 수행
-
-        # with torch.no_grad(): → AI 추론 과정에서 가장 중요한 메모리 절약 스위치이다.
-        # 역전파 과정에서 텐서의 계산 그래프를 추적하지 않도록 설정하여, GPU 메모리를 크게 절약할 수 있다.
         with torch.no_grad():
-            # CLIP 모델의 비전 인코더를 사용하여 이미지 특징 추출
             raw = self._model.get_image_features(**inputs)
         image_features = _clip_image_features_to_tensor(raw)
 
-        # 3. 정규화 (L2 normalization)
-        # 벡터 크기를 1로 맞춰줌 → 코사인 유사도 계산이 내적(dot product)으로 단순화됨
-        # pgvector의 <=> 연산자(코사인 거리)와 짝을 이룸
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
-
-        # 4. numpy 배열로 변환
-        # PyTorch tensor → numpy: GPU 메모리에서 꺼내고(.cpu()), 계산 그래프 분리(.detach())
-        vector = image_features[0].cpu().detach().numpy()  # shape: (512,)
+        vector = image_features[0].cpu().detach().numpy()
 
         return vector
 
     def encode_batch(self, images: list[Image.Image]) -> np.ndarray:
         """
         여러 크롭 이미지를 한 번에 벡터로 변환 (배치 처리).
-        단일 encode()를 여러 번 호출하는 것보다 효율적.
 
         Args:
             images: PIL Image 리스트
 
         Returns:
-            np.ndarray, shape=(N, 512)  ← N개 이미지의 벡터
+            np.ndarray, shape=(N, 512)
         """
         self._load_model()
 
@@ -165,4 +172,61 @@ class CLIPEncoder:
 
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
 
-        return image_features.cpu().detach().numpy()  # shape: (N, 512)
+        return image_features.cpu().detach().numpy()
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # 텍스트 인코딩 (신규 추가 - PRESET StyleReference용)
+    # ──────────────────────────────────────────────────────────────────────────
+
+    def encode_text(self, preset_key: str) -> np.ndarray:
+        """
+        presetKey를 512차원 벡터로 변환.
+
+        왜 이미지 벡터와 비교 가능한가?
+            CLIP은 이미지와 텍스트를 같은 512차원 공간에 투영하도록 학습됨.
+            "minimal style fashion" 텍스트 벡터는
+            미니멀한 옷 이미지 벡터와 코사인 유사도가 높게 나옴.
+
+        Args:
+            preset_key: StyleReference.presetKey 값
+                        예: "minimal", "street", "formal"
+
+        Returns:
+            np.ndarray, shape=(512,), dtype=float32
+            → ClosetItem.embedding, StyleReference.embedding과 직접 비교 가능
+
+        Raises:
+            ValueError: PRESET_TEXT_MAP에 없는 presetKey가 들어온 경우
+        """
+        self._load_model()
+
+        # presetKey → 확장 텍스트
+        # 맵에 없는 키가 들어오면 그대로 사용하되 경고 로그 출력
+        text = PRESET_TEXT_MAP.get(preset_key)
+        if text is None:
+            print(f"[CLIP] 경고: '{preset_key}'가 PRESET_TEXT_MAP에 없음 → 원본 키 그대로 사용")
+            text = f"{preset_key} style fashion outfit"
+
+        # CLIPProcessor로 텍스트 토크나이징
+        # return_tensors="pt" → PyTorch 텐서로 반환
+        # padding=True, truncation=True → CLIP 최대 토큰 77개 제한 처리
+        inputs = self._processor(
+            text=[text],
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+        )
+        inputs = {k: v.to(self._device) for k, v in inputs.items()}
+
+        # get_text_features(): 텍스트 인코더만 실행
+        # 이미지의 get_image_features()와 동일한 512차원 공간으로 투영됨
+        with torch.no_grad():
+            text_features = self._model.get_text_features(**inputs)
+
+        # L2 정규화 → encode()와 동일한 정규화 적용
+        # 이래야 이미지 벡터와 코사인 유사도 비교가 의미있음
+        text_features = text_features / text_features.norm(dim=-1, keepdim=True)
+
+        vector = text_features[0].cpu().detach().numpy()
+
+        return vector

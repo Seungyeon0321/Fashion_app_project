@@ -1,15 +1,17 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { RecommendSource } from '../dto/style.dto.js';
 
 @Injectable()
 export class StylesService {
     constructor(private readonly httpService: HttpService) {}
 
     async recommend(body: {
-        user_message: string;
         intent: string;
-        excluded_items: number[];
+        source: RecommendSource;
+        anchor_item_id?: number;
+        style_reference_ids?: number[];
     }) {
         const fastapiUrl = process.env.FASTAPI_URL ?? 'http://localhost:8000';
 
