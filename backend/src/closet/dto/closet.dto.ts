@@ -1,8 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Category, SubCategory } from "../../generated/prisma/client.js";
+import { Category, SubCategory, FitType } from "../../generated/prisma/client.js";
 import { IsNumber, IsNotEmpty, IsEnum, IsString, IsOptional, IsArray, IsBoolean } from "class-validator";
 
-// elements sent by the user to register a closet item, 즉 Ai 처리 과정에서 유저가 선택할 수 항목만 해당 dto에 정의
 export class RegisterClosetItemDto {
     @ApiProperty({ description: 'The ID of the clothing item to register' })
     @IsNumber()
@@ -33,9 +32,9 @@ export class RegisterClosetItemDto {
     @IsString()
     @IsOptional()
     memo?: string;
-  }
+}
 
-  export class UpdateClosetItemDto {
+export class UpdateClosetItemDto {
     @ApiProperty({ description: 'The sub category of the clothing item' })
     @IsEnum(SubCategory)
     @IsOptional()
@@ -65,4 +64,25 @@ export class RegisterClosetItemDto {
     @IsBoolean()
     @IsOptional()
     isFavorite?: boolean;
-  }
+
+    // ── ClothingDetailPopup에서 수집하는 추가 입력 필드 ──────────────────
+    // 옷 등록 후 팝업으로 수집: "재질/핏을 추가하면 AI 추천이 더 정확해져요!"
+    // 입력 시 name 자동 업데이트 → LLM 코디 설명 품질 향상
+
+    @ApiProperty({
+        description: '재질 (cotton, wool, linen, denim, knit, polyester, leather 등)',
+        example: 'wool',
+    })
+    @IsString()
+    @IsOptional()
+    material?: string;
+
+    @ApiProperty({
+        description: '핏 타입',
+        enum: FitType,
+        example: FitType.SLIM,
+    })
+    @IsEnum(FitType)
+    @IsOptional()
+    fit?: FitType;
+}

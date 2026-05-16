@@ -5,6 +5,10 @@ import { Button } from '@/shared/ui/Button'
 import { ReviewItemCard } from '@/features/review_item/ui/ReviewItemCard'
 import { useReviewItems, ClothingItem } from '@/features/review_item/modal/useReviewItems'
 import { useRegisterClosetItem } from '@/features/closet/api/useCloset'
+import {
+  ClothingDetailPopup,
+  shouldShowClothingDetailPopup,
+} from '@/features/closet/ui/ClothingDetailPopup'
 
 type Props = {
   items: ClothingItem[]
@@ -14,13 +18,15 @@ export const ResultPage = ({ items }: Props) => {
   const router = useRouter()
   const { mutateAsync: registerClosetItem } = useRegisterClosetItem()
   const { states, update, setCategory, allActioned, savedItems } = useReviewItems(items)
-  const [isConfirming, setIsConfirming] = useState(false)
+  const [isConfirming,   setIsConfirming]   = useState(false)
+  const [showPopup,      setShowPopup]      = useState(false)
 
   const handleConfirm = async () => {
     if (savedItems.length === 0) {
       router.replace('/')
       return
     }
+
     setIsConfirming(true)
     try {
       await Promise.all(
@@ -28,19 +34,34 @@ export const ResultPage = ({ items }: Props) => {
           const s = states[item.id]
           return registerClosetItem({
             clothingItemId: item.id,
-            category: s.category,
-            subCategory: s.subCategory,
-            brand: s.brand || undefined,
-            memo: s.memo || undefined,
+            category:       s.category,
+            subCategory:    s.subCategory,
+            brand:          s.brand || undefined,
+            memo:           s.memo  || undefined,
           })
         })
       )
-      router.replace('/')
+
+      // 등록 성공 후 팝업 표시 여부 확인
+      // "다시 보지 않기"를 누른 적 없으면 팝업 표시
+      // 팝업 닫히면 홈으로 이동 (handlePopupClose에서 처리)
+      const shouldShow = await shouldShowClothingDetailPopup()
+      if (shouldShow) {
+        setShowPopup(true)
+      } else {
+        router.replace('/')
+      }
+
     } catch {
       Alert.alert('Error', 'Failed to save. Please try again.')
     } finally {
       setIsConfirming(false)
     }
+  }
+
+  const handlePopupClose = () => {
+    setShowPopup(false)
+    router.replace('/')
   }
 
   return (
@@ -74,6 +95,12 @@ export const ResultPage = ({ items }: Props) => {
           loading={isConfirming}
         />
       </View>
+
+      {/* ClothingDetailPopup: 옷 등록 완료 후 heads-up 표시 */}
+      <ClothingDetailPopup
+        visible={showPopup}
+        onClose={handlePopupClose}
+      />
     </View>
   )
 }

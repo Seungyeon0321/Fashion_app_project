@@ -50,6 +50,7 @@ export type ClosetItemMinAggregateOutputType = {
   clothingItemId: number | null
   imageUrl: string | null
   cropS3Key: string | null
+  name: string | null
   category: $Enums.Category | null
   subCategory: $Enums.SubCategory | null
   minTemp: number | null
@@ -60,6 +61,8 @@ export type ClosetItemMinAggregateOutputType = {
   memo: string | null
   isFavorite: boolean | null
   wearCount: number | null
+  material: string | null
+  fit: $Enums.FitType | null
   createdAt: Date | null
   updatedAt: Date | null
   season: $Enums.Season | null
@@ -72,6 +75,7 @@ export type ClosetItemMaxAggregateOutputType = {
   clothingItemId: number | null
   imageUrl: string | null
   cropS3Key: string | null
+  name: string | null
   category: $Enums.Category | null
   subCategory: $Enums.SubCategory | null
   minTemp: number | null
@@ -82,6 +86,8 @@ export type ClosetItemMaxAggregateOutputType = {
   memo: string | null
   isFavorite: boolean | null
   wearCount: number | null
+  material: string | null
+  fit: $Enums.FitType | null
   createdAt: Date | null
   updatedAt: Date | null
   season: $Enums.Season | null
@@ -94,6 +100,7 @@ export type ClosetItemCountAggregateOutputType = {
   clothingItemId: number
   imageUrl: number
   cropS3Key: number
+  name: number
   category: number
   subCategory: number
   minTemp: number
@@ -105,6 +112,8 @@ export type ClosetItemCountAggregateOutputType = {
   memo: number
   isFavorite: number
   wearCount: number
+  material: number
+  fit: number
   createdAt: number
   updatedAt: number
   season: number
@@ -137,6 +146,7 @@ export type ClosetItemMinAggregateInputType = {
   clothingItemId?: true
   imageUrl?: true
   cropS3Key?: true
+  name?: true
   category?: true
   subCategory?: true
   minTemp?: true
@@ -147,6 +157,8 @@ export type ClosetItemMinAggregateInputType = {
   memo?: true
   isFavorite?: true
   wearCount?: true
+  material?: true
+  fit?: true
   createdAt?: true
   updatedAt?: true
   season?: true
@@ -159,6 +171,7 @@ export type ClosetItemMaxAggregateInputType = {
   clothingItemId?: true
   imageUrl?: true
   cropS3Key?: true
+  name?: true
   category?: true
   subCategory?: true
   minTemp?: true
@@ -169,6 +182,8 @@ export type ClosetItemMaxAggregateInputType = {
   memo?: true
   isFavorite?: true
   wearCount?: true
+  material?: true
+  fit?: true
   createdAt?: true
   updatedAt?: true
   season?: true
@@ -181,6 +196,7 @@ export type ClosetItemCountAggregateInputType = {
   clothingItemId?: true
   imageUrl?: true
   cropS3Key?: true
+  name?: true
   category?: true
   subCategory?: true
   minTemp?: true
@@ -192,6 +208,8 @@ export type ClosetItemCountAggregateInputType = {
   memo?: true
   isFavorite?: true
   wearCount?: true
+  material?: true
+  fit?: true
   createdAt?: true
   updatedAt?: true
   season?: true
@@ -291,6 +309,7 @@ export type ClosetItemGroupByOutputType = {
   clothingItemId: number | null
   imageUrl: string | null
   cropS3Key: string | null
+  name: string | null
   category: $Enums.Category
   subCategory: $Enums.SubCategory
   minTemp: number | null
@@ -302,6 +321,8 @@ export type ClosetItemGroupByOutputType = {
   memo: string | null
   isFavorite: boolean
   wearCount: number
+  material: string | null
+  fit: $Enums.FitType | null
   createdAt: Date
   updatedAt: Date
   season: $Enums.Season | null
@@ -337,6 +358,7 @@ export type ClosetItemWhereInput = {
   clothingItemId?: Prisma.IntNullableFilter<"ClosetItem"> | number | null
   imageUrl?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
   cropS3Key?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
+  name?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
   category?: Prisma.EnumCategoryFilter<"ClosetItem"> | $Enums.Category
   subCategory?: Prisma.EnumSubCategoryFilter<"ClosetItem"> | $Enums.SubCategory
   minTemp?: Prisma.FloatNullableFilter<"ClosetItem"> | number | null
@@ -348,6 +370,8 @@ export type ClosetItemWhereInput = {
   memo?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
   isFavorite?: Prisma.BoolFilter<"ClosetItem"> | boolean
   wearCount?: Prisma.IntFilter<"ClosetItem"> | number
+  material?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
+  fit?: Prisma.EnumFitTypeNullableFilter<"ClosetItem"> | $Enums.FitType | null
   createdAt?: Prisma.DateTimeFilter<"ClosetItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ClosetItem"> | Date | string
   season?: Prisma.EnumSeasonNullableFilter<"ClosetItem"> | $Enums.Season | null
@@ -362,6 +386,7 @@ export type ClosetItemOrderByWithRelationInput = {
   clothingItemId?: Prisma.SortOrderInput | Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   cropS3Key?: Prisma.SortOrderInput | Prisma.SortOrder
+  name?: Prisma.SortOrderInput | Prisma.SortOrder
   category?: Prisma.SortOrder
   subCategory?: Prisma.SortOrder
   minTemp?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -373,6 +398,8 @@ export type ClosetItemOrderByWithRelationInput = {
   memo?: Prisma.SortOrderInput | Prisma.SortOrder
   isFavorite?: Prisma.SortOrder
   wearCount?: Prisma.SortOrder
+  material?: Prisma.SortOrderInput | Prisma.SortOrder
+  fit?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   season?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -390,6 +417,7 @@ export type ClosetItemWhereUniqueInput = Prisma.AtLeast<{
   clothingItemId?: Prisma.IntNullableFilter<"ClosetItem"> | number | null
   imageUrl?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
   cropS3Key?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
+  name?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
   category?: Prisma.EnumCategoryFilter<"ClosetItem"> | $Enums.Category
   subCategory?: Prisma.EnumSubCategoryFilter<"ClosetItem"> | $Enums.SubCategory
   minTemp?: Prisma.FloatNullableFilter<"ClosetItem"> | number | null
@@ -401,6 +429,8 @@ export type ClosetItemWhereUniqueInput = Prisma.AtLeast<{
   memo?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
   isFavorite?: Prisma.BoolFilter<"ClosetItem"> | boolean
   wearCount?: Prisma.IntFilter<"ClosetItem"> | number
+  material?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
+  fit?: Prisma.EnumFitTypeNullableFilter<"ClosetItem"> | $Enums.FitType | null
   createdAt?: Prisma.DateTimeFilter<"ClosetItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ClosetItem"> | Date | string
   season?: Prisma.EnumSeasonNullableFilter<"ClosetItem"> | $Enums.Season | null
@@ -415,6 +445,7 @@ export type ClosetItemOrderByWithAggregationInput = {
   clothingItemId?: Prisma.SortOrderInput | Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   cropS3Key?: Prisma.SortOrderInput | Prisma.SortOrder
+  name?: Prisma.SortOrderInput | Prisma.SortOrder
   category?: Prisma.SortOrder
   subCategory?: Prisma.SortOrder
   minTemp?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -426,6 +457,8 @@ export type ClosetItemOrderByWithAggregationInput = {
   memo?: Prisma.SortOrderInput | Prisma.SortOrder
   isFavorite?: Prisma.SortOrder
   wearCount?: Prisma.SortOrder
+  material?: Prisma.SortOrderInput | Prisma.SortOrder
+  fit?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   season?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -446,6 +479,7 @@ export type ClosetItemScalarWhereWithAggregatesInput = {
   clothingItemId?: Prisma.IntNullableWithAggregatesFilter<"ClosetItem"> | number | null
   imageUrl?: Prisma.StringNullableWithAggregatesFilter<"ClosetItem"> | string | null
   cropS3Key?: Prisma.StringNullableWithAggregatesFilter<"ClosetItem"> | string | null
+  name?: Prisma.StringNullableWithAggregatesFilter<"ClosetItem"> | string | null
   category?: Prisma.EnumCategoryWithAggregatesFilter<"ClosetItem"> | $Enums.Category
   subCategory?: Prisma.EnumSubCategoryWithAggregatesFilter<"ClosetItem"> | $Enums.SubCategory
   minTemp?: Prisma.FloatNullableWithAggregatesFilter<"ClosetItem"> | number | null
@@ -457,6 +491,8 @@ export type ClosetItemScalarWhereWithAggregatesInput = {
   memo?: Prisma.StringNullableWithAggregatesFilter<"ClosetItem"> | string | null
   isFavorite?: Prisma.BoolWithAggregatesFilter<"ClosetItem"> | boolean
   wearCount?: Prisma.IntWithAggregatesFilter<"ClosetItem"> | number
+  material?: Prisma.StringNullableWithAggregatesFilter<"ClosetItem"> | string | null
+  fit?: Prisma.EnumFitTypeNullableWithAggregatesFilter<"ClosetItem"> | $Enums.FitType | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ClosetItem"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ClosetItem"> | Date | string
   season?: Prisma.EnumSeasonNullableWithAggregatesFilter<"ClosetItem"> | $Enums.Season | null
@@ -467,6 +503,7 @@ export type ClosetItemCreateInput = {
   clothingItemId?: number | null
   imageUrl?: string | null
   cropS3Key?: string | null
+  name?: string | null
   category: $Enums.Category
   subCategory: $Enums.SubCategory
   minTemp?: number | null
@@ -478,6 +515,8 @@ export type ClosetItemCreateInput = {
   memo?: string | null
   isFavorite?: boolean
   wearCount?: number
+  material?: string | null
+  fit?: $Enums.FitType | null
   createdAt?: Date | string
   updatedAt?: Date | string
   season?: $Enums.Season | null
@@ -492,6 +531,7 @@ export type ClosetItemUncheckedCreateInput = {
   clothingItemId?: number | null
   imageUrl?: string | null
   cropS3Key?: string | null
+  name?: string | null
   category: $Enums.Category
   subCategory: $Enums.SubCategory
   minTemp?: number | null
@@ -503,6 +543,8 @@ export type ClosetItemUncheckedCreateInput = {
   memo?: string | null
   isFavorite?: boolean
   wearCount?: number
+  material?: string | null
+  fit?: $Enums.FitType | null
   createdAt?: Date | string
   updatedAt?: Date | string
   season?: $Enums.Season | null
@@ -514,6 +556,7 @@ export type ClosetItemUpdateInput = {
   clothingItemId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cropS3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
   subCategory?: Prisma.EnumSubCategoryFieldUpdateOperationsInput | $Enums.SubCategory
   minTemp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -525,6 +568,8 @@ export type ClosetItemUpdateInput = {
   memo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wearCount?: Prisma.IntFieldUpdateOperationsInput | number
+  material?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fit?: Prisma.NullableEnumFitTypeFieldUpdateOperationsInput | $Enums.FitType | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
@@ -539,6 +584,7 @@ export type ClosetItemUncheckedUpdateInput = {
   clothingItemId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cropS3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
   subCategory?: Prisma.EnumSubCategoryFieldUpdateOperationsInput | $Enums.SubCategory
   minTemp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -550,6 +596,8 @@ export type ClosetItemUncheckedUpdateInput = {
   memo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wearCount?: Prisma.IntFieldUpdateOperationsInput | number
+  material?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fit?: Prisma.NullableEnumFitTypeFieldUpdateOperationsInput | $Enums.FitType | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
@@ -563,6 +611,7 @@ export type ClosetItemCreateManyInput = {
   clothingItemId?: number | null
   imageUrl?: string | null
   cropS3Key?: string | null
+  name?: string | null
   category: $Enums.Category
   subCategory: $Enums.SubCategory
   minTemp?: number | null
@@ -574,6 +623,8 @@ export type ClosetItemCreateManyInput = {
   memo?: string | null
   isFavorite?: boolean
   wearCount?: number
+  material?: string | null
+  fit?: $Enums.FitType | null
   createdAt?: Date | string
   updatedAt?: Date | string
   season?: $Enums.Season | null
@@ -584,6 +635,7 @@ export type ClosetItemUpdateManyMutationInput = {
   clothingItemId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cropS3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
   subCategory?: Prisma.EnumSubCategoryFieldUpdateOperationsInput | $Enums.SubCategory
   minTemp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -595,6 +647,8 @@ export type ClosetItemUpdateManyMutationInput = {
   memo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wearCount?: Prisma.IntFieldUpdateOperationsInput | number
+  material?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fit?: Prisma.NullableEnumFitTypeFieldUpdateOperationsInput | $Enums.FitType | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
@@ -607,6 +661,7 @@ export type ClosetItemUncheckedUpdateManyInput = {
   clothingItemId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cropS3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
   subCategory?: Prisma.EnumSubCategoryFieldUpdateOperationsInput | $Enums.SubCategory
   minTemp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -618,6 +673,8 @@ export type ClosetItemUncheckedUpdateManyInput = {
   memo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wearCount?: Prisma.IntFieldUpdateOperationsInput | number
+  material?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fit?: Prisma.NullableEnumFitTypeFieldUpdateOperationsInput | $Enums.FitType | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
@@ -648,6 +705,7 @@ export type ClosetItemCountOrderByAggregateInput = {
   clothingItemId?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   cropS3Key?: Prisma.SortOrder
+  name?: Prisma.SortOrder
   category?: Prisma.SortOrder
   subCategory?: Prisma.SortOrder
   minTemp?: Prisma.SortOrder
@@ -659,6 +717,8 @@ export type ClosetItemCountOrderByAggregateInput = {
   memo?: Prisma.SortOrder
   isFavorite?: Prisma.SortOrder
   wearCount?: Prisma.SortOrder
+  material?: Prisma.SortOrder
+  fit?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   season?: Prisma.SortOrder
@@ -680,6 +740,7 @@ export type ClosetItemMaxOrderByAggregateInput = {
   clothingItemId?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   cropS3Key?: Prisma.SortOrder
+  name?: Prisma.SortOrder
   category?: Prisma.SortOrder
   subCategory?: Prisma.SortOrder
   minTemp?: Prisma.SortOrder
@@ -690,6 +751,8 @@ export type ClosetItemMaxOrderByAggregateInput = {
   memo?: Prisma.SortOrder
   isFavorite?: Prisma.SortOrder
   wearCount?: Prisma.SortOrder
+  material?: Prisma.SortOrder
+  fit?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   season?: Prisma.SortOrder
@@ -702,6 +765,7 @@ export type ClosetItemMinOrderByAggregateInput = {
   clothingItemId?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   cropS3Key?: Prisma.SortOrder
+  name?: Prisma.SortOrder
   category?: Prisma.SortOrder
   subCategory?: Prisma.SortOrder
   minTemp?: Prisma.SortOrder
@@ -712,6 +776,8 @@ export type ClosetItemMinOrderByAggregateInput = {
   memo?: Prisma.SortOrder
   isFavorite?: Prisma.SortOrder
   wearCount?: Prisma.SortOrder
+  material?: Prisma.SortOrder
+  fit?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   season?: Prisma.SortOrder
@@ -803,6 +869,10 @@ export type ClosetItemUpdatecolorsInput = {
   push?: string | string[]
 }
 
+export type NullableEnumFitTypeFieldUpdateOperationsInput = {
+  set?: $Enums.FitType | null
+}
+
 export type NullableEnumSeasonFieldUpdateOperationsInput = {
   set?: $Enums.Season | null
 }
@@ -827,6 +897,7 @@ export type ClosetItemCreateWithoutUserInput = {
   clothingItemId?: number | null
   imageUrl?: string | null
   cropS3Key?: string | null
+  name?: string | null
   category: $Enums.Category
   subCategory: $Enums.SubCategory
   minTemp?: number | null
@@ -838,6 +909,8 @@ export type ClosetItemCreateWithoutUserInput = {
   memo?: string | null
   isFavorite?: boolean
   wearCount?: number
+  material?: string | null
+  fit?: $Enums.FitType | null
   createdAt?: Date | string
   updatedAt?: Date | string
   season?: $Enums.Season | null
@@ -850,6 +923,7 @@ export type ClosetItemUncheckedCreateWithoutUserInput = {
   clothingItemId?: number | null
   imageUrl?: string | null
   cropS3Key?: string | null
+  name?: string | null
   category: $Enums.Category
   subCategory: $Enums.SubCategory
   minTemp?: number | null
@@ -861,6 +935,8 @@ export type ClosetItemUncheckedCreateWithoutUserInput = {
   memo?: string | null
   isFavorite?: boolean
   wearCount?: number
+  material?: string | null
+  fit?: $Enums.FitType | null
   createdAt?: Date | string
   updatedAt?: Date | string
   season?: $Enums.Season | null
@@ -903,6 +979,7 @@ export type ClosetItemScalarWhereInput = {
   clothingItemId?: Prisma.IntNullableFilter<"ClosetItem"> | number | null
   imageUrl?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
   cropS3Key?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
+  name?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
   category?: Prisma.EnumCategoryFilter<"ClosetItem"> | $Enums.Category
   subCategory?: Prisma.EnumSubCategoryFilter<"ClosetItem"> | $Enums.SubCategory
   minTemp?: Prisma.FloatNullableFilter<"ClosetItem"> | number | null
@@ -914,6 +991,8 @@ export type ClosetItemScalarWhereInput = {
   memo?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
   isFavorite?: Prisma.BoolFilter<"ClosetItem"> | boolean
   wearCount?: Prisma.IntFilter<"ClosetItem"> | number
+  material?: Prisma.StringNullableFilter<"ClosetItem"> | string | null
+  fit?: Prisma.EnumFitTypeNullableFilter<"ClosetItem"> | $Enums.FitType | null
   createdAt?: Prisma.DateTimeFilter<"ClosetItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ClosetItem"> | Date | string
   season?: Prisma.EnumSeasonNullableFilter<"ClosetItem"> | $Enums.Season | null
@@ -924,6 +1003,7 @@ export type ClosetItemCreateWithoutOutfitItemsInput = {
   clothingItemId?: number | null
   imageUrl?: string | null
   cropS3Key?: string | null
+  name?: string | null
   category: $Enums.Category
   subCategory: $Enums.SubCategory
   minTemp?: number | null
@@ -935,6 +1015,8 @@ export type ClosetItemCreateWithoutOutfitItemsInput = {
   memo?: string | null
   isFavorite?: boolean
   wearCount?: number
+  material?: string | null
+  fit?: $Enums.FitType | null
   createdAt?: Date | string
   updatedAt?: Date | string
   season?: $Enums.Season | null
@@ -948,6 +1030,7 @@ export type ClosetItemUncheckedCreateWithoutOutfitItemsInput = {
   clothingItemId?: number | null
   imageUrl?: string | null
   cropS3Key?: string | null
+  name?: string | null
   category: $Enums.Category
   subCategory: $Enums.SubCategory
   minTemp?: number | null
@@ -959,6 +1042,8 @@ export type ClosetItemUncheckedCreateWithoutOutfitItemsInput = {
   memo?: string | null
   isFavorite?: boolean
   wearCount?: number
+  material?: string | null
+  fit?: $Enums.FitType | null
   createdAt?: Date | string
   updatedAt?: Date | string
   season?: $Enums.Season | null
@@ -985,6 +1070,7 @@ export type ClosetItemUpdateWithoutOutfitItemsInput = {
   clothingItemId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cropS3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
   subCategory?: Prisma.EnumSubCategoryFieldUpdateOperationsInput | $Enums.SubCategory
   minTemp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -996,6 +1082,8 @@ export type ClosetItemUpdateWithoutOutfitItemsInput = {
   memo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wearCount?: Prisma.IntFieldUpdateOperationsInput | number
+  material?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fit?: Prisma.NullableEnumFitTypeFieldUpdateOperationsInput | $Enums.FitType | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
@@ -1009,6 +1097,7 @@ export type ClosetItemUncheckedUpdateWithoutOutfitItemsInput = {
   clothingItemId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cropS3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
   subCategory?: Prisma.EnumSubCategoryFieldUpdateOperationsInput | $Enums.SubCategory
   minTemp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -1020,6 +1109,8 @@ export type ClosetItemUncheckedUpdateWithoutOutfitItemsInput = {
   memo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wearCount?: Prisma.IntFieldUpdateOperationsInput | number
+  material?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fit?: Prisma.NullableEnumFitTypeFieldUpdateOperationsInput | $Enums.FitType | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
@@ -1031,6 +1122,7 @@ export type ClosetItemCreateManyUserInput = {
   clothingItemId?: number | null
   imageUrl?: string | null
   cropS3Key?: string | null
+  name?: string | null
   category: $Enums.Category
   subCategory: $Enums.SubCategory
   minTemp?: number | null
@@ -1042,6 +1134,8 @@ export type ClosetItemCreateManyUserInput = {
   memo?: string | null
   isFavorite?: boolean
   wearCount?: number
+  material?: string | null
+  fit?: $Enums.FitType | null
   createdAt?: Date | string
   updatedAt?: Date | string
   season?: $Enums.Season | null
@@ -1052,6 +1146,7 @@ export type ClosetItemUpdateWithoutUserInput = {
   clothingItemId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cropS3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
   subCategory?: Prisma.EnumSubCategoryFieldUpdateOperationsInput | $Enums.SubCategory
   minTemp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -1063,6 +1158,8 @@ export type ClosetItemUpdateWithoutUserInput = {
   memo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wearCount?: Prisma.IntFieldUpdateOperationsInput | number
+  material?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fit?: Prisma.NullableEnumFitTypeFieldUpdateOperationsInput | $Enums.FitType | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
@@ -1075,6 +1172,7 @@ export type ClosetItemUncheckedUpdateWithoutUserInput = {
   clothingItemId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cropS3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
   subCategory?: Prisma.EnumSubCategoryFieldUpdateOperationsInput | $Enums.SubCategory
   minTemp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -1086,6 +1184,8 @@ export type ClosetItemUncheckedUpdateWithoutUserInput = {
   memo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wearCount?: Prisma.IntFieldUpdateOperationsInput | number
+  material?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fit?: Prisma.NullableEnumFitTypeFieldUpdateOperationsInput | $Enums.FitType | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
@@ -1098,6 +1198,7 @@ export type ClosetItemUncheckedUpdateManyWithoutUserInput = {
   clothingItemId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cropS3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
   subCategory?: Prisma.EnumSubCategoryFieldUpdateOperationsInput | $Enums.SubCategory
   minTemp?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -1109,6 +1210,8 @@ export type ClosetItemUncheckedUpdateManyWithoutUserInput = {
   memo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isFavorite?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wearCount?: Prisma.IntFieldUpdateOperationsInput | number
+  material?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fit?: Prisma.NullableEnumFitTypeFieldUpdateOperationsInput | $Enums.FitType | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   season?: Prisma.NullableEnumSeasonFieldUpdateOperationsInput | $Enums.Season | null
@@ -1152,6 +1255,7 @@ export type ClosetItemSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   clothingItemId?: boolean
   imageUrl?: boolean
   cropS3Key?: boolean
+  name?: boolean
   category?: boolean
   subCategory?: boolean
   minTemp?: boolean
@@ -1163,6 +1267,8 @@ export type ClosetItemSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   memo?: boolean
   isFavorite?: boolean
   wearCount?: boolean
+  material?: boolean
+  fit?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   season?: boolean
@@ -1178,6 +1284,7 @@ export type ClosetItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   clothingItemId?: boolean
   imageUrl?: boolean
   cropS3Key?: boolean
+  name?: boolean
   category?: boolean
   subCategory?: boolean
   minTemp?: boolean
@@ -1189,6 +1296,8 @@ export type ClosetItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   memo?: boolean
   isFavorite?: boolean
   wearCount?: boolean
+  material?: boolean
+  fit?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   season?: boolean
@@ -1202,6 +1311,7 @@ export type ClosetItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   clothingItemId?: boolean
   imageUrl?: boolean
   cropS3Key?: boolean
+  name?: boolean
   category?: boolean
   subCategory?: boolean
   minTemp?: boolean
@@ -1213,6 +1323,8 @@ export type ClosetItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   memo?: boolean
   isFavorite?: boolean
   wearCount?: boolean
+  material?: boolean
+  fit?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   season?: boolean
@@ -1226,6 +1338,7 @@ export type ClosetItemSelectScalar = {
   clothingItemId?: boolean
   imageUrl?: boolean
   cropS3Key?: boolean
+  name?: boolean
   category?: boolean
   subCategory?: boolean
   minTemp?: boolean
@@ -1237,13 +1350,15 @@ export type ClosetItemSelectScalar = {
   memo?: boolean
   isFavorite?: boolean
   wearCount?: boolean
+  material?: boolean
+  fit?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   season?: boolean
   style?: boolean
 }
 
-export type ClosetItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "clothingItemId" | "imageUrl" | "cropS3Key" | "category" | "subCategory" | "minTemp" | "maxTemp" | "isArchived" | "isWashing" | "colors" | "brand" | "memo" | "isFavorite" | "wearCount" | "createdAt" | "updatedAt" | "season" | "style", ExtArgs["result"]["closetItem"]>
+export type ClosetItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "clothingItemId" | "imageUrl" | "cropS3Key" | "name" | "category" | "subCategory" | "minTemp" | "maxTemp" | "isArchived" | "isWashing" | "colors" | "brand" | "memo" | "isFavorite" | "wearCount" | "material" | "fit" | "createdAt" | "updatedAt" | "season" | "style", ExtArgs["result"]["closetItem"]>
 export type ClosetItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   outfitItems?: boolean | Prisma.ClosetItem$outfitItemsArgs<ExtArgs>
@@ -1268,6 +1383,7 @@ export type $ClosetItemPayload<ExtArgs extends runtime.Types.Extensions.Internal
     clothingItemId: number | null
     imageUrl: string | null
     cropS3Key: string | null
+    name: string | null
     category: $Enums.Category
     subCategory: $Enums.SubCategory
     minTemp: number | null
@@ -1279,6 +1395,8 @@ export type $ClosetItemPayload<ExtArgs extends runtime.Types.Extensions.Internal
     memo: string | null
     isFavorite: boolean
     wearCount: number
+    material: string | null
+    fit: $Enums.FitType | null
     createdAt: Date
     updatedAt: Date
     season: $Enums.Season | null
@@ -1713,6 +1831,7 @@ export interface ClosetItemFieldRefs {
   readonly clothingItemId: Prisma.FieldRef<"ClosetItem", 'Int'>
   readonly imageUrl: Prisma.FieldRef<"ClosetItem", 'String'>
   readonly cropS3Key: Prisma.FieldRef<"ClosetItem", 'String'>
+  readonly name: Prisma.FieldRef<"ClosetItem", 'String'>
   readonly category: Prisma.FieldRef<"ClosetItem", 'Category'>
   readonly subCategory: Prisma.FieldRef<"ClosetItem", 'SubCategory'>
   readonly minTemp: Prisma.FieldRef<"ClosetItem", 'Float'>
@@ -1724,6 +1843,8 @@ export interface ClosetItemFieldRefs {
   readonly memo: Prisma.FieldRef<"ClosetItem", 'String'>
   readonly isFavorite: Prisma.FieldRef<"ClosetItem", 'Boolean'>
   readonly wearCount: Prisma.FieldRef<"ClosetItem", 'Int'>
+  readonly material: Prisma.FieldRef<"ClosetItem", 'String'>
+  readonly fit: Prisma.FieldRef<"ClosetItem", 'FitType'>
   readonly createdAt: Prisma.FieldRef<"ClosetItem", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ClosetItem", 'DateTime'>
   readonly season: Prisma.FieldRef<"ClosetItem", 'Season'>

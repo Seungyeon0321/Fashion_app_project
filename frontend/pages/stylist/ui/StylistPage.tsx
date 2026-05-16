@@ -10,16 +10,14 @@ import { SourcePickerSheet } from '@/features/get-recommendation/ui/SourcePicker
 import { useSourcePickerStore } from '@/features/get-recommendation/model/sourcePickerStore';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { ScreenLayout } from '@/shared/ui/ScreenLayout';
-import { useStylePresets } from '@/features/style-reference/model/useStylePresets';
 import type { RecommendSource, AnchorClosetItem } from '@/features/get-recommendation/model/sourcePickerStore';
 
 export function StylistPage() {
-  const selectedIntent = useIntentStore((s) => s.selectedIntent);
-  const openSheet = useSourcePickerStore((s) => s.openSheet);
+  const selectedIntent  = useIntentStore((s) => s.selectedIntent);
+  const openSheet       = useSourcePickerStore((s) => s.openSheet);
   const { mutate, isPending } = useRecommendation();
-  const { selectedPresetIds } = useStylePresets();
 
-  const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisible,       setModalVisible]       = useState(false);
   const [recommendationData, setRecommendationData] = useState<RecommendationResponse | null>(null);
 
   const handleIntentPress = (_key: Intent) => {
@@ -30,23 +28,27 @@ export function StylistPage() {
     source,
     anchorItem,
   }: {
-    source: RecommendSource;
+    source:     RecommendSource;
     anchorItem: AnchorClosetItem | null;
   }) => {
+    console.log(source, anchorItem, 'SourcePickerSheet result');
     mutate(
       {
-        intent: selectedIntent!,
+        intent:          selectedIntent!,
         source,
-        anchor_item_id: anchorItem?.id,
-        style_reference_ids: selectedPresetIds,
+        anchor_item_id:  anchorItem?.id,
+        // style_reference_ids는 useRecommendation 내부에서
+        // useStyleStore의 savedStyles.map(s => s.id)로 자동 포함됨
       },
       {
         onSuccess: (data) => {
           setRecommendationData(data);
           setModalVisible(true);
         },
-        onError: (error) => {
-          console.error('❌ recommendation error:', error.message);
+        onError: (error: any) => {
+          console.error('❌ error:', error?.message);
+          console.error('❌ response:', error?.response?.data);
+          console.error('❌ status:', error?.response?.status);
         },
       }
     );

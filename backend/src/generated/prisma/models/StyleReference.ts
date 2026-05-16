@@ -245,7 +245,6 @@ export type StyleReferenceWhereInput = {
   analysisResult?: Prisma.JsonNullableFilter<"StyleReference">
   createdAt?: Prisma.DateTimeFilter<"StyleReference"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  wishlistItems?: Prisma.WishlistItemListRelationFilter
 }
 
 export type StyleReferenceOrderByWithRelationInput = {
@@ -258,7 +257,6 @@ export type StyleReferenceOrderByWithRelationInput = {
   analysisResult?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
-  wishlistItems?: Prisma.WishlistItemOrderByRelationAggregateInput
 }
 
 export type StyleReferenceWhereUniqueInput = Prisma.AtLeast<{
@@ -274,7 +272,6 @@ export type StyleReferenceWhereUniqueInput = Prisma.AtLeast<{
   analysisResult?: Prisma.JsonNullableFilter<"StyleReference">
   createdAt?: Prisma.DateTimeFilter<"StyleReference"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  wishlistItems?: Prisma.WishlistItemListRelationFilter
 }, "id">
 
 export type StyleReferenceOrderByWithAggregationInput = {
@@ -315,7 +312,6 @@ export type StyleReferenceCreateInput = {
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutStyleRefsInput
-  wishlistItems?: Prisma.WishlistItemCreateNestedManyWithoutOriginStyleInput
 }
 
 export type StyleReferenceUncheckedCreateInput = {
@@ -327,7 +323,6 @@ export type StyleReferenceUncheckedCreateInput = {
   rating?: number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
-  wishlistItems?: Prisma.WishlistItemUncheckedCreateNestedManyWithoutOriginStyleInput
 }
 
 export type StyleReferenceUpdateInput = {
@@ -338,7 +333,6 @@ export type StyleReferenceUpdateInput = {
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutStyleRefsNestedInput
-  wishlistItems?: Prisma.WishlistItemUpdateManyWithoutOriginStyleNestedInput
 }
 
 export type StyleReferenceUncheckedUpdateInput = {
@@ -350,7 +344,6 @@ export type StyleReferenceUncheckedUpdateInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  wishlistItems?: Prisma.WishlistItemUncheckedUpdateManyWithoutOriginStyleNestedInput
 }
 
 export type StyleReferenceCreateManyInput = {
@@ -437,11 +430,6 @@ export type StyleReferenceSumOrderByAggregateInput = {
   rating?: Prisma.SortOrder
 }
 
-export type StyleReferenceNullableScalarRelationFilter = {
-  is?: Prisma.StyleReferenceWhereInput | null
-  isNot?: Prisma.StyleReferenceWhereInput | null
-}
-
 export type StyleReferenceCreateNestedManyWithoutUserInput = {
   create?: Prisma.XOR<Prisma.StyleReferenceCreateWithoutUserInput, Prisma.StyleReferenceUncheckedCreateWithoutUserInput> | Prisma.StyleReferenceCreateWithoutUserInput[] | Prisma.StyleReferenceUncheckedCreateWithoutUserInput[]
   connectOrCreate?: Prisma.StyleReferenceCreateOrConnectWithoutUserInput | Prisma.StyleReferenceCreateOrConnectWithoutUserInput[]
@@ -488,22 +476,6 @@ export type EnumStyleRefTypeFieldUpdateOperationsInput = {
   set?: $Enums.StyleRefType
 }
 
-export type StyleReferenceCreateNestedOneWithoutWishlistItemsInput = {
-  create?: Prisma.XOR<Prisma.StyleReferenceCreateWithoutWishlistItemsInput, Prisma.StyleReferenceUncheckedCreateWithoutWishlistItemsInput>
-  connectOrCreate?: Prisma.StyleReferenceCreateOrConnectWithoutWishlistItemsInput
-  connect?: Prisma.StyleReferenceWhereUniqueInput
-}
-
-export type StyleReferenceUpdateOneWithoutWishlistItemsNestedInput = {
-  create?: Prisma.XOR<Prisma.StyleReferenceCreateWithoutWishlistItemsInput, Prisma.StyleReferenceUncheckedCreateWithoutWishlistItemsInput>
-  connectOrCreate?: Prisma.StyleReferenceCreateOrConnectWithoutWishlistItemsInput
-  upsert?: Prisma.StyleReferenceUpsertWithoutWishlistItemsInput
-  disconnect?: Prisma.StyleReferenceWhereInput | boolean
-  delete?: Prisma.StyleReferenceWhereInput | boolean
-  connect?: Prisma.StyleReferenceWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.StyleReferenceUpdateToOneWithWhereWithoutWishlistItemsInput, Prisma.StyleReferenceUpdateWithoutWishlistItemsInput>, Prisma.StyleReferenceUncheckedUpdateWithoutWishlistItemsInput>
-}
-
 export type StyleReferenceCreateWithoutUserInput = {
   type: $Enums.StyleRefType
   presetKey?: string | null
@@ -511,7 +483,6 @@ export type StyleReferenceCreateWithoutUserInput = {
   rating?: number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
-  wishlistItems?: Prisma.WishlistItemCreateNestedManyWithoutOriginStyleInput
 }
 
 export type StyleReferenceUncheckedCreateWithoutUserInput = {
@@ -522,7 +493,6 @@ export type StyleReferenceUncheckedCreateWithoutUserInput = {
   rating?: number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
-  wishlistItems?: Prisma.WishlistItemUncheckedCreateNestedManyWithoutOriginStyleInput
 }
 
 export type StyleReferenceCreateOrConnectWithoutUserInput = {
@@ -565,64 +535,6 @@ export type StyleReferenceScalarWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"StyleReference"> | Date | string
 }
 
-export type StyleReferenceCreateWithoutWishlistItemsInput = {
-  type: $Enums.StyleRefType
-  presetKey?: string | null
-  originalImageUrl?: string | null
-  rating?: number
-  analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  createdAt?: Date | string
-  user: Prisma.UserCreateNestedOneWithoutStyleRefsInput
-}
-
-export type StyleReferenceUncheckedCreateWithoutWishlistItemsInput = {
-  id?: number
-  userId: number
-  type: $Enums.StyleRefType
-  presetKey?: string | null
-  originalImageUrl?: string | null
-  rating?: number
-  analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  createdAt?: Date | string
-}
-
-export type StyleReferenceCreateOrConnectWithoutWishlistItemsInput = {
-  where: Prisma.StyleReferenceWhereUniqueInput
-  create: Prisma.XOR<Prisma.StyleReferenceCreateWithoutWishlistItemsInput, Prisma.StyleReferenceUncheckedCreateWithoutWishlistItemsInput>
-}
-
-export type StyleReferenceUpsertWithoutWishlistItemsInput = {
-  update: Prisma.XOR<Prisma.StyleReferenceUpdateWithoutWishlistItemsInput, Prisma.StyleReferenceUncheckedUpdateWithoutWishlistItemsInput>
-  create: Prisma.XOR<Prisma.StyleReferenceCreateWithoutWishlistItemsInput, Prisma.StyleReferenceUncheckedCreateWithoutWishlistItemsInput>
-  where?: Prisma.StyleReferenceWhereInput
-}
-
-export type StyleReferenceUpdateToOneWithWhereWithoutWishlistItemsInput = {
-  where?: Prisma.StyleReferenceWhereInput
-  data: Prisma.XOR<Prisma.StyleReferenceUpdateWithoutWishlistItemsInput, Prisma.StyleReferenceUncheckedUpdateWithoutWishlistItemsInput>
-}
-
-export type StyleReferenceUpdateWithoutWishlistItemsInput = {
-  type?: Prisma.EnumStyleRefTypeFieldUpdateOperationsInput | $Enums.StyleRefType
-  presetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  originalImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  rating?: Prisma.IntFieldUpdateOperationsInput | number
-  analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  user?: Prisma.UserUpdateOneRequiredWithoutStyleRefsNestedInput
-}
-
-export type StyleReferenceUncheckedUpdateWithoutWishlistItemsInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  userId?: Prisma.IntFieldUpdateOperationsInput | number
-  type?: Prisma.EnumStyleRefTypeFieldUpdateOperationsInput | $Enums.StyleRefType
-  presetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  originalImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  rating?: Prisma.IntFieldUpdateOperationsInput | number
-  analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
 export type StyleReferenceCreateManyUserInput = {
   id?: number
   type: $Enums.StyleRefType
@@ -640,7 +552,6 @@ export type StyleReferenceUpdateWithoutUserInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  wishlistItems?: Prisma.WishlistItemUpdateManyWithoutOriginStyleNestedInput
 }
 
 export type StyleReferenceUncheckedUpdateWithoutUserInput = {
@@ -651,7 +562,6 @@ export type StyleReferenceUncheckedUpdateWithoutUserInput = {
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  wishlistItems?: Prisma.WishlistItemUncheckedUpdateManyWithoutOriginStyleNestedInput
 }
 
 export type StyleReferenceUncheckedUpdateManyWithoutUserInput = {
@@ -665,35 +575,6 @@ export type StyleReferenceUncheckedUpdateManyWithoutUserInput = {
 }
 
 
-/**
- * Count Type StyleReferenceCountOutputType
- */
-
-export type StyleReferenceCountOutputType = {
-  wishlistItems: number
-}
-
-export type StyleReferenceCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  wishlistItems?: boolean | StyleReferenceCountOutputTypeCountWishlistItemsArgs
-}
-
-/**
- * StyleReferenceCountOutputType without action
- */
-export type StyleReferenceCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the StyleReferenceCountOutputType
-   */
-  select?: Prisma.StyleReferenceCountOutputTypeSelect<ExtArgs> | null
-}
-
-/**
- * StyleReferenceCountOutputType without action
- */
-export type StyleReferenceCountOutputTypeCountWishlistItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.WishlistItemWhereInput
-}
-
 
 export type StyleReferenceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -705,8 +586,6 @@ export type StyleReferenceSelect<ExtArgs extends runtime.Types.Extensions.Intern
   analysisResult?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  wishlistItems?: boolean | Prisma.StyleReference$wishlistItemsArgs<ExtArgs>
-  _count?: boolean | Prisma.StyleReferenceCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["styleReference"]>
 
 export type StyleReferenceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -747,8 +626,6 @@ export type StyleReferenceSelectScalar = {
 export type StyleReferenceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "type" | "presetKey" | "originalImageUrl" | "rating" | "analysisResult" | "createdAt", ExtArgs["result"]["styleReference"]>
 export type StyleReferenceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  wishlistItems?: boolean | Prisma.StyleReference$wishlistItemsArgs<ExtArgs>
-  _count?: boolean | Prisma.StyleReferenceCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type StyleReferenceIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -761,7 +638,6 @@ export type $StyleReferencePayload<ExtArgs extends runtime.Types.Extensions.Inte
   name: "StyleReference"
   objects: {
     user: Prisma.$UserPayload<ExtArgs>
-    wishlistItems: Prisma.$WishlistItemPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1167,7 +1043,6 @@ readonly fields: StyleReferenceFieldRefs;
 export interface Prisma__StyleReferenceClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  wishlistItems<T extends Prisma.StyleReference$wishlistItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.StyleReference$wishlistItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WishlistItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1598,30 +1473,6 @@ export type StyleReferenceDeleteManyArgs<ExtArgs extends runtime.Types.Extension
    * Limit how many StyleReferences to delete.
    */
   limit?: number
-}
-
-/**
- * StyleReference.wishlistItems
- */
-export type StyleReference$wishlistItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the WishlistItem
-   */
-  select?: Prisma.WishlistItemSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the WishlistItem
-   */
-  omit?: Prisma.WishlistItemOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.WishlistItemInclude<ExtArgs> | null
-  where?: Prisma.WishlistItemWhereInput
-  orderBy?: Prisma.WishlistItemOrderByWithRelationInput | Prisma.WishlistItemOrderByWithRelationInput[]
-  cursor?: Prisma.WishlistItemWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.WishlistItemScalarFieldEnum | Prisma.WishlistItemScalarFieldEnum[]
 }
 
 /**

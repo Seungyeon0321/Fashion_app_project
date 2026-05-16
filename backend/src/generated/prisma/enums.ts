@@ -56,6 +56,16 @@ export const SubCategory = {
 export type SubCategory = (typeof SubCategory)[keyof typeof SubCategory]
 
 
+export const FitType = {
+  SLIM: 'SLIM',
+  REGULAR: 'REGULAR',
+  OVERSIZED: 'OVERSIZED',
+  RELAXED: 'RELAXED'
+} as const
+
+export type FitType = (typeof FitType)[keyof typeof FitType]
+
+
 export const Season = {
   SPRING: 'SPRING',
   SUMMER: 'SUMMER',

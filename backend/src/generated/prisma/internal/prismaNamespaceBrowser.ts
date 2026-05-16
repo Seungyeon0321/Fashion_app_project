@@ -55,9 +55,9 @@ export const ModelName = {
   ClothingItem: 'ClothingItem',
   ClosetItem: 'ClosetItem',
   StyleReference: 'StyleReference',
+  ExternalItem: 'ExternalItem',
   Outfit: 'Outfit',
-  OutfitItem: 'OutfitItem',
-  WishlistItem: 'WishlistItem'
+  OutfitItem: 'OutfitItem'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -115,6 +115,7 @@ export const ClosetItemScalarFieldEnum = {
   clothingItemId: 'clothingItemId',
   imageUrl: 'imageUrl',
   cropS3Key: 'cropS3Key',
+  name: 'name',
   category: 'category',
   subCategory: 'subCategory',
   minTemp: 'minTemp',
@@ -126,6 +127,8 @@ export const ClosetItemScalarFieldEnum = {
   memo: 'memo',
   isFavorite: 'isFavorite',
   wearCount: 'wearCount',
+  material: 'material',
+  fit: 'fit',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   season: 'season',
@@ -149,6 +152,24 @@ export const StyleReferenceScalarFieldEnum = {
 export type StyleReferenceScalarFieldEnum = (typeof StyleReferenceScalarFieldEnum)[keyof typeof StyleReferenceScalarFieldEnum]
 
 
+export const ExternalItemScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  brand: 'brand',
+  category: 'category',
+  price: 'price',
+  currency: 'currency',
+  imageUrl: 'imageUrl',
+  purchaseUrl: 'purchaseUrl',
+  source: 'source',
+  styleKeywords: 'styleKeywords',
+  createdAt: 'createdAt'
+} as const
+
+export type ExternalItemScalarFieldEnum = (typeof ExternalItemScalarFieldEnum)[keyof typeof ExternalItemScalarFieldEnum]
+
+
 export const OutfitScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -157,6 +178,12 @@ export const OutfitScalarFieldEnum = {
   recordedTemp: 'recordedTemp',
   recordedWeather: 'recordedWeather',
   source: 'source',
+  intent: 'intent',
+  recommendSource: 'recommendSource',
+  anchorItemId: 'anchorItemId',
+  aiComment: 'aiComment',
+  conflictWarning: 'conflictWarning',
+  feedback: 'feedback',
   createdAt: 'createdAt'
 } as const
 
@@ -167,30 +194,12 @@ export const OutfitItemScalarFieldEnum = {
   id: 'id',
   outfitId: 'outfitId',
   closetItemId: 'closetItemId',
-  wishlistItemId: 'wishlistItemId',
-  position: 'position'
+  externalItemId: 'externalItemId',
+  position: 'position',
+  isAnchor: 'isAnchor'
 } as const
 
 export type OutfitItemScalarFieldEnum = (typeof OutfitItemScalarFieldEnum)[keyof typeof OutfitItemScalarFieldEnum]
-
-
-export const WishlistItemScalarFieldEnum = {
-  id: 'id',
-  userId: 'userId',
-  productName: 'productName',
-  brand: 'brand',
-  price: 'price',
-  currency: 'currency',
-  imageUrl: 'imageUrl',
-  purchaseUrl: 'purchaseUrl',
-  category: 'category',
-  subCategory: 'subCategory',
-  originStyleId: 'originStyleId',
-  isPurchased: 'isPurchased',
-  createdAt: 'createdAt'
-} as const
-
-export type WishlistItemScalarFieldEnum = (typeof WishlistItemScalarFieldEnum)[keyof typeof WishlistItemScalarFieldEnum]
 
 
 export const SortOrder = {

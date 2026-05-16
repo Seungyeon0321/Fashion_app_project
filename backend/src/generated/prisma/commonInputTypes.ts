@@ -279,6 +279,13 @@ export type BoolFilter<$PrismaModel = never> = {
   not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean
 }
 
+export type EnumFitTypeNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.FitType | Prisma.EnumFitTypeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.FitType[] | Prisma.ListEnumFitTypeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.FitType[] | Prisma.ListEnumFitTypeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumFitTypeNullableFilter<$PrismaModel> | $Enums.FitType | null
+}
+
 export type EnumSeasonNullableFilter<$PrismaModel = never> = {
   equals?: $Enums.Season | Prisma.EnumSeasonFieldRefInput<$PrismaModel> | null
   in?: $Enums.Season[] | Prisma.ListEnumSeasonFieldRefInput<$PrismaModel> | null
@@ -328,6 +335,16 @@ export type BoolWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedBoolFilter<$PrismaModel>
   _max?: Prisma.NestedBoolFilter<$PrismaModel>
+}
+
+export type EnumFitTypeNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.FitType | Prisma.EnumFitTypeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.FitType[] | Prisma.ListEnumFitTypeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.FitType[] | Prisma.ListEnumFitTypeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumFitTypeNullableWithAggregatesFilter<$PrismaModel> | $Enums.FitType | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumFitTypeNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumFitTypeNullableFilter<$PrismaModel>
 }
 
 export type EnumSeasonNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -614,6 +631,13 @@ export type NestedBoolFilter<$PrismaModel = never> = {
   not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean
 }
 
+export type NestedEnumFitTypeNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.FitType | Prisma.EnumFitTypeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.FitType[] | Prisma.ListEnumFitTypeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.FitType[] | Prisma.ListEnumFitTypeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumFitTypeNullableFilter<$PrismaModel> | $Enums.FitType | null
+}
+
 export type NestedEnumSeasonNullableFilter<$PrismaModel = never> = {
   equals?: $Enums.Season | Prisma.EnumSeasonFieldRefInput<$PrismaModel> | null
   in?: $Enums.Season[] | Prisma.ListEnumSeasonFieldRefInput<$PrismaModel> | null
@@ -663,6 +687,16 @@ export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedBoolFilter<$PrismaModel>
   _max?: Prisma.NestedBoolFilter<$PrismaModel>
+}
+
+export type NestedEnumFitTypeNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.FitType | Prisma.EnumFitTypeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.FitType[] | Prisma.ListEnumFitTypeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.FitType[] | Prisma.ListEnumFitTypeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumFitTypeNullableWithAggregatesFilter<$PrismaModel> | $Enums.FitType | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumFitTypeNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumFitTypeNullableFilter<$PrismaModel>
 }
 
 export type NestedEnumSeasonNullableWithAggregatesFilter<$PrismaModel = never> = {

@@ -60,6 +60,11 @@ export type ClosetItem = Prisma.ClosetItemModel
  */
 export type StyleReference = Prisma.StyleReferenceModel
 /**
+ * Model ExternalItem
+ * 
+ */
+export type ExternalItem = Prisma.ExternalItemModel
+/**
  * Model Outfit
  * 
  */
@@ -69,8 +74,3 @@ export type Outfit = Prisma.OutfitModel
  * 
  */
 export type OutfitItem = Prisma.OutfitItemModel
-/**
- * Model WishlistItem
- * 
- */
-export type WishlistItem = Prisma.WishlistItemModel

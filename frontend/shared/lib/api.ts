@@ -32,6 +32,10 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+      console.log('🔥 interceptor error.response:', error.response);
+  console.log('🔥 interceptor error.message:', error.message);
+  console.log('🔥 interceptor error.code:', error.code);
+  
     // 네트워크 자체가 안 될 때 (서버 꺼져있거나 오프라인)
     if (!error.response) {
       console.error('[API] error of network:', error.message);

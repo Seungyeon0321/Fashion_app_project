@@ -267,7 +267,7 @@ export type UserWhereInput = {
   closetItems?: Prisma.ClosetItemListRelationFilter
   styleRefs?: Prisma.StyleReferenceListRelationFilter
   outfits?: Prisma.OutfitListRelationFilter
-  wishlist?: Prisma.WishlistItemListRelationFilter
+  externalItems?: Prisma.ExternalItemListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -285,7 +285,7 @@ export type UserOrderByWithRelationInput = {
   closetItems?: Prisma.ClosetItemOrderByRelationAggregateInput
   styleRefs?: Prisma.StyleReferenceOrderByRelationAggregateInput
   outfits?: Prisma.OutfitOrderByRelationAggregateInput
-  wishlist?: Prisma.WishlistItemOrderByRelationAggregateInput
+  externalItems?: Prisma.ExternalItemOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -306,7 +306,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   closetItems?: Prisma.ClosetItemListRelationFilter
   styleRefs?: Prisma.StyleReferenceListRelationFilter
   outfits?: Prisma.OutfitListRelationFilter
-  wishlist?: Prisma.WishlistItemListRelationFilter
+  externalItems?: Prisma.ExternalItemListRelationFilter
 }, "id" | "email" | "googleId">
 
 export type UserOrderByWithAggregationInput = {
@@ -359,7 +359,7 @@ export type UserCreateInput = {
   closetItems?: Prisma.ClosetItemCreateNestedManyWithoutUserInput
   styleRefs?: Prisma.StyleReferenceCreateNestedManyWithoutUserInput
   outfits?: Prisma.OutfitCreateNestedManyWithoutUserInput
-  wishlist?: Prisma.WishlistItemCreateNestedManyWithoutUserInput
+  externalItems?: Prisma.ExternalItemCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -377,7 +377,7 @@ export type UserUncheckedCreateInput = {
   closetItems?: Prisma.ClosetItemUncheckedCreateNestedManyWithoutUserInput
   styleRefs?: Prisma.StyleReferenceUncheckedCreateNestedManyWithoutUserInput
   outfits?: Prisma.OutfitUncheckedCreateNestedManyWithoutUserInput
-  wishlist?: Prisma.WishlistItemUncheckedCreateNestedManyWithoutUserInput
+  externalItems?: Prisma.ExternalItemUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -394,7 +394,7 @@ export type UserUpdateInput = {
   closetItems?: Prisma.ClosetItemUpdateManyWithoutUserNestedInput
   styleRefs?: Prisma.StyleReferenceUpdateManyWithoutUserNestedInput
   outfits?: Prisma.OutfitUpdateManyWithoutUserNestedInput
-  wishlist?: Prisma.WishlistItemUpdateManyWithoutUserNestedInput
+  externalItems?: Prisma.ExternalItemUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -412,7 +412,7 @@ export type UserUncheckedUpdateInput = {
   closetItems?: Prisma.ClosetItemUncheckedUpdateManyWithoutUserNestedInput
   styleRefs?: Prisma.StyleReferenceUncheckedUpdateManyWithoutUserNestedInput
   outfits?: Prisma.OutfitUncheckedUpdateManyWithoutUserNestedInput
-  wishlist?: Prisma.WishlistItemUncheckedUpdateManyWithoutUserNestedInput
+  externalItems?: Prisma.ExternalItemUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -567,6 +567,20 @@ export type UserUpdateOneRequiredWithoutStyleRefsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutStyleRefsInput, Prisma.UserUpdateWithoutStyleRefsInput>, Prisma.UserUncheckedUpdateWithoutStyleRefsInput>
 }
 
+export type UserCreateNestedOneWithoutExternalItemsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutExternalItemsInput, Prisma.UserUncheckedCreateWithoutExternalItemsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutExternalItemsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutExternalItemsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutExternalItemsInput, Prisma.UserUncheckedCreateWithoutExternalItemsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutExternalItemsInput
+  upsert?: Prisma.UserUpsertWithoutExternalItemsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutExternalItemsInput, Prisma.UserUpdateWithoutExternalItemsInput>, Prisma.UserUncheckedUpdateWithoutExternalItemsInput>
+}
+
 export type UserCreateNestedOneWithoutOutfitsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutOutfitsInput, Prisma.UserUncheckedCreateWithoutOutfitsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutOutfitsInput
@@ -579,20 +593,6 @@ export type UserUpdateOneRequiredWithoutOutfitsNestedInput = {
   upsert?: Prisma.UserUpsertWithoutOutfitsInput
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutOutfitsInput, Prisma.UserUpdateWithoutOutfitsInput>, Prisma.UserUncheckedUpdateWithoutOutfitsInput>
-}
-
-export type UserCreateNestedOneWithoutWishlistInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutWishlistInput, Prisma.UserUncheckedCreateWithoutWishlistInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutWishlistInput
-  connect?: Prisma.UserWhereUniqueInput
-}
-
-export type UserUpdateOneRequiredWithoutWishlistNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutWishlistInput, Prisma.UserUncheckedCreateWithoutWishlistInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutWishlistInput
-  upsert?: Prisma.UserUpsertWithoutWishlistInput
-  connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutWishlistInput, Prisma.UserUpdateWithoutWishlistInput>, Prisma.UserUncheckedUpdateWithoutWishlistInput>
 }
 
 export type UserCreateWithoutClosetItemsInput = {
@@ -608,7 +608,7 @@ export type UserCreateWithoutClosetItemsInput = {
   updatedAt?: Date | string
   styleRefs?: Prisma.StyleReferenceCreateNestedManyWithoutUserInput
   outfits?: Prisma.OutfitCreateNestedManyWithoutUserInput
-  wishlist?: Prisma.WishlistItemCreateNestedManyWithoutUserInput
+  externalItems?: Prisma.ExternalItemCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutClosetItemsInput = {
@@ -625,7 +625,7 @@ export type UserUncheckedCreateWithoutClosetItemsInput = {
   updatedAt?: Date | string
   styleRefs?: Prisma.StyleReferenceUncheckedCreateNestedManyWithoutUserInput
   outfits?: Prisma.OutfitUncheckedCreateNestedManyWithoutUserInput
-  wishlist?: Prisma.WishlistItemUncheckedCreateNestedManyWithoutUserInput
+  externalItems?: Prisma.ExternalItemUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutClosetItemsInput = {
@@ -657,7 +657,7 @@ export type UserUpdateWithoutClosetItemsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   styleRefs?: Prisma.StyleReferenceUpdateManyWithoutUserNestedInput
   outfits?: Prisma.OutfitUpdateManyWithoutUserNestedInput
-  wishlist?: Prisma.WishlistItemUpdateManyWithoutUserNestedInput
+  externalItems?: Prisma.ExternalItemUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutClosetItemsInput = {
@@ -674,7 +674,7 @@ export type UserUncheckedUpdateWithoutClosetItemsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   styleRefs?: Prisma.StyleReferenceUncheckedUpdateManyWithoutUserNestedInput
   outfits?: Prisma.OutfitUncheckedUpdateManyWithoutUserNestedInput
-  wishlist?: Prisma.WishlistItemUncheckedUpdateManyWithoutUserNestedInput
+  externalItems?: Prisma.ExternalItemUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutStyleRefsInput = {
@@ -690,7 +690,7 @@ export type UserCreateWithoutStyleRefsInput = {
   updatedAt?: Date | string
   closetItems?: Prisma.ClosetItemCreateNestedManyWithoutUserInput
   outfits?: Prisma.OutfitCreateNestedManyWithoutUserInput
-  wishlist?: Prisma.WishlistItemCreateNestedManyWithoutUserInput
+  externalItems?: Prisma.ExternalItemCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutStyleRefsInput = {
@@ -707,7 +707,7 @@ export type UserUncheckedCreateWithoutStyleRefsInput = {
   updatedAt?: Date | string
   closetItems?: Prisma.ClosetItemUncheckedCreateNestedManyWithoutUserInput
   outfits?: Prisma.OutfitUncheckedCreateNestedManyWithoutUserInput
-  wishlist?: Prisma.WishlistItemUncheckedCreateNestedManyWithoutUserInput
+  externalItems?: Prisma.ExternalItemUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutStyleRefsInput = {
@@ -739,7 +739,7 @@ export type UserUpdateWithoutStyleRefsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closetItems?: Prisma.ClosetItemUpdateManyWithoutUserNestedInput
   outfits?: Prisma.OutfitUpdateManyWithoutUserNestedInput
-  wishlist?: Prisma.WishlistItemUpdateManyWithoutUserNestedInput
+  externalItems?: Prisma.ExternalItemUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutStyleRefsInput = {
@@ -756,7 +756,89 @@ export type UserUncheckedUpdateWithoutStyleRefsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closetItems?: Prisma.ClosetItemUncheckedUpdateManyWithoutUserNestedInput
   outfits?: Prisma.OutfitUncheckedUpdateManyWithoutUserNestedInput
-  wishlist?: Prisma.WishlistItemUncheckedUpdateManyWithoutUserNestedInput
+  externalItems?: Prisma.ExternalItemUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutExternalItemsInput = {
+  email: string
+  password?: string | null
+  nickname?: string | null
+  gender?: $Enums.Gender | null
+  provider?: $Enums.AuthProvider
+  googleId?: string | null
+  avatarUrl?: string | null
+  location?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  closetItems?: Prisma.ClosetItemCreateNestedManyWithoutUserInput
+  styleRefs?: Prisma.StyleReferenceCreateNestedManyWithoutUserInput
+  outfits?: Prisma.OutfitCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutExternalItemsInput = {
+  id?: number
+  email: string
+  password?: string | null
+  nickname?: string | null
+  gender?: $Enums.Gender | null
+  provider?: $Enums.AuthProvider
+  googleId?: string | null
+  avatarUrl?: string | null
+  location?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  closetItems?: Prisma.ClosetItemUncheckedCreateNestedManyWithoutUserInput
+  styleRefs?: Prisma.StyleReferenceUncheckedCreateNestedManyWithoutUserInput
+  outfits?: Prisma.OutfitUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutExternalItemsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutExternalItemsInput, Prisma.UserUncheckedCreateWithoutExternalItemsInput>
+}
+
+export type UserUpsertWithoutExternalItemsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutExternalItemsInput, Prisma.UserUncheckedUpdateWithoutExternalItemsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutExternalItemsInput, Prisma.UserUncheckedCreateWithoutExternalItemsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutExternalItemsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutExternalItemsInput, Prisma.UserUncheckedUpdateWithoutExternalItemsInput>
+}
+
+export type UserUpdateWithoutExternalItemsInput = {
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closetItems?: Prisma.ClosetItemUpdateManyWithoutUserNestedInput
+  styleRefs?: Prisma.StyleReferenceUpdateManyWithoutUserNestedInput
+  outfits?: Prisma.OutfitUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutExternalItemsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closetItems?: Prisma.ClosetItemUncheckedUpdateManyWithoutUserNestedInput
+  styleRefs?: Prisma.StyleReferenceUncheckedUpdateManyWithoutUserNestedInput
+  outfits?: Prisma.OutfitUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutOutfitsInput = {
@@ -772,7 +854,7 @@ export type UserCreateWithoutOutfitsInput = {
   updatedAt?: Date | string
   closetItems?: Prisma.ClosetItemCreateNestedManyWithoutUserInput
   styleRefs?: Prisma.StyleReferenceCreateNestedManyWithoutUserInput
-  wishlist?: Prisma.WishlistItemCreateNestedManyWithoutUserInput
+  externalItems?: Prisma.ExternalItemCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutOutfitsInput = {
@@ -789,7 +871,7 @@ export type UserUncheckedCreateWithoutOutfitsInput = {
   updatedAt?: Date | string
   closetItems?: Prisma.ClosetItemUncheckedCreateNestedManyWithoutUserInput
   styleRefs?: Prisma.StyleReferenceUncheckedCreateNestedManyWithoutUserInput
-  wishlist?: Prisma.WishlistItemUncheckedCreateNestedManyWithoutUserInput
+  externalItems?: Prisma.ExternalItemUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutOutfitsInput = {
@@ -821,7 +903,7 @@ export type UserUpdateWithoutOutfitsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closetItems?: Prisma.ClosetItemUpdateManyWithoutUserNestedInput
   styleRefs?: Prisma.StyleReferenceUpdateManyWithoutUserNestedInput
-  wishlist?: Prisma.WishlistItemUpdateManyWithoutUserNestedInput
+  externalItems?: Prisma.ExternalItemUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOutfitsInput = {
@@ -838,89 +920,7 @@ export type UserUncheckedUpdateWithoutOutfitsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closetItems?: Prisma.ClosetItemUncheckedUpdateManyWithoutUserNestedInput
   styleRefs?: Prisma.StyleReferenceUncheckedUpdateManyWithoutUserNestedInput
-  wishlist?: Prisma.WishlistItemUncheckedUpdateManyWithoutUserNestedInput
-}
-
-export type UserCreateWithoutWishlistInput = {
-  email: string
-  password?: string | null
-  nickname?: string | null
-  gender?: $Enums.Gender | null
-  provider?: $Enums.AuthProvider
-  googleId?: string | null
-  avatarUrl?: string | null
-  location?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  closetItems?: Prisma.ClosetItemCreateNestedManyWithoutUserInput
-  styleRefs?: Prisma.StyleReferenceCreateNestedManyWithoutUserInput
-  outfits?: Prisma.OutfitCreateNestedManyWithoutUserInput
-}
-
-export type UserUncheckedCreateWithoutWishlistInput = {
-  id?: number
-  email: string
-  password?: string | null
-  nickname?: string | null
-  gender?: $Enums.Gender | null
-  provider?: $Enums.AuthProvider
-  googleId?: string | null
-  avatarUrl?: string | null
-  location?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  closetItems?: Prisma.ClosetItemUncheckedCreateNestedManyWithoutUserInput
-  styleRefs?: Prisma.StyleReferenceUncheckedCreateNestedManyWithoutUserInput
-  outfits?: Prisma.OutfitUncheckedCreateNestedManyWithoutUserInput
-}
-
-export type UserCreateOrConnectWithoutWishlistInput = {
-  where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutWishlistInput, Prisma.UserUncheckedCreateWithoutWishlistInput>
-}
-
-export type UserUpsertWithoutWishlistInput = {
-  update: Prisma.XOR<Prisma.UserUpdateWithoutWishlistInput, Prisma.UserUncheckedUpdateWithoutWishlistInput>
-  create: Prisma.XOR<Prisma.UserCreateWithoutWishlistInput, Prisma.UserUncheckedCreateWithoutWishlistInput>
-  where?: Prisma.UserWhereInput
-}
-
-export type UserUpdateToOneWithWhereWithoutWishlistInput = {
-  where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutWishlistInput, Prisma.UserUncheckedUpdateWithoutWishlistInput>
-}
-
-export type UserUpdateWithoutWishlistInput = {
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
-  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
-  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  closetItems?: Prisma.ClosetItemUpdateManyWithoutUserNestedInput
-  styleRefs?: Prisma.StyleReferenceUpdateManyWithoutUserNestedInput
-  outfits?: Prisma.OutfitUpdateManyWithoutUserNestedInput
-}
-
-export type UserUncheckedUpdateWithoutWishlistInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
-  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
-  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  closetItems?: Prisma.ClosetItemUncheckedUpdateManyWithoutUserNestedInput
-  styleRefs?: Prisma.StyleReferenceUncheckedUpdateManyWithoutUserNestedInput
-  outfits?: Prisma.OutfitUncheckedUpdateManyWithoutUserNestedInput
+  externalItems?: Prisma.ExternalItemUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -932,14 +932,14 @@ export type UserCountOutputType = {
   closetItems: number
   styleRefs: number
   outfits: number
-  wishlist: number
+  externalItems: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   closetItems?: boolean | UserCountOutputTypeCountClosetItemsArgs
   styleRefs?: boolean | UserCountOutputTypeCountStyleRefsArgs
   outfits?: boolean | UserCountOutputTypeCountOutfitsArgs
-  wishlist?: boolean | UserCountOutputTypeCountWishlistArgs
+  externalItems?: boolean | UserCountOutputTypeCountExternalItemsArgs
 }
 
 /**
@@ -976,8 +976,8 @@ export type UserCountOutputTypeCountOutfitsArgs<ExtArgs extends runtime.Types.Ex
 /**
  * UserCountOutputType without action
  */
-export type UserCountOutputTypeCountWishlistArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.WishlistItemWhereInput
+export type UserCountOutputTypeCountExternalItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ExternalItemWhereInput
 }
 
 
@@ -996,7 +996,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   closetItems?: boolean | Prisma.User$closetItemsArgs<ExtArgs>
   styleRefs?: boolean | Prisma.User$styleRefsArgs<ExtArgs>
   outfits?: boolean | Prisma.User$outfitsArgs<ExtArgs>
-  wishlist?: boolean | Prisma.User$wishlistArgs<ExtArgs>
+  externalItems?: boolean | Prisma.User$externalItemsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1047,7 +1047,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   closetItems?: boolean | Prisma.User$closetItemsArgs<ExtArgs>
   styleRefs?: boolean | Prisma.User$styleRefsArgs<ExtArgs>
   outfits?: boolean | Prisma.User$outfitsArgs<ExtArgs>
-  wishlist?: boolean | Prisma.User$wishlistArgs<ExtArgs>
+  externalItems?: boolean | Prisma.User$externalItemsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1059,7 +1059,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     closetItems: Prisma.$ClosetItemPayload<ExtArgs>[]
     styleRefs: Prisma.$StyleReferencePayload<ExtArgs>[]
     outfits: Prisma.$OutfitPayload<ExtArgs>[]
-    wishlist: Prisma.$WishlistItemPayload<ExtArgs>[]
+    externalItems: Prisma.$ExternalItemPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1470,7 +1470,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   closetItems<T extends Prisma.User$closetItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$closetItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClosetItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   styleRefs<T extends Prisma.User$styleRefsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$styleRefsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StyleReferencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   outfits<T extends Prisma.User$outfitsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$outfitsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OutfitPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  wishlist<T extends Prisma.User$wishlistArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$wishlistArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WishlistItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  externalItems<T extends Prisma.User$externalItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$externalItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExternalItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1971,27 +1971,27 @@ export type User$outfitsArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
 }
 
 /**
- * User.wishlist
+ * User.externalItems
  */
-export type User$wishlistArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type User$externalItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the WishlistItem
+   * Select specific fields to fetch from the ExternalItem
    */
-  select?: Prisma.WishlistItemSelect<ExtArgs> | null
+  select?: Prisma.ExternalItemSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the WishlistItem
+   * Omit specific fields from the ExternalItem
    */
-  omit?: Prisma.WishlistItemOmit<ExtArgs> | null
+  omit?: Prisma.ExternalItemOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.WishlistItemInclude<ExtArgs> | null
-  where?: Prisma.WishlistItemWhereInput
-  orderBy?: Prisma.WishlistItemOrderByWithRelationInput | Prisma.WishlistItemOrderByWithRelationInput[]
-  cursor?: Prisma.WishlistItemWhereUniqueInput
+  include?: Prisma.ExternalItemInclude<ExtArgs> | null
+  where?: Prisma.ExternalItemWhereInput
+  orderBy?: Prisma.ExternalItemOrderByWithRelationInput | Prisma.ExternalItemOrderByWithRelationInput[]
+  cursor?: Prisma.ExternalItemWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.WishlistItemScalarFieldEnum | Prisma.WishlistItemScalarFieldEnum[]
+  distinct?: Prisma.ExternalItemScalarFieldEnum | Prisma.ExternalItemScalarFieldEnum[]
 }
 
 /**

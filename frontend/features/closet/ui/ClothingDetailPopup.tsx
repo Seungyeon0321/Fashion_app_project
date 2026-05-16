@@ -6,7 +6,7 @@
 //
 // 버튼:
 //   [Got it]               → 팝업 닫기
-//   [Don't show this again] → AsyncStorage 플래그 저장 후 닫기
+//   [Don't show this again] → SecureStore 플래그 저장 후 닫기
 
 import React from 'react'
 import {
@@ -17,7 +17,7 @@ import {
   StyleSheet,
   Pressable,
 } from 'react-native'
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import * as SecureStore from 'expo-secure-store'
 import { useBottomInset } from '@/shared/lib/useBottomInset'
 
 const DONT_SHOW_KEY = 'dontShowClothingDetailPopup'
@@ -31,7 +31,7 @@ export function ClothingDetailPopup({ visible, onClose }: Props) {
   const bottomInset = useBottomInset(24)
 
   const handleDontShow = async () => {
-    await AsyncStorage.setItem(DONT_SHOW_KEY, 'true')
+    await SecureStore.setItemAsync(DONT_SHOW_KEY, 'true')
     onClose()
   }
 
@@ -83,7 +83,7 @@ export function ClothingDetailPopup({ visible, onClose }: Props) {
 
 // ── 팝업 표시 여부 확인 유틸 ──────────────────────────────────────────
 export async function shouldShowClothingDetailPopup(): Promise<boolean> {
-  const flag = await AsyncStorage.getItem(DONT_SHOW_KEY)
+  const flag = await SecureStore.getItemAsync(DONT_SHOW_KEY)
   return flag !== 'true'
 }
 
@@ -95,18 +95,18 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: '#faf9f6',   // colors.background
+    backgroundColor: '#faf9f6',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingTop: 12,
-    paddingHorizontal: 24,        // spacing.outerMargin
+    paddingHorizontal: 24,
   },
 
   handle: {
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#e0ddd8',   // colors.divider
+    backgroundColor: '#e0ddd8',
     alignSelf: 'center',
     marginBottom: 24,
   },
@@ -114,19 +114,19 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: 'Epilogue_700Bold',
     fontSize: 22,
-    color: '#1a1a1a',             // colors.primary
+    color: '#1a1a1a',
     marginBottom: 10,
   },
   body: {
     fontFamily: 'Manrope_400Regular',
-    fontSize: 14,                 // fonts.body
-    color: '#5f5e5e',             // colors.primaryMuted
+    fontSize: 14,
+    color: '#5f5e5e',
     lineHeight: 22,
     marginBottom: 16,
   },
 
   hintBox: {
-    backgroundColor: '#f4f4f0',   // colors.surface
+    backgroundColor: '#f4f4f0',
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 16,
@@ -136,12 +136,12 @@ const styles = StyleSheet.create({
   hintItem: {
     fontFamily: 'Manrope_400Regular',
     fontSize: 13,
-    color: '#5f5e5e',             // colors.primaryMuted
+    color: '#5f5e5e',
     lineHeight: 20,
   },
 
   btnPrimary: {
-    backgroundColor: '#1a1a1a',   // colors.primary
+    backgroundColor: '#1a1a1a',
     borderRadius: 12,
     paddingVertical: 15,
     alignItems: 'center',
@@ -155,8 +155,8 @@ const styles = StyleSheet.create({
 
   dontShowText: {
     fontFamily: 'Manrope_400Regular',
-    fontSize: 12,                 // fonts.caption
-    color: '#aaaaaa',             // colors.hint
+    fontSize: 12,
+    color: '#aaaaaa',
     textAlign: 'center',
     textDecorationLine: 'underline',
     paddingVertical: 8,

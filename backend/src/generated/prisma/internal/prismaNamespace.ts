@@ -388,9 +388,9 @@ export const ModelName = {
   ClothingItem: 'ClothingItem',
   ClosetItem: 'ClosetItem',
   StyleReference: 'StyleReference',
+  ExternalItem: 'ExternalItem',
   Outfit: 'Outfit',
-  OutfitItem: 'OutfitItem',
-  WishlistItem: 'WishlistItem'
+  OutfitItem: 'OutfitItem'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -406,7 +406,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "clothingItem" | "closetItem" | "styleReference" | "outfit" | "outfitItem" | "wishlistItem"
+    modelProps: "user" | "clothingItem" | "closetItem" | "styleReference" | "externalItem" | "outfit" | "outfitItem"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -706,6 +706,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ExternalItem: {
+      payload: Prisma.$ExternalItemPayload<ExtArgs>
+      fields: Prisma.ExternalItemFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ExternalItemFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalItemPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ExternalItemFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalItemPayload>
+        }
+        findFirst: {
+          args: Prisma.ExternalItemFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalItemPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ExternalItemFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalItemPayload>
+        }
+        findMany: {
+          args: Prisma.ExternalItemFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalItemPayload>[]
+        }
+        create: {
+          args: Prisma.ExternalItemCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalItemPayload>
+        }
+        createMany: {
+          args: Prisma.ExternalItemCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ExternalItemCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalItemPayload>[]
+        }
+        delete: {
+          args: Prisma.ExternalItemDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalItemPayload>
+        }
+        update: {
+          args: Prisma.ExternalItemUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalItemPayload>
+        }
+        deleteMany: {
+          args: Prisma.ExternalItemDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ExternalItemUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ExternalItemUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalItemPayload>[]
+        }
+        upsert: {
+          args: Prisma.ExternalItemUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalItemPayload>
+        }
+        aggregate: {
+          args: Prisma.ExternalItemAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateExternalItem>
+        }
+        groupBy: {
+          args: Prisma.ExternalItemGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExternalItemGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ExternalItemCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExternalItemCountAggregateOutputType> | number
+        }
+      }
+    }
     Outfit: {
       payload: Prisma.$OutfitPayload<ExtArgs>
       fields: Prisma.OutfitFieldRefs
@@ -854,80 +928,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    WishlistItem: {
-      payload: Prisma.$WishlistItemPayload<ExtArgs>
-      fields: Prisma.WishlistItemFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.WishlistItemFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WishlistItemPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.WishlistItemFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WishlistItemPayload>
-        }
-        findFirst: {
-          args: Prisma.WishlistItemFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WishlistItemPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.WishlistItemFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WishlistItemPayload>
-        }
-        findMany: {
-          args: Prisma.WishlistItemFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WishlistItemPayload>[]
-        }
-        create: {
-          args: Prisma.WishlistItemCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WishlistItemPayload>
-        }
-        createMany: {
-          args: Prisma.WishlistItemCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.WishlistItemCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WishlistItemPayload>[]
-        }
-        delete: {
-          args: Prisma.WishlistItemDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WishlistItemPayload>
-        }
-        update: {
-          args: Prisma.WishlistItemUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WishlistItemPayload>
-        }
-        deleteMany: {
-          args: Prisma.WishlistItemDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.WishlistItemUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.WishlistItemUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WishlistItemPayload>[]
-        }
-        upsert: {
-          args: Prisma.WishlistItemUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WishlistItemPayload>
-        }
-        aggregate: {
-          args: Prisma.WishlistItemAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateWishlistItem>
-        }
-        groupBy: {
-          args: Prisma.WishlistItemGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.WishlistItemGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.WishlistItemCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.WishlistItemCountAggregateOutputType> | number
-        }
-      }
-    }
   }
 } & {
   other: {
@@ -1006,6 +1006,7 @@ export const ClosetItemScalarFieldEnum = {
   clothingItemId: 'clothingItemId',
   imageUrl: 'imageUrl',
   cropS3Key: 'cropS3Key',
+  name: 'name',
   category: 'category',
   subCategory: 'subCategory',
   minTemp: 'minTemp',
@@ -1017,6 +1018,8 @@ export const ClosetItemScalarFieldEnum = {
   memo: 'memo',
   isFavorite: 'isFavorite',
   wearCount: 'wearCount',
+  material: 'material',
+  fit: 'fit',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   season: 'season',
@@ -1040,6 +1043,24 @@ export const StyleReferenceScalarFieldEnum = {
 export type StyleReferenceScalarFieldEnum = (typeof StyleReferenceScalarFieldEnum)[keyof typeof StyleReferenceScalarFieldEnum]
 
 
+export const ExternalItemScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  brand: 'brand',
+  category: 'category',
+  price: 'price',
+  currency: 'currency',
+  imageUrl: 'imageUrl',
+  purchaseUrl: 'purchaseUrl',
+  source: 'source',
+  styleKeywords: 'styleKeywords',
+  createdAt: 'createdAt'
+} as const
+
+export type ExternalItemScalarFieldEnum = (typeof ExternalItemScalarFieldEnum)[keyof typeof ExternalItemScalarFieldEnum]
+
+
 export const OutfitScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -1048,6 +1069,12 @@ export const OutfitScalarFieldEnum = {
   recordedTemp: 'recordedTemp',
   recordedWeather: 'recordedWeather',
   source: 'source',
+  intent: 'intent',
+  recommendSource: 'recommendSource',
+  anchorItemId: 'anchorItemId',
+  aiComment: 'aiComment',
+  conflictWarning: 'conflictWarning',
+  feedback: 'feedback',
   createdAt: 'createdAt'
 } as const
 
@@ -1058,30 +1085,12 @@ export const OutfitItemScalarFieldEnum = {
   id: 'id',
   outfitId: 'outfitId',
   closetItemId: 'closetItemId',
-  wishlistItemId: 'wishlistItemId',
-  position: 'position'
+  externalItemId: 'externalItemId',
+  position: 'position',
+  isAnchor: 'isAnchor'
 } as const
 
 export type OutfitItemScalarFieldEnum = (typeof OutfitItemScalarFieldEnum)[keyof typeof OutfitItemScalarFieldEnum]
-
-
-export const WishlistItemScalarFieldEnum = {
-  id: 'id',
-  userId: 'userId',
-  productName: 'productName',
-  brand: 'brand',
-  price: 'price',
-  currency: 'currency',
-  imageUrl: 'imageUrl',
-  purchaseUrl: 'purchaseUrl',
-  category: 'category',
-  subCategory: 'subCategory',
-  originStyleId: 'originStyleId',
-  isPurchased: 'isPurchased',
-  createdAt: 'createdAt'
-} as const
-
-export type WishlistItemScalarFieldEnum = (typeof WishlistItemScalarFieldEnum)[keyof typeof WishlistItemScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1265,6 +1274,20 @@ export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
+ * Reference to a field of type 'FitType'
+ */
+export type EnumFitTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FitType'>
+    
+
+
+/**
+ * Reference to a field of type 'FitType[]'
+ */
+export type ListEnumFitTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FitType[]'>
+    
+
+
+/**
  * Reference to a field of type 'Season'
  */
 export type EnumSeasonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Season'>
@@ -1404,9 +1427,9 @@ export type GlobalOmitConfig = {
   clothingItem?: Prisma.ClothingItemOmit
   closetItem?: Prisma.ClosetItemOmit
   styleReference?: Prisma.StyleReferenceOmit
+  externalItem?: Prisma.ExternalItemOmit
   outfit?: Prisma.OutfitOmit
   outfitItem?: Prisma.OutfitItemOmit
-  wishlistItem?: Prisma.WishlistItemOmit
 }
 
 /* Types for Logging */
