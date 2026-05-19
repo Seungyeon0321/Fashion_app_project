@@ -11,6 +11,7 @@ export class StyleController {
     @UseGuards(JwtAuthGuard)  // JWT 인증 필수
     async recommend(@Body() body: RecommendDto, @Req() req: any) {
         const userId = req.user.id  // JwtAuthGuard가 JWT 디코딩 후 req.user에 주입
+        console.log('Recommend request received:', { userId, body });
         return this.stylesService.recommend(userId, body);
     }
 }

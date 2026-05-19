@@ -32,36 +32,47 @@ export class PostsService {
             userId: userId,
             s3Key: key,
             category: category
-        });
-
-        
+        }, {
+            attempts: 3,
+            backoff: {
+                type: 'exponential',
+                delay: 3000, // 5초
+            },
+            }
+    );     
 
         return { success: true, jobId: jobId };
     }
 
     public async getRegisterStatus(jobId: string) {
-        const items = await this.prisma.clothingItem.findMany({
-            where: { jobId: jobId }
-        })
-    
-        if (items.length > 0) {
-            const itemsWithUrl = await Promise.all(
-                items.map(async (item) => ({
-                  ...item,
-                  imageUrl: item.cropS3Key
+    const items = await this.prisma.clothingItem.findMany({
+        where: { jobId: jobId }
+    })
+
+    if (items.length > 0) {
+        const itemsWithUrl = await Promise.all(
+            items.map(async (item) => ({
+                ...item,
+                imageUrl: item.cropS3Key
                     ? await this.s3Service.getPresignedUrl(item.cropS3Key)
                     : null,
-                }))
-              )
-              return { status: 'completed', items: itemsWithUrl }
-        }
-    
-        // DB에 없으면 아직 처리 중
-        const job = await this.clothingQueue.getJob(jobId)
-        if (!job) {
-            return { status: 'not_found' }
-        }
-    
-        return { status: 'processing' }
+            }))
+        )
+        return { status: 'completed', items: itemsWithUrl }
     }
+
+    const job = await this.clothingQueue.getJob(jobId)
+    
+    if (!job) {
+        return { status: 'not_found' }
+    }
+
+    // ← 이 부분 추가
+    const state = await job.getState()
+    if (state === 'failed') {
+        return { status: 'failed' }
+    }
+
+    return { status: 'processing' }
+}
 }

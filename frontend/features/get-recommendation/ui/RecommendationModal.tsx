@@ -35,6 +35,7 @@ export function RecommendationModal({ visible, onClose, data }: Props) {
 
   useEffect(() => {
     if (visible && data) {
+      console.log('🔍 ranked_items:', JSON.stringify(data.ranked_items, null, 2));
       initFromResponse(data);
     }
     return () => {

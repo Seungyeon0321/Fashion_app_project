@@ -1,7 +1,7 @@
 import { RefObject, useEffect, useRef, useState } from "react";
 import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { CameraView } from "expo-camera";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import { useTakePhoto } from "@/features/take_photo/model/useTakePhoto";
 import { PhotoPreview } from "@/features/take_photo/ui/PhotoPreview";
@@ -14,9 +14,9 @@ import { ClothingCategory, uploadClothingImage } from "@/shared/lib/api";
 import { useToastStore } from "@/shared/store/toastStore";
 
 const MESSAGE: Record<BodyFrameEnum, string> = {
-    [BodyFrameEnum.TOP_BODY]: 'please put your top on the frame',
-    [BodyFrameEnum.BOTTOM_BODY]: 'please put your bottom on the frame',
-    [BodyFrameEnum.FULL_BODY]: 'please put your full body on the frame',
+    [BodyFrameEnum.TOP]: 'please put your top on the frame',
+    [BodyFrameEnum.BOTTOM]: 'please put your bottom on the frame',
+    [BodyFrameEnum.FULL]: 'please put your full body on the frame',
 }
 
 const ZOOM_MIN = 0
@@ -24,6 +24,7 @@ const ZOOM_MAX = 0.5
 const SENSITIVITY = 0.3
 
 export const CameraPage = () => {
+    const [ permission, requestPermission ] = useCameraPermissions();
     const cameraRef = useRef<CameraView>(null);
     const { facing, toggleFacing } = useToggleFacing();
     const { triggerCountdown, takePhoto, countDown, setTakePhoto } = useCountdown();
@@ -82,10 +83,17 @@ export const CameraPage = () => {
         }
     }, [takePhoto, setTakePhoto, takePicture]);
 
+    if (!permission) return null;
+    if (!permission.granted) {
+        requestPermission();
+        return null;
+    }
+
     const handleConfirm = async () => {
         if (!photo?.uri) return;
         setIsUploading(true);
         try {
+            console.log('is it working?')
             const { jobId } = await uploadClothingImage(photo.uri, currentLayout as ClothingCategory);
             router.push(`/processing?jobId=${jobId}`);
         } catch (e) {

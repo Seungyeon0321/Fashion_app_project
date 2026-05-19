@@ -40,7 +40,7 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
   trayItems:   [],
 
   initFromResponse: (data) => {
-    console.log(data, 'data in canvas store');
+     console.log('🔍 initFromResponse raw data:', data.ranked_items);
     const items: CanvasItem[] = data.ranked_items
       // imageUrl이 있고 id가 number인 것만 (external mock 제외)
       .filter((item) => item.imageUrl != null && typeof item.id === 'number')

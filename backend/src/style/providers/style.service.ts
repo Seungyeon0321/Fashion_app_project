@@ -32,7 +32,7 @@ export class StylesService {
     } catch (error: any) {
         console.log('💥 FastAPI 에러 전체:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
     console.log('💥 error.code:', error?.code);
-    console.log('💥 error.response?.status:', error?.response?.status);
+     console.log('💥 error.response?.status:', error?.response?.status);
    
         throw new HttpException(
             error.response?.data ?? 'Failed to recommend styles',

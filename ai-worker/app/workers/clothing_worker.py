@@ -67,7 +67,7 @@ def process_job(r: redis_lib.Redis, pipeline: ClothingPipeline, raw: bytes) -> N
         s3_key   = data["s3Key"]
         user_id  = data.get("userId", "unknown")
         job_id   = data.get("job_id") or job_id 
-        category
+        category = data.get("category", "FULL")
     except (KeyError, json.JSONDecodeError) as e:
         logger.error("job_id=%s 데이터 파싱 실패: %s", job_id, e)
         _move_to_failed(r, raw, reason=str(e))
@@ -85,17 +85,32 @@ def _run_pipeline(
     category: str,
     raw: bytes,
 ) -> None:
-    logger.info("처리 시작 | job_id=%s user_id=%s s3_key=%s", job_id, user_id, s3_key)
-    try:
-        saved_ids = pipeline.run(s3_key=s3_key, user_id=user_id, job_id=job_id, category=category)
-        logger.info(
-            "처리 완료 | job_id=%s | 저장된 clothing_item ids: %s",
-            job_id, saved_ids,
-        )
-        _remove_from_active(r, raw)
-    except Exception as e:
-        logger.error("처리 실패 | job_id=%s | %s", job_id, e, exc_info=True)
-        _move_to_failed(r, raw, reason=str(e))
+    MAX_ATTEMPTS = 3
+    BACKOFF = [3, 6, 12]  # 재시도 대기 시간 (초)
+
+    last_error = None
+
+    for attempt in range(MAX_ATTEMPTS):
+        try:
+            logger.info("처리 시작 | job_id=%s attempt=%d/%d", job_id, attempt + 1, MAX_ATTEMPTS)
+            saved_ids = pipeline.run(s3_key=s3_key, user_id=user_id, job_id=job_id, category=category)
+            logger.info("처리 완료 | job_id=%s | 저장된 ids: %s", job_id, saved_ids)
+            _remove_from_active(r, raw)
+            return  # 성공하면 바로 종료
+
+        except Exception as e:
+            last_error = e
+            logger.warning("시도 실패 | job_id=%s attempt=%d/%d | %s", job_id, attempt + 1, MAX_ATTEMPTS, e)
+
+            if attempt < MAX_ATTEMPTS - 1:
+                wait = BACKOFF[attempt]
+                logger.info("재시도 대기 | %d초 후 재시도", wait)
+                time.sleep(wait)
+            # 마지막 시도면 그냥 루프 종료
+
+    # 3번 다 실패
+    logger.error("최종 실패 | job_id=%s | %s", job_id, last_error, exc_info=True)
+    _move_to_failed(r, raw, reason=str(last_error))
 
 
 def _remove_from_active(r: redis_lib.Redis, raw: bytes) -> None:

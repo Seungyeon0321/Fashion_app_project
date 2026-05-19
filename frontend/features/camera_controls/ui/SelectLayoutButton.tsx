@@ -2,9 +2,9 @@ import { Pressable, Text, View, StyleSheet } from "react-native"
 import { BodyFrameType } from "../model/useSelectLayout";
 
 const BUTTONS = [
-    { type: 'topBody',    label: 'TOP' },
-    { type: 'bottomBody', label: 'BOTTOM' },
-    { type: 'fullBody',   label: 'FULL' },
+    { type: 'TOP',    label: 'TOP' },
+    { type: 'BOTTOM', label: 'BOTTOM' },
+    { type: 'FULL',   label: 'FULL' },
 ]
 
 export const SelectLayoutButton = ({ currentLayout, changeLayout }: { currentLayout: BodyFrameType, changeLayout: (layout: BodyFrameType) => void }) => {

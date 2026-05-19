@@ -14,8 +14,10 @@ export default function ProcessingScreen() {
     // 3초마다 자동으로 API 호출
     refetchInterval: (query) => {
       // completed 또는 not_found 상태면 폴링 중단
-      const status = query.state.data?.status
+       const status = query.state.data?.status
       if (status === 'completed') return false
+      if (status === 'failed') return false    // ← 추가
+      if (status === 'not_found') return false // ← 추가
       return 3000
     },
     enabled: !!jobId,
@@ -24,11 +26,12 @@ export default function ProcessingScreen() {
   })
 
   useEffect(() => {
-    if (data?.status === 'completed') {
-      // 완료되면 결과 화면으로 이동 — items 중 첫 번째 ID 전달
-    //   const firstItemId = data.items?.[0]?.id
+     if (data?.status === 'completed') {
       router.replace(`/result?items=${encodeURIComponent(JSON.stringify(data.items))}`)
-    }
+  }
+     if (data?.status === 'failed' || data?.status === 'not_found') {
+      router.replace('/camera')
+  }
   }, [data?.status])
 
   if (isLoading) {
@@ -40,7 +43,7 @@ export default function ProcessingScreen() {
   }
 
   // 에러 or not_found 상태
-  if (isError) {
+  if (isError || data?.status === 'failed' || data?.status === 'not_found') {
     return (
       <View style={styles.container}>
         <Text style={styles.errorTitle}>Something went wrong</Text>

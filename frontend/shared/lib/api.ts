@@ -68,7 +68,7 @@ api.interceptors.response.use(
 
 // ── Posts API ─────────────────────────────────────────────
 
-export type RegisterStatus = 'processing' | 'completed' | 'not_found'
+export type RegisterStatus = 'processing' | 'completed' | 'not_found' | 'failed'
 export type ClothingCategory = 'TOP' | 'BOTTOM' | 'FULL'
 
 export type RegisterStatusResponse = {
@@ -99,10 +99,12 @@ export const uploadClothingImage = async (
 
   const res = await api.post('/posts/registerMyClothes', formData, {
     headers: {
-      'Content-Type': undefined,
+      'Content-Type': 'multipart/form-data',
     },
     timeout: 30000, // 이미지 업로드는 30초로 늘림
   })
+
+  console.log('uploadClothingImage response:', res);
 
   return res.data.data // { jobId }
 }
