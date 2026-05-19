@@ -20,7 +20,7 @@ class OutfitState(TypedDict):
     season: Optional[str]
     avoid_constraints: Optional[List[str]]  # NCP → ["avoid oversized silhouette", ...]
     avoid_item_ids: Optional[List[int]]     # NCP → DB item ID 목록 (Retrieval 사전 필터용)
-    conflict_warning: Optional[str]         # "sporty_rain" | "casual_meeting" | "anchor_ncp_conflict" | None
+    conflict_warning: Optional[str]         # "sporty_rain" | "casual_meeting" | None
 
     # ── Filled by Style Analyzer (신규) ─────────────────────────
     anchor_item: Optional[dict]         # DB에서 조회한 앵커 아이템 전체 정보

@@ -1035,6 +1035,7 @@ export const StyleReferenceScalarFieldEnum = {
   type: 'type',
   presetKey: 'presetKey',
   originalImageUrl: 'originalImageUrl',
+  originalS3Key: 'originalS3Key',
   rating: 'rating',
   analysisResult: 'analysisResult',
   createdAt: 'createdAt'

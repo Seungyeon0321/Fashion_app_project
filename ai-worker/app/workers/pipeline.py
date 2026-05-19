@@ -21,7 +21,7 @@ from PIL import Image
 
 from app.core.config import settings
 from app.db.database import ClothingItem, get_session, init_db
-from app.models.clip_encoder import CLIPEncoder
+from shared.clip_encoder import CLIPEncoder
 from app.models.segformer import SegFormerSegmenter
 
 

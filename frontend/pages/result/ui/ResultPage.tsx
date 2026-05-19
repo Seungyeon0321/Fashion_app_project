@@ -9,6 +9,7 @@ import {
   ClothingDetailPopup,
   shouldShowClothingDetailPopup,
 } from '@/features/closet/ui/ClothingDetailPopup'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 type Props = {
   items: ClothingItem[]
@@ -16,17 +17,16 @@ type Props = {
 
 export const ResultPage = ({ items }: Props) => {
   const router = useRouter()
+  const insets = useSafeAreaInsets()
   const { mutateAsync: registerClosetItem } = useRegisterClosetItem()
   const { states, update, setCategory, allActioned, savedItems } = useReviewItems(items)
-  const [isConfirming,   setIsConfirming]   = useState(false)
-  const [showPopup,      setShowPopup]      = useState(false)
+  const [isConfirming, setIsConfirming] = useState(false)
+  const [showPopup,    setShowPopup]    = useState(false)
 
   useEffect(() => {
     const checkPopup = async () => {
       const shouldShow = await shouldShowClothingDetailPopup()
-      if (shouldShow) {
-        setShowPopup(true)
-      }
+      if (shouldShow) setShowPopup(true)
     }
     checkPopup()
   }, [])
@@ -51,7 +51,6 @@ export const ResultPage = ({ items }: Props) => {
           })
         })
       )
-      // ✅ 저장 완료 후 바로 홈으로
       router.replace('/')
     } catch {
       Alert.alert('Error', 'Failed to save. Please try again.')
@@ -60,14 +59,19 @@ export const ResultPage = ({ items }: Props) => {
     }
   }
 
-  const handlePopupClose = () => {
-    setShowPopup(false)
-  }
+  // footer 높이 = 버튼 padding(24) + 버튼 높이(대략 52) + 하단 여백(16) + 제스처 바
+  const footerHeight = 24 + 52 + 16 + insets.bottom
 
   return (
-    <View style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.scroll}>
+    <SafeAreaView style={styles.screen} edges={['top']}>
 
+      <ScrollView
+        contentContainerStyle={[
+          styles.scroll,
+          // footer가 absolute라서 마지막 아이템이 가려지지 않도록 하단 여백 확보
+          { paddingBottom: footerHeight },
+        ]}
+      >
         <View style={styles.header}>
           <Text style={styles.title}>ANALYSIS RESULT</Text>
           <Text style={styles.subtitle}>{items.length} items detected</Text>
@@ -82,11 +86,10 @@ export const ResultPage = ({ items }: Props) => {
             onCategoryChange={(cat) => setCategory(item.id, cat)}
           />
         ))}
-
-        <View style={{ height: 120 }} />
       </ScrollView>
 
-      <View style={styles.footer}>
+      {/* footer: absolute로 하단 고정. 제스처 바 높이는 insets.bottom으로 처리 */}
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         <Button
           label={savedItems.length > 0 ? `CONFIRM (${savedItems.length} SAVED)` : 'CONFIRM'}
           onPress={handleConfirm}
@@ -96,19 +99,27 @@ export const ResultPage = ({ items }: Props) => {
         />
       </View>
 
-      {/* ClothingDetailPopup: 옷 등록 완료 후 heads-up 표시 */}
       <ClothingDetailPopup
         visible={showPopup}
-        onClose={handlePopupClose}
+        onClose={() => setShowPopup(false)}
       />
-    </View>
+
+    </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#1a1a1a' },
-  scroll: { padding: 24, paddingTop: 60 },
-  header: { marginBottom: 32 },
+  screen: {
+    flex: 1,
+    backgroundColor: '#1a1a1a',
+  },
+  scroll: {
+    padding: 24,
+    paddingTop: 60,
+  },
+  header: {
+    marginBottom: 32,
+  },
   title: {
     fontFamily: 'Epilogue_700Bold',
     fontSize: 28,
@@ -127,8 +138,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 24,
-    paddingBottom: 40,
+    paddingHorizontal: 24,
+    paddingTop: 16,
     backgroundColor: '#1a1a1a',
   },
 })

@@ -7,7 +7,6 @@ import { AlbumUploadingOverlay } from '../../../features/album-preview/ui/AlbumU
 import { AlbumCategorySelector } from '../../../features/album-preview/ui/AlbumCategorySelector'
 import { AlbumPreviewActions } from '../../../features/album-preview/ui/AlbumPreviewActions'
 
-
 type Props = {
   imageUri: string
 }
@@ -34,7 +33,7 @@ export const AlbumPreviewPage = ({ imageUri }: Props) => {
       {isUploading && <AlbumUploadingOverlay />}
 
       {!isUploading && (
-        <View style={[styles.bottom, { paddingBottom: insets.bottom}]}>
+        <View style={[styles.bottom, { paddingBottom: insets.bottom + 16 }]}>
           <AlbumCategorySelector
             selected={selectedCategory}
             onSelect={setSelectedCategory}
@@ -78,9 +77,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.45)',
     gap: 16,
   },
-  text : {
+  text: {
     ...fonts.bodyMd,
     color: '#fff',
     textAlign: 'center',
-  }
+  },
 })

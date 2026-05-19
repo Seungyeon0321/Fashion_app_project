@@ -12,7 +12,8 @@ export function useStylePresets() {
       .filter((s) => s.presetKey != null)
       .map((s) => s.presetKey as PresetKey)
 );
-  const showToast = useToastStore((s) => s.show);
+  const showSuccess = useToastStore((s) => s.success);
+  const showError = useToastStore((s) => s.error);
 
   const { data: presets = [], isLoading } = useQuery({
     queryKey: ['stylePresets'],
@@ -21,8 +22,8 @@ export function useStylePresets() {
 
   const { mutate: save, isPending: isSaving } = useMutation({
     mutationFn: () => savePresetStyles(selected),
-    onSuccess: () => showToast('Style saved!'),
-    onError: () => showToast('Failed to save. Try again.'),
+    onSuccess: () => showSuccess('Style saved!'),
+    onError: () => showError('Failed to save. Try again.'),
   });
 
   const toggle = (key: PresetKey) => {
@@ -30,7 +31,7 @@ export function useStylePresets() {
       const isSelected = prev.includes(key);
       if (isSelected) return prev.filter((k) => k !== key);
       if (prev.length >= 3) {
-        showToast('Up to 3 styles only');
+        showError('Up to 3 styles only');
         return prev;
       }
       return [...prev, key];

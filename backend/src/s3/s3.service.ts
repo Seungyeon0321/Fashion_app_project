@@ -8,6 +8,7 @@ import { randomUUID } from 'crypto';
 export class S3Service {
   private readonly client: S3Client;
   private readonly bucket: string;
+  private readonly referenceBucket: string;
   private readonly region: string;
 
   constructor() {
@@ -15,6 +16,7 @@ export class S3Service {
     const accessKeyId = this.getRequiredEnv('AWS_ACCESS_KEY_ID');
     const secretAccessKey = this.getRequiredEnv('AWS_SECRET_ACCESS_KEY');
     this.bucket = this.getRequiredEnv('AWS_S3_BUCKET');
+    this.referenceBucket = this.getRequiredEnv('AWS_S3_REFERENCE_BUCKET');
 
     this.client = new S3Client({
       region: this.region,
@@ -47,6 +49,31 @@ export class S3Service {
     return { key, url };
   }
 
+  async uploadReferenceImage(
+    imageBuffer: Buffer, // 이미 리사이즈된 버퍼
+    userId: string,
+    referenceId: string,
+    mimeType: string = 'image/jpeg',
+  ): Promise<{ key: string; url: string }> {
+    const ext = mimeType.split('/')[1] || 'jpg'
+    
+    const date = new Date().toISOString().slice(0, 10)  // "2026-05-19"
+    const uuid = randomUUID().slice(0, 8)               // 짧게 앞 8자리만
+    const key  = `${userId}/references/${date}_${uuid}.${ext}`
+
+    await this.client.send(new PutObjectCommand({
+      Bucket: this.referenceBucket,  // ← 별도 버킷
+      Key: key,
+      Body: imageBuffer,
+      ContentType: mimeType,
+    }))
+
+    return {
+      key,
+      url: `https://${this.referenceBucket}.s3.${this.region}.amazonaws.com/${key}`,
+    }
+  }
+
   // S3 키 → Presigned URL 변환 (유효시간 1시간)
   async getPresignedUrl(s3Key: string): Promise<string> {
     const command = new GetObjectCommand({
@@ -57,6 +84,15 @@ export class S3Service {
     return getSignedUrl(this.client, command, {
       expiresIn: 60 * 60, // 1시간 (초 단위)
     });
+  }
+
+    // 신규 — presigned URL (레퍼런스 버킷용)
+  async getReferencePresignedUrl(s3Key: string): Promise<string> {
+    return getSignedUrl(
+      this.client,
+      new GetObjectCommand({ Bucket: this.referenceBucket, Key: s3Key }),
+      { expiresIn: 60 * 60 },
+    )
   }
 
   private getRequiredEnv(name: string): string {

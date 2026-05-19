@@ -11,13 +11,13 @@ Retrieval 노드
 
 두 가지 데이터 소스:
   closet   → 사용자 옷장에서 pgvector 코사인 유사도 검색
-  external → 네이버 쇼핑 API (현재 Mock)
+  external → 네이버 쇼핑 API (실제 연동)
 
 4가지 경우의 수:
   source=closet   + anchor O → 앵커 고정 + 옷장 pgvector 검색
   source=closet   + anchor X → 옷장 전체 pgvector 검색
-  source=external + anchor O → 앵커(내 옷) 고정 + 네이버 쇼핑 Mock
-  source=external + anchor X → 네이버 쇼핑 Mock만
+  source=external + anchor O → 앵커(내 옷) 고정 + 네이버 쇼핑
+  source=external + anchor X → 네이버 쇼핑만
 
 relaxation_level:
   Validator가 결과 부족 판단 시 retry_count를 올리고 Retrieval로 돌아옴.
@@ -31,14 +31,15 @@ relaxation_level:
 presigned URL:
   보안상 S3 URL을 직접 노출하지 않음.
   presigned URL 생성은 Response 노드에서 최종 아이템 확정 후 처리.
-  (Ranker/Validator 과정에서 버려질 아이템 URL을 미리 만들 필요 없음)
 
 DB 접근 방식:
   psycopg2 직접 연결 (기존 retrieval.py 패턴과 통일)
 """
 
 import os
+import re
 import psycopg2
+import httpx
 import numpy as np
 from typing import Optional
 from dotenv import load_dotenv
@@ -60,6 +61,24 @@ RELAXATION_PARAMS = {
     1: {"similarity_threshold": 0.70, "relax_category": False},
     2: {"similarity_threshold": 0.70, "relax_category": True},
     3: {"similarity_threshold": 0.00, "relax_category": True},
+}
+
+# 카테고리 한국어 매핑 (네이버 쇼핑 검색 쿼리용)
+CATEGORY_KR = {
+    "TOP":    "티셔츠",
+    "BOTTOM": "바지",
+    "OUTER":  "아우터",
+    "SHOES":  "신발",
+    "BAG":    "가방",
+    "ACC":    "액세서리",
+    "DRESS":  "원피스",
+}
+
+# intent 한국어 매핑 (네이버 쇼핑 검색 쿼리용)
+INTENT_KR = {
+    "casual":  "캐주얼",
+    "formal":  "포멀",
+    "sporty":  "스포티",
 }
 
 
@@ -95,7 +114,7 @@ def retrieval(state: OutfitState) -> dict:
         if source == "closet":
             retrieved_items = _search_closet(state, params)
         else:
-            retrieved_items = _search_external_mock(state, params)
+            retrieved_items = _search_external(state, params)
 
         # NCP 필터: 싫어요 조합 아이템 제거 (앵커 예외)
         if state.get("excluded_outfits"):
@@ -165,7 +184,6 @@ def _search_closet(state: OutfitState, params: dict) -> list[dict]:
     try:
         if has_style_context and style_vector and threshold > 0:
             # ── 벡터 유사도 검색 ──────────────────────────────────────────
-            # style_vector → "[0.1,0.2,...]" 문자열 변환
             vector_str         = "[" + ",".join(str(float(x)) for x in style_vector) + "]"
             distance_threshold = 1.0 - threshold
 
@@ -203,7 +221,6 @@ def _search_closet(state: OutfitState, params: dict) -> list[dict]:
 
         else:
             # ── 카테고리 기반 fallback (level 3 또는 has_style_context=False) ──
-            # 벡터 없이 카테고리 + 최근 착용 순으로 검색
             cur.execute("""
                 SELECT
                     id,
@@ -221,7 +238,7 @@ def _search_closet(state: OutfitState, params: dict) -> list[dict]:
                 WHERE user_id = %s
                   AND "isArchived" = false
                   AND "isWashing" = false
-                  AND category = ANY(%s::"Category"[])  
+                  AND category = ANY(%s::"Category"[])
                 ORDER BY "wearCount" DESC
                 LIMIT %s
             """, (user_id, target_categories, MAX_RETRIEVE))
@@ -236,89 +253,145 @@ def _search_closet(state: OutfitState, params: dict) -> list[dict]:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# external 검색 (네이버 쇼핑 API Mock)
+# external 검색 (네이버 쇼핑 API)
 # ──────────────────────────────────────────────────────────────────────────────
 
-def _search_external_mock(state: OutfitState, params: dict) -> list[dict]:
+def _search_external(state: OutfitState, params: dict) -> list[dict]:
     """
-    네이버 쇼핑 API Mock.
-
-    실제 API 연동 시 이 함수 내부만 교체하면 됨.
-    반환 구조는 closet 아이템과 동일하게 맞춰둠.
-
-    실제 API 연동 시 교체 포인트:
-        1. 네이버 쇼핑 검색 쿼리 = style_keywords + intent + 카테고리
-        2. API 응답 파싱 후 동일한 dict 구조로 변환
-        3. crop_s3_key 대신 imageUrl 직접 사용 (외부 URL)
+    네이버 쇼핑 API로 외부 아이템 검색.
+    API 키 없거나 실패 시 fallback으로 전환.
     """
-    style_keywords = state.get("style_keywords") or []
-    intent         = state.get("intent") or "casual"
+    client_id     = os.getenv("NAVER_CLIENT_ID")
+    client_secret = os.getenv("NAVER_CLIENT_SECRET")
 
-    mock_items = [
+    if not client_id or not client_secret:
+        print("[Retrieval] 네이버 API 키 없음 — fallback")
+        return _search_external_fallback(state)
+
+    style_keywords    = state.get("style_keywords") or []
+    intent            = state.get("intent") or "casual"
+    target_categories = _get_target_categories(
+        intent=intent,
+        relax=params["relax_category"],
+    )
+
+    # 검색 키워드 조합
+    # style_keywords 있으면 우선 사용 (e.g. ["minimal", "quiet_luxury"])
+    # 없으면 intent 한국어로 fallback
+    base_keyword = " ".join(style_keywords[:2]) if style_keywords else INTENT_KR.get(intent, "캐주얼")
+
+    headers = {
+        "X-Naver-Client-Id":     client_id,
+        "X-Naver-Client-Secret": client_secret,
+    }
+
+    all_items = []
+
+    # TOP, BOTTOM, OUTER 우선 검색 (카테고리별 3개씩)
+    priority_categories = ["TOP", "BOTTOM", "OUTER"]
+    search_targets = [c for c in priority_categories if c in target_categories]
+
+    for category in search_targets:
+        query = f"{base_keyword} {CATEGORY_KR.get(category, category)}"
+
+        try:
+            response = httpx.get(
+                "https://openapi.naver.com/v1/search/shop.json",
+                headers=headers,
+                params={
+                    "query":   query,
+                    "display": 3,
+                    "sort":    "sim",
+                },
+                timeout=5.0,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            for item in data.get("items", []):
+                parsed = _parse_naver_item(item, category)
+                if parsed:
+                    all_items.append(parsed)
+
+        except Exception as e:
+            print(f"[Retrieval] 네이버 검색 실패 ({category}): {e}")
+            continue
+
+    print(f"[Retrieval] 네이버 쇼핑 검색 완료: {len(all_items)}개")
+
+    if not all_items:
+        print("[Retrieval] 결과 없음 — fallback")
+        return _search_external_fallback(state)
+
+    return all_items
+
+
+def _parse_naver_item(raw: dict, category: str) -> dict | None:
+    """
+    네이버 쇼핑 API 응답을 내부 표준 dict로 변환.
+
+    네이버 응답 주요 필드:
+        title:      상품명 (HTML <b> 태그 포함 → 제거 필요)
+        brand:      브랜드명
+        image:      상품 이미지 URL
+        link:       상품 상세 페이지 URL
+        lprice:     최저가
+        mallName:   쇼핑몰명
+        productId:  상품 고유 ID
+    """
+    title = re.sub(r"<[^>]+>", "", raw.get("title", "")).strip()
+    if not title:
+        return None
+
+    return {
+        "id":          f"naver_{raw.get('productId', '')}",
+        "source":      "naver_shopping",
+        "name":        title,
+        "brand":       raw.get("brand") or raw.get("mallName", ""),
+        "category":    category,
+        "subCategory": None,     # 네이버 API 세부 카테고리 매핑 어려움 — MVP None
+        "colors":      [],       # 네이버 API 색상 정보 없음 — MVP 빈 배열
+        "material":    None,
+        "fit":         None,
+        "style":       None,
+        "price":       int(raw.get("lprice", 0)),
+        "imageUrl":    raw.get("image", ""),
+        "purchaseUrl": raw.get("link", ""),
+        "crop_s3_key": None,     # 외부 아이템은 S3 없음
+        "similarity":  0.75,     # 네이버 API 유사도 없음 — 고정값
+        "is_anchor":   False,
+        "is_external": True,
+    }
+
+
+def _search_external_fallback(state: OutfitState) -> list[dict]:
+    """
+    네이버 API 키 없거나 전체 실패 시 최소 fallback.
+    실제 서비스에서는 거의 안 쓰임 — 개발/테스트 환경용.
+    """
+    intent = state.get("intent") or "casual"
+
+    return [
         {
-            "id":           "mock_ext_001",
-            "source":       "naver_shopping",
-            "name":         f"[Mock] {intent} 미니멀 화이트 티셔츠",
-            "brand":        "Mock Brand A",
-            "category":     "TOP",
-            "subCategory":  "T_SHIRT_SHORT",
-            "colors":       ["white"],
-            "material":     "cotton",
-            "fit":          "REGULAR",
-            "style":        None,
-            "price":        29000,
-            "imageUrl":     "https://mock.example.com/image1.jpg",   # 외부 아이템은 imageUrl 직접 사용
-            "purchaseUrl":  "https://mock.example.com/purchase1",
-            "crop_s3_key":  None,                                     # 외부 아이템은 S3 없음
-            "styleKeywords": style_keywords or ["casual", "minimal"],
-            "similarity":   0.80,
-            "is_anchor":    False,
-            "is_external":  True,
-        },
-        {
-            "id":           "mock_ext_002",
-            "source":       "naver_shopping",
-            "name":         f"[Mock] {intent} 슬림 블랙 슬랙스",
-            "brand":        "Mock Brand B",
-            "category":     "BOTTOM",
-            "subCategory":  "SLACKS",
-            "colors":       ["black"],
-            "material":     "polyester",
-            "fit":          "SLIM",
-            "style":        None,
-            "price":        49000,
-            "imageUrl":     "https://mock.example.com/image2.jpg",
-            "purchaseUrl":  "https://mock.example.com/purchase2",
-            "crop_s3_key":  None,
-            "styleKeywords": style_keywords or ["casual", "minimal"],
-            "similarity":   0.78,
-            "is_anchor":    False,
-            "is_external":  True,
-        },
-        {
-            "id":           "mock_ext_003",
-            "source":       "naver_shopping",
-            "name":         f"[Mock] {intent} 오버핏 베이지 코트",
-            "brand":        "Mock Brand C",
-            "category":     "OUTER",
-            "subCategory":  "COAT",
-            "colors":       ["beige"],
-            "material":     "wool",
-            "fit":          "OVERSIZED",
-            "style":        None,
-            "price":        129000,
-            "imageUrl":     "https://mock.example.com/image3.jpg",
-            "purchaseUrl":  "https://mock.example.com/purchase3",
-            "crop_s3_key":  None,
-            "styleKeywords": style_keywords or ["minimal", "quiet_luxury"],
-            "similarity":   0.75,
-            "is_anchor":    False,
-            "is_external":  True,
+            "id":          "fallback_ext_001",
+            "source":      "naver_shopping",
+            "name":        f"[Fallback] {intent} 기본 티셔츠",
+            "brand":       "",
+            "category":    "TOP",
+            "subCategory": None,
+            "colors":      [],
+            "material":    None,
+            "fit":         None,
+            "style":       None,
+            "price":       0,
+            "imageUrl":    None,
+            "purchaseUrl": None,
+            "crop_s3_key": None,
+            "similarity":  0.5,
+            "is_anchor":   False,
+            "is_external": True,
         },
     ]
-
-    print(f"[Retrieval] Mock external 검색: {len(mock_items)}개 반환")
-    return mock_items
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -336,11 +409,9 @@ def _filter_ncp(
     조합 단위 필터:
         "이 아이템이 싫어요"가 아니라 "이 조합이 싫어요"이므로
         excluded_outfits에 등장하는 아이템 ID를 개별 제거하는 방식.
-        (Ranker에서 최종 조합 구성 시 조합 단위 필터 추가 적용)
 
     앵커 예외:
         앵커는 NCP에 있어도 제거하지 않음.
-        conflict_warning은 Style Analyzer에서 이미 세팅됨.
     """
     excluded_ids: set[int] = set()
     for outfit in excluded_outfits:
@@ -376,24 +447,21 @@ def _ensure_anchor_included(
     왜 필요한가?
         유사도 임계값 때문에 앵커가 검색 결과에서 빠질 수 있음.
         앵커는 사용자가 직접 지정한 아이템이므로 무조건 포함.
-        Ranker에서 is_anchor=True인 아이템을 최우선으로 처리.
     """
     existing_ids = {item.get("id") for item in items}
 
     if anchor_item_id in existing_ids:
-        # 이미 있으면 is_anchor 플래그만 True로 세팅
         for item in items:
             if item.get("id") == anchor_item_id:
                 item["is_anchor"] = True
         return items
 
-    # 없으면 맨 앞에 삽입
     anchor_entry = {
         **anchor_item,
         "source":      "closet",
-        "crop_s3_key": None,      # Response 노드에서 DB 재조회로 처리
+        "crop_s3_key": None,
         "is_anchor":   True,
-        "similarity":  1.0,       # 앵커는 유사도 1.0으로 고정
+        "similarity":  1.0,
         "is_external": False,
     }
 
@@ -411,7 +479,6 @@ def _get_target_categories(
 ) -> list[str]:
     """
     검색할 카테고리 목록 결정.
-    MVP: TOP, BOTTOM, OUTER 기본 검색.
     relax=True: DRESS 추가.
     """
     categories = ["TOP", "BOTTOM", "OUTER", "SHOES", "BAG", "ACC"]
@@ -427,10 +494,6 @@ def _row_to_closet_item(row: tuple) -> dict:
     SELECT 순서:
         0=id, 1=category, 2=subCategory, 3=colors, 4=brand,
         5=material, 6=fit, 7=style, 8=name, 9=crop_s3_key, 10=similarity
-
-    crop_s3_key 보존:
-        presigned URL은 Response 노드에서 생성.
-        여기서는 S3 키만 저장해둠.
     """
     return {
         "id":          row[0],
@@ -443,8 +506,8 @@ def _row_to_closet_item(row: tuple) -> dict:
         "fit":         row[6],
         "style":       row[7],
         "name":        row[8],
-        "crop_s3_key": row[9],    # presigned URL은 Response 노드에서 생성
+        "crop_s3_key": row[9],
         "similarity":  float(row[10]),
-        "is_anchor":   False,     # _ensure_anchor_included()에서 True로 업데이트
+        "is_anchor":   False,
         "is_external": False,
     }

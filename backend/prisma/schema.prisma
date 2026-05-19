@@ -131,6 +131,7 @@ model StyleReference {
 
   presetKey        String?
   originalImageUrl String?
+  originalS3Key    String? 
   rating           Int          @default(5)
   analysisResult   Json?
   embedding        Unsupported("vector(512)")?

@@ -44,6 +44,7 @@ export type StyleReferenceMinAggregateOutputType = {
   type: $Enums.StyleRefType | null
   presetKey: string | null
   originalImageUrl: string | null
+  originalS3Key: string | null
   rating: number | null
   createdAt: Date | null
 }
@@ -54,6 +55,7 @@ export type StyleReferenceMaxAggregateOutputType = {
   type: $Enums.StyleRefType | null
   presetKey: string | null
   originalImageUrl: string | null
+  originalS3Key: string | null
   rating: number | null
   createdAt: Date | null
 }
@@ -64,6 +66,7 @@ export type StyleReferenceCountAggregateOutputType = {
   type: number
   presetKey: number
   originalImageUrl: number
+  originalS3Key: number
   rating: number
   analysisResult: number
   createdAt: number
@@ -89,6 +92,7 @@ export type StyleReferenceMinAggregateInputType = {
   type?: true
   presetKey?: true
   originalImageUrl?: true
+  originalS3Key?: true
   rating?: true
   createdAt?: true
 }
@@ -99,6 +103,7 @@ export type StyleReferenceMaxAggregateInputType = {
   type?: true
   presetKey?: true
   originalImageUrl?: true
+  originalS3Key?: true
   rating?: true
   createdAt?: true
 }
@@ -109,6 +114,7 @@ export type StyleReferenceCountAggregateInputType = {
   type?: true
   presetKey?: true
   originalImageUrl?: true
+  originalS3Key?: true
   rating?: true
   analysisResult?: true
   createdAt?: true
@@ -207,6 +213,7 @@ export type StyleReferenceGroupByOutputType = {
   type: $Enums.StyleRefType
   presetKey: string | null
   originalImageUrl: string | null
+  originalS3Key: string | null
   rating: number
   analysisResult: runtime.JsonValue | null
   createdAt: Date
@@ -241,6 +248,7 @@ export type StyleReferenceWhereInput = {
   type?: Prisma.EnumStyleRefTypeFilter<"StyleReference"> | $Enums.StyleRefType
   presetKey?: Prisma.StringNullableFilter<"StyleReference"> | string | null
   originalImageUrl?: Prisma.StringNullableFilter<"StyleReference"> | string | null
+  originalS3Key?: Prisma.StringNullableFilter<"StyleReference"> | string | null
   rating?: Prisma.IntFilter<"StyleReference"> | number
   analysisResult?: Prisma.JsonNullableFilter<"StyleReference">
   createdAt?: Prisma.DateTimeFilter<"StyleReference"> | Date | string
@@ -253,6 +261,7 @@ export type StyleReferenceOrderByWithRelationInput = {
   type?: Prisma.SortOrder
   presetKey?: Prisma.SortOrderInput | Prisma.SortOrder
   originalImageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  originalS3Key?: Prisma.SortOrderInput | Prisma.SortOrder
   rating?: Prisma.SortOrder
   analysisResult?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -268,6 +277,7 @@ export type StyleReferenceWhereUniqueInput = Prisma.AtLeast<{
   type?: Prisma.EnumStyleRefTypeFilter<"StyleReference"> | $Enums.StyleRefType
   presetKey?: Prisma.StringNullableFilter<"StyleReference"> | string | null
   originalImageUrl?: Prisma.StringNullableFilter<"StyleReference"> | string | null
+  originalS3Key?: Prisma.StringNullableFilter<"StyleReference"> | string | null
   rating?: Prisma.IntFilter<"StyleReference"> | number
   analysisResult?: Prisma.JsonNullableFilter<"StyleReference">
   createdAt?: Prisma.DateTimeFilter<"StyleReference"> | Date | string
@@ -280,6 +290,7 @@ export type StyleReferenceOrderByWithAggregationInput = {
   type?: Prisma.SortOrder
   presetKey?: Prisma.SortOrderInput | Prisma.SortOrder
   originalImageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  originalS3Key?: Prisma.SortOrderInput | Prisma.SortOrder
   rating?: Prisma.SortOrder
   analysisResult?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -299,6 +310,7 @@ export type StyleReferenceScalarWhereWithAggregatesInput = {
   type?: Prisma.EnumStyleRefTypeWithAggregatesFilter<"StyleReference"> | $Enums.StyleRefType
   presetKey?: Prisma.StringNullableWithAggregatesFilter<"StyleReference"> | string | null
   originalImageUrl?: Prisma.StringNullableWithAggregatesFilter<"StyleReference"> | string | null
+  originalS3Key?: Prisma.StringNullableWithAggregatesFilter<"StyleReference"> | string | null
   rating?: Prisma.IntWithAggregatesFilter<"StyleReference"> | number
   analysisResult?: Prisma.JsonNullableWithAggregatesFilter<"StyleReference">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"StyleReference"> | Date | string
@@ -308,6 +320,7 @@ export type StyleReferenceCreateInput = {
   type: $Enums.StyleRefType
   presetKey?: string | null
   originalImageUrl?: string | null
+  originalS3Key?: string | null
   rating?: number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
@@ -320,6 +333,7 @@ export type StyleReferenceUncheckedCreateInput = {
   type: $Enums.StyleRefType
   presetKey?: string | null
   originalImageUrl?: string | null
+  originalS3Key?: string | null
   rating?: number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
@@ -329,6 +343,7 @@ export type StyleReferenceUpdateInput = {
   type?: Prisma.EnumStyleRefTypeFieldUpdateOperationsInput | $Enums.StyleRefType
   presetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  originalS3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -341,6 +356,7 @@ export type StyleReferenceUncheckedUpdateInput = {
   type?: Prisma.EnumStyleRefTypeFieldUpdateOperationsInput | $Enums.StyleRefType
   presetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  originalS3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -352,6 +368,7 @@ export type StyleReferenceCreateManyInput = {
   type: $Enums.StyleRefType
   presetKey?: string | null
   originalImageUrl?: string | null
+  originalS3Key?: string | null
   rating?: number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
@@ -361,6 +378,7 @@ export type StyleReferenceUpdateManyMutationInput = {
   type?: Prisma.EnumStyleRefTypeFieldUpdateOperationsInput | $Enums.StyleRefType
   presetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  originalS3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -372,6 +390,7 @@ export type StyleReferenceUncheckedUpdateManyInput = {
   type?: Prisma.EnumStyleRefTypeFieldUpdateOperationsInput | $Enums.StyleRefType
   presetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  originalS3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -393,6 +412,7 @@ export type StyleReferenceCountOrderByAggregateInput = {
   type?: Prisma.SortOrder
   presetKey?: Prisma.SortOrder
   originalImageUrl?: Prisma.SortOrder
+  originalS3Key?: Prisma.SortOrder
   rating?: Prisma.SortOrder
   analysisResult?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -410,6 +430,7 @@ export type StyleReferenceMaxOrderByAggregateInput = {
   type?: Prisma.SortOrder
   presetKey?: Prisma.SortOrder
   originalImageUrl?: Prisma.SortOrder
+  originalS3Key?: Prisma.SortOrder
   rating?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -420,6 +441,7 @@ export type StyleReferenceMinOrderByAggregateInput = {
   type?: Prisma.SortOrder
   presetKey?: Prisma.SortOrder
   originalImageUrl?: Prisma.SortOrder
+  originalS3Key?: Prisma.SortOrder
   rating?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -480,6 +502,7 @@ export type StyleReferenceCreateWithoutUserInput = {
   type: $Enums.StyleRefType
   presetKey?: string | null
   originalImageUrl?: string | null
+  originalS3Key?: string | null
   rating?: number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
@@ -490,6 +513,7 @@ export type StyleReferenceUncheckedCreateWithoutUserInput = {
   type: $Enums.StyleRefType
   presetKey?: string | null
   originalImageUrl?: string | null
+  originalS3Key?: string | null
   rating?: number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
@@ -530,6 +554,7 @@ export type StyleReferenceScalarWhereInput = {
   type?: Prisma.EnumStyleRefTypeFilter<"StyleReference"> | $Enums.StyleRefType
   presetKey?: Prisma.StringNullableFilter<"StyleReference"> | string | null
   originalImageUrl?: Prisma.StringNullableFilter<"StyleReference"> | string | null
+  originalS3Key?: Prisma.StringNullableFilter<"StyleReference"> | string | null
   rating?: Prisma.IntFilter<"StyleReference"> | number
   analysisResult?: Prisma.JsonNullableFilter<"StyleReference">
   createdAt?: Prisma.DateTimeFilter<"StyleReference"> | Date | string
@@ -540,6 +565,7 @@ export type StyleReferenceCreateManyUserInput = {
   type: $Enums.StyleRefType
   presetKey?: string | null
   originalImageUrl?: string | null
+  originalS3Key?: string | null
   rating?: number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
@@ -549,6 +575,7 @@ export type StyleReferenceUpdateWithoutUserInput = {
   type?: Prisma.EnumStyleRefTypeFieldUpdateOperationsInput | $Enums.StyleRefType
   presetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  originalS3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -559,6 +586,7 @@ export type StyleReferenceUncheckedUpdateWithoutUserInput = {
   type?: Prisma.EnumStyleRefTypeFieldUpdateOperationsInput | $Enums.StyleRefType
   presetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  originalS3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -569,6 +597,7 @@ export type StyleReferenceUncheckedUpdateManyWithoutUserInput = {
   type?: Prisma.EnumStyleRefTypeFieldUpdateOperationsInput | $Enums.StyleRefType
   presetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   originalImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  originalS3Key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rating?: Prisma.IntFieldUpdateOperationsInput | number
   analysisResult?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -582,6 +611,7 @@ export type StyleReferenceSelect<ExtArgs extends runtime.Types.Extensions.Intern
   type?: boolean
   presetKey?: boolean
   originalImageUrl?: boolean
+  originalS3Key?: boolean
   rating?: boolean
   analysisResult?: boolean
   createdAt?: boolean
@@ -594,6 +624,7 @@ export type StyleReferenceSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   type?: boolean
   presetKey?: boolean
   originalImageUrl?: boolean
+  originalS3Key?: boolean
   rating?: boolean
   analysisResult?: boolean
   createdAt?: boolean
@@ -606,6 +637,7 @@ export type StyleReferenceSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   type?: boolean
   presetKey?: boolean
   originalImageUrl?: boolean
+  originalS3Key?: boolean
   rating?: boolean
   analysisResult?: boolean
   createdAt?: boolean
@@ -618,12 +650,13 @@ export type StyleReferenceSelectScalar = {
   type?: boolean
   presetKey?: boolean
   originalImageUrl?: boolean
+  originalS3Key?: boolean
   rating?: boolean
   analysisResult?: boolean
   createdAt?: boolean
 }
 
-export type StyleReferenceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "type" | "presetKey" | "originalImageUrl" | "rating" | "analysisResult" | "createdAt", ExtArgs["result"]["styleReference"]>
+export type StyleReferenceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "type" | "presetKey" | "originalImageUrl" | "originalS3Key" | "rating" | "analysisResult" | "createdAt", ExtArgs["result"]["styleReference"]>
 export type StyleReferenceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -645,6 +678,7 @@ export type $StyleReferencePayload<ExtArgs extends runtime.Types.Extensions.Inte
     type: $Enums.StyleRefType
     presetKey: string | null
     originalImageUrl: string | null
+    originalS3Key: string | null
     rating: number
     analysisResult: runtime.JsonValue | null
     createdAt: Date
@@ -1077,6 +1111,7 @@ export interface StyleReferenceFieldRefs {
   readonly type: Prisma.FieldRef<"StyleReference", 'StyleRefType'>
   readonly presetKey: Prisma.FieldRef<"StyleReference", 'String'>
   readonly originalImageUrl: Prisma.FieldRef<"StyleReference", 'String'>
+  readonly originalS3Key: Prisma.FieldRef<"StyleReference", 'String'>
   readonly rating: Prisma.FieldRef<"StyleReference", 'Int'>
   readonly analysisResult: Prisma.FieldRef<"StyleReference", 'Json'>
   readonly createdAt: Prisma.FieldRef<"StyleReference", 'DateTime'>

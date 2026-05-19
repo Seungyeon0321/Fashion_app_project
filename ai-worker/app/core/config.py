@@ -73,6 +73,10 @@ class Settings(BaseSettings):
         case_sensitive=True,
     )
 
+    # ── Naver Shopping ──────────────────────────────────────────
+    NAVER_CLIENT_ID: str = Field(default="")
+    NAVER_CLIENT_SECRET: str = Field(default="")
+
 # 싱글톤 패턴: 이 파일을 import하면 항상 같은 settings 객체를 사용
 # NestJS의 ConfigService와 같은 개념
 settings = Settings()

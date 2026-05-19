@@ -1,39 +1,36 @@
 // pages/style-reference/ui/StyleReferencePage.tsx
 
-import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, fonts, spacing } from '@/shared/lib/tokens';
-import { useStylePresets } from '@/features/style-reference/model/useStylePresets';
-import { StyleTabs } from '@/features/style-reference/ui/StyleTabs';
-import { StylePresetGrid } from '@/features/style-reference/ui/StylePresetGrid';
-import { PageHeader } from '@/shared/ui/PageHeader';
-import { ScreenLayout } from '@/shared/ui/ScreenLayout';
-import { useProfile } from '@/features/profile/api/useProfile';  // ← 추가
-import { GenderSetupModal } from '@/features/gender-setup/ui/GenderSetupModal';
-import { G } from 'react-native-svg';
-import { is } from 'zod/v4/locales';
+import React, { useState } from 'react'
+import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native'
+import { colors, fonts, spacing } from '@/shared/lib/tokens'
+import { useStylePresets } from '@/features/style-reference/model/useStylePresets'
+import { StyleTabs } from '@/features/style-reference/ui/StyleTabs'
+import { StylePresetGrid } from '@/features/style-reference/ui/StylePresetGrid'
+import { CustomReferenceGrid } from '@/features/style-reference/ui/CustomReferenceGrid'
+import { PageHeader } from '@/shared/ui/PageHeader'
+import { ScreenLayout } from '@/shared/ui/ScreenLayout'
+import { useProfile } from '@/features/profile/api/useProfile'
+import { GenderSetupModal } from '@/features/gender-setup/ui/GenderSetupModal'
 
-type TabId = 'PRESET' | 'CUSTOM';
+type TabId = 'PRESET' | 'CUSTOM'
 
 export function StyleReferencePage() {
-  const insets = useSafeAreaInsets();
-  const [activeTab, setActiveTab] = useState<TabId>('PRESET');
-  const { presets, isLoading, selected, toggle, save, isSaving } = useStylePresets();
+  const [activeTab, setActiveTab] = useState<TabId>('PRESET')
+  const { presets, isLoading, selected, toggle, save, isSaving } = useStylePresets()
+  const { data: profile } = useProfile()
 
-  const { data: profile, isLoading: isProfileLoading } = useProfile();
-
-  const showGenderModal = profile !== undefined && !profile.gender;
+  const showGenderModal = profile !== undefined && !profile.gender
 
   return (
     <ScreenLayout hasFooter>
-      <ScrollView
-        style={styles.scroll}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         <PageHeader
           title="MY STYLE"
-          subtitle="Select up to 3 aesthetics"
+          subtitle={
+            activeTab === 'PRESET'
+              ? 'Select up to 3 aesthetics'
+              : 'Add photos that inspire your style'
+          }
         />
 
         <StyleTabs
@@ -50,46 +47,40 @@ export function StyleReferencePage() {
             onToggle={toggle}
           />
         ) : (
-          <View style={styles.comingSoon}>
-            <Text style={styles.comingSoonText}>Coming soon</Text>
-          </View>
+          // CUSTOM 탭 — CustomReferenceGrid가 업로드 버튼 포함
+          <CustomReferenceGrid />
         )}
 
         <View style={{ height: 120 }} />
       </ScrollView>
 
-      {/* 하단 고정 버튼 — SafeArea 밖 */}
-      <View style={styles.footer}>
-        <Pressable
-          style={[styles.saveButton, (isSaving || selected.length === 0) && styles.saveButtonDisabled]}
-          onPress={() => save()}
-          disabled={isSaving || selected.length === 0}
-        >
-          <Text style={styles.saveButtonText}>
-            {isSaving ? 'SAVING...' : 'SAVE STYLE'}
-          </Text>
-        </Pressable>
-      </View>
+      {/* 하단 버튼 — PRESET일 때만 SAVE STYLE 표시 */}
+      {/* CUSTOM은 CustomReferenceGrid 내부에 ADD STYLE 버튼이 있음 */}
+      {activeTab === 'PRESET' && (
+        <View style={styles.footer}>
+          <Pressable
+            style={[
+              styles.saveButton,
+              (isSaving || selected.length === 0) && styles.saveButtonDisabled,
+            ]}
+            onPress={() => save()}
+            disabled={isSaving || selected.length === 0}
+          >
+            <Text style={styles.saveButtonText}>
+              {isSaving ? 'SAVING...' : 'SAVE STYLE'}
+            </Text>
+          </Pressable>
+        </View>
+      )}
+
       <GenderSetupModal visible={showGenderModal} />
     </ScreenLayout>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
   scroll: {
     flex: 1,
-    
-  },
-
-  comingSoon: {
-    flex: 1,
-    alignItems: 'center',
-    paddingTop: 80,
-  },
-
-  comingSoonText: {
-    ...fonts.bodyMd,
-    color: colors.hint,
   },
 
   footer: {
@@ -103,7 +94,7 @@ const styles = StyleSheet.create({
   saveButton: {
     backgroundColor: colors.primary,
     paddingVertical: 16,
-    alignItems: 'center',  
+    alignItems: 'center',
   },
 
   saveButtonDisabled: {
@@ -115,4 +106,4 @@ const styles = StyleSheet.create({
     color: colors.surfaceHigh,
     letterSpacing: 1.2,
   },
-});
+})

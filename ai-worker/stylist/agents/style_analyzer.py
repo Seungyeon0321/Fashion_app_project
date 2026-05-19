@@ -20,9 +20,12 @@ Style Analyzer 노드
      - 앵커 O + 레퍼런스 X → 앵커 100%
      - 앵커 X + 레퍼런스 O → 레퍼런스 100%
      - 앵커 X + 레퍼런스 X → has_style_context = False (태그 fallback)
-  ④ NCP conflict 체크
-     - 앵커 아이템이 excluded_outfits(싫어요 조합)에 포함돼 있으면
-       conflict_warning 세팅 (앵커는 무조건 포함하되 경고만)
+
+  ※ NCP conflict 체크 제거:
+     앵커가 NCP 조합에 포함돼 있어도 conflict가 아님.
+     NCP는 "조합 단위" 싫어요이고, 앵커가 포함된 조합은
+     Retrieval/Ranker가 다른 아이템으로 교체해서 새 조합을 만들면 됨.
+     conflict_warning은 Planner의 날씨/캘린더 충돌만 처리.
 
 DB 접근 방식:
   psycopg2 직접 연결 (기존 retrieval.py 패턴과 통일)
@@ -36,7 +39,7 @@ from typing import Optional
 from dotenv import load_dotenv
 
 from stylist.outfit_state import OutfitState
-from stylist.clip_encoder import CLIPEncoder
+from shared.clip_encoder import CLIPEncoder
 
 load_dotenv()
 
@@ -102,23 +105,11 @@ def style_analyzer(state: OutfitState) -> dict:
             reference_vector=reference_vector,
         )
 
-        # ──────────────────────────────────────────────────────────────────
-        # ④ NCP conflict 체크
-        # ──────────────────────────────────────────────────────────────────
-        conflict_warning = None
-
-        if anchor_item and state.get("excluded_outfits"):
-            conflict_warning = _check_ncp_conflict(
-                anchor_item_id=state["anchor_item_id"],
-                excluded_outfits=state["excluded_outfits"],
-            )
-
         return {
             "anchor_item":       anchor_item,
             "style_vector":      style_vector.tolist() if style_vector is not None else None,
             "style_keywords":    style_keywords,
             "has_style_context": has_style_context,
-            "conflict_warning":  conflict_warning,
             "errors":            errors,
         }
 
@@ -182,8 +173,6 @@ def _load_anchor_item(
     if row is None:
         return None, None
 
-    # embedding_text: "[0.1,0.2,...]" 문자열 → numpy 배열
-    # psycopg2는 vector 타입을 모르므로 text로 받아서 직접 파싱
     embedding_vector = None
     if row[9]:
         embedding_vector = np.array(
@@ -220,10 +209,6 @@ def _compute_reference_vector(
     Lazy 임베딩:
         PRESET embedding이 null이면 즉석 encode_text() + DB 저장
         다음 요청부터 DB에서 바로 읽음 (첫 요청만 느림)
-
-    ANY(%s) 사용법:
-        psycopg2에서 리스트를 IN 조건으로 넘길 때
-        WHERE id = ANY(%s) + 파라미터를 tuple로 감싸면 됨
     """
     conn = get_connection()
     cur  = conn.cursor()
@@ -249,11 +234,9 @@ def _compute_reference_vector(
     if not rows:
         return None, []
 
-    # CUSTOM / PRESET 분리 후 CUSTOM 우선 선택
-    # row 인덱스: 0=id, 1=type, 2=presetKey, 3=embedding_text
     custom_rows = [r for r in rows if r[1] == "CUSTOM"]
-    preset_rows  = [r for r in rows if r[1] == "PRESET"]
-    active_rows  = custom_rows if custom_rows else preset_rows
+    preset_rows = [r for r in rows if r[1] == "PRESET"]
+    active_rows = custom_rows if custom_rows else preset_rows
 
     vectors  = []
     keywords = []
@@ -267,13 +250,11 @@ def _compute_reference_vector(
         vec = None
 
         if embedding_text:
-            # DB에 embedding 있음 → 파싱해서 바로 사용
             vec = np.array(
                 [float(x) for x in embedding_text.strip("[]").split(",")],
                 dtype=np.float32,
             )
         elif ref_type == "PRESET" and preset_key:
-            # PRESET인데 embedding null → lazy encode + DB 저장
             vec = _clip_encoder.encode_text(preset_key)
             _save_preset_embedding(ref_id, vec)
             print(f"[StyleAnalyzer] PRESET '{preset_key}' lazy 임베딩 완료")
@@ -281,14 +262,12 @@ def _compute_reference_vector(
         if vec is not None:
             vectors.append(vec)
 
-        # 키워드: PRESET이면 presetKey를 키워드로 활용
         if ref_type == "PRESET" and preset_key:
             keywords.append(preset_key)
 
     if not vectors:
         return None, keywords
 
-    # 평균 벡터 계산 후 L2 정규화
     avg_vector = np.mean(vectors, axis=0)
     norm = np.linalg.norm(avg_vector)
     if norm > 0:
@@ -349,20 +328,3 @@ def _compute_style_vector(
         combined = combined / norm
 
     return combined, True
-
-
-def _check_ncp_conflict(
-    anchor_item_id: int,
-    excluded_outfits: list[dict],
-) -> Optional[str]:
-    """
-    앵커 아이템이 NCP(싫어요 조합)에 포함돼 있는지 확인.
-
-    conflict여도 앵커는 무조건 포함.
-    conflict_warning만 반환 → Response 노드에서 메시지 활용.
-    """
-    for outfit in excluded_outfits:
-        if anchor_item_id in outfit.get("item_ids", []):
-            return "anchor_ncp_conflict"
-
-    return None

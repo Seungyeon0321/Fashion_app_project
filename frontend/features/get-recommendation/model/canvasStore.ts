@@ -3,10 +3,11 @@ import { RecommendationResponse } from '@/features/get-recommendation/api/useRec
 
 export type CanvasItem = {
   id: number;
-  imageUrl: string;  // null 불가 (initFromResponse에서 filter로 걸러냄)
+  imageUrl: string;
   category: string;
   x: number;
   y: number;
+  is_anchor ?: boolean;
 };
 
 type CanvasStore = {
@@ -21,18 +22,23 @@ type CanvasStore = {
   reset:            () => void;
 };
 
-// 카테고리별 초기 위치 결정
+// 카테고리별 초기 위치
+// 캔버스 높이가 대략 400~500px이므로 y값을 그 안에 맞춤
 function getInitialPosition(category: string, index: number): { x: number; y: number } {
   const cat = category.toUpperCase();
 
-  if (cat === 'OUTER' || cat === 'JACKET') return { x: 180, y: 100 };
-  if (cat === 'TOP'   || cat === 'TOPS')   return { x: 60,  y: 80  };
+  if (cat === 'OUTER' || cat === 'JACKET') return { x: 10,  y: 10  };
+  if (cat === 'TOP'   || cat === 'TOPS')   return { x: 10,  y: 10  };
   if (cat === 'BOTTOM' || cat === 'BOTTOMS' || cat === 'PANTS' || cat === 'SKIRT') {
-    return { x: 80, y: 300 };
+    return { x: 160, y: 10 };   // 오른쪽에 나란히 — y:300이면 overflow:hidden에 잘림
   }
-  if (cat === 'SHOES') return { x: 100, y: 500 };
+  if (cat === 'SHOES') return { x: 10,  y: 200 };
+  if (cat === 'BAG'  || cat === 'ACC') return { x: 160, y: 200 };
 
-  return { x: 60 + index * 30, y: 100 + index * 80 };
+  // fallback: 겹치지 않게 격자 배치
+  const col = index % 2;
+  const row = Math.floor(index / 2);
+  return { x: col * 150 + 10, y: row * 180 + 10 };
 }
 
 export const useCanvasStore = create<CanvasStore>((set) => ({
@@ -40,20 +46,21 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
   trayItems:   [],
 
   initFromResponse: (data) => {
-     console.log('🔍 initFromResponse raw data:', data.ranked_items);
-    const items: CanvasItem[] = data.ranked_items
-      // imageUrl이 있고 id가 number인 것만 (external mock 제외)
-      .filter((item) => item.imageUrl != null && typeof item.id === 'number')
-      .map((item, index) => ({
-        id:       item.id as number,
-        imageUrl: item.imageUrl as string,
-        category: item.category,
-        ...getInitialPosition(item.category, index),
-      }));
+  const items: CanvasItem[] = data.ranked_items
+    .filter((item) => item.imageUrl != null && typeof item.id === 'number')
+    .map((item, index) => ({
+      id:        item.id as number,
+      imageUrl:  item.imageUrl as string,
+      category:  item.category,
+      is_anchor: item.is_anchor,   // ← 추가
+      ...getInitialPosition(item.category, index),
+    }));
 
-    set({ canvasItems: items, trayItems: items });
-  },
+  set({ trayItems: items, canvasItems: [] });
+},
 
+  // 트레이에서 캔버스로 토글
+  // 이미 캔버스에 있으면 제거, 없으면 추가
   addToCanvas: (item) =>
     set((state) => {
       const alreadyOnCanvas = state.canvasItems.some((c) => c.id === item.id);
@@ -86,6 +93,7 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
       }
       const positioned = {
         ...item,
+        is_anchor: item.is_anchor ?? false, 
         ...getInitialPosition(item.category, state.trayItems.length),
       };
       return {

@@ -28,23 +28,34 @@ export function ItemTray({ onAddPress }: Props) {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-       {trayItems.map((item) => {
-         const isOnCanvas = canvasItems.some((c) => c.id === item.id);
-        return (
-               <TouchableOpacity
-                key={item.id}
-                style={[styles.card, isOnCanvas && styles.cardActive]}
-                onPress={() => addToCanvas(item)}
-                activeOpacity={0.8}
-                >
-                <Image
-                    source={{ uri: item.imageUrl }}
-                    style={[styles.cardImage, !isOnCanvas && styles.cardImageDim]}
-                    resizeMode="cover"
-                />
-                </TouchableOpacity>
-  );
-})}
+        {trayItems.map((item) => {
+          const isOnCanvas = canvasItems.some((c) => c.id === item.id);
+
+          return (
+            <TouchableOpacity
+              key={item.id}
+              style={[styles.card, isOnCanvas && styles.cardActive]}
+              onPress={() => addToCanvas(item)}
+              activeOpacity={0.8}
+            >
+              <Image
+                source={{ uri: item.imageUrl }}
+                style={[
+                  styles.cardImage,
+                  // 캔버스에 있으면 선명, 없으면 흐리게
+                  !isOnCanvas && styles.cardImageDim,
+                ]}
+                resizeMode="cover"
+              />
+              {/* 캔버스에 추가된 아이템엔 체크 표시 */}
+              {isOnCanvas && (
+                <View style={styles.checkBadge}>
+                  <Text style={styles.checkText}>✓</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          );
+        })}
 
         {/* + 버튼 — 항상 마지막 */}
         <TouchableOpacity
@@ -79,10 +90,34 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 4,
     overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  cardActive: {
+    borderColor: colors.primary,  // 캔버스에 있으면 테두리
   },
   cardImage: {
     width: '100%',
     height: '100%',
+  },
+  cardImageDim: {
+    opacity: 0.35,   // 캔버스에 없으면 흐리게 — 탭해서 추가 유도
+  },
+  checkBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkText: {
+    fontSize: 10,
+    color: colors.background,
+    fontWeight: 'bold',
   },
   addButton: {
     width: CARD_SIZE.width,
@@ -97,12 +132,5 @@ const styles = StyleSheet.create({
   addIcon: {
     fontSize: 24,
     color: colors.hint,
-  },
-  cardActive: {
-    borderWidth: 2,
-    borderColor: colors.primary,
-  },
-  cardImageDim: {
-    opacity: 0.4,  // 캔버스에 없으면 흐리게
   },
 });

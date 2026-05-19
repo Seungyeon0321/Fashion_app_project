@@ -5,7 +5,8 @@ type ToastState = {
   visible: boolean
   message: string
   type: ToastType
-  show: (message: string, type?: ToastType) => void
+  success: (message: string) => void
+  error: (message: string, type?: ToastType) => void
   hide: () => void
 }
 
@@ -14,7 +15,10 @@ export const useToastStore = create<ToastState>((set) => ({
   message: '',
   type: 'error',
 
-  show: (message, type = 'error') =>
+  success: (message) =>
+    set({ visible: true, message, type: 'success' }),
+
+  error: (message, type = 'error') =>
     set({ visible: true, message, type }),
 
   hide: () =>
