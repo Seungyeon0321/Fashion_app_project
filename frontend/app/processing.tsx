@@ -17,7 +17,6 @@ export default function ProcessingScreen() {
        const status = query.state.data?.status
       if (status === 'completed') return false
       if (status === 'failed') return false    // ← 추가
-      if (status === 'not_found') return false // ← 추가
       return 3000
     },
     enabled: !!jobId,
@@ -26,12 +25,15 @@ export default function ProcessingScreen() {
   })
 
   useEffect(() => {
-     if (data?.status === 'completed') {
+    if (data?.status === 'completed') {
+      // 완료되면 결과 화면으로 이동 — items 중 첫 번째 ID 전달
+    //   const firstItemId = data.items?.[0]?.id
       router.replace(`/result?items=${encodeURIComponent(JSON.stringify(data.items))}`)
-  }
-     if (data?.status === 'failed' || data?.status === 'not_found') {
+    }
+    if (data?.status === 'failed') {
+      // 실패하면 에러 화면으로 이동
       router.replace('/camera')
-  }
+    }
   }, [data?.status])
 
   if (isLoading) {
@@ -43,7 +45,7 @@ export default function ProcessingScreen() {
   }
 
   // 에러 or not_found 상태
-  if (isError || data?.status === 'failed' || data?.status === 'not_found') {
+  if (isError || data?.status === 'failed') {
     return (
       <View style={styles.container}>
         <Text style={styles.errorTitle}>Something went wrong</Text>

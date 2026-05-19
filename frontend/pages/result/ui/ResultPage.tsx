@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, Alert, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/shared/ui/Button'
 import { ReviewItemCard } from '@/features/review_item/ui/ReviewItemCard'
 import { useReviewItems, ClothingItem } from '@/features/review_item/modal/useReviewItems'
@@ -20,6 +20,16 @@ export const ResultPage = ({ items }: Props) => {
   const { states, update, setCategory, allActioned, savedItems } = useReviewItems(items)
   const [isConfirming,   setIsConfirming]   = useState(false)
   const [showPopup,      setShowPopup]      = useState(false)
+
+  useEffect(() => {
+    const checkPopup = async () => {
+      const shouldShow = await shouldShowClothingDetailPopup()
+      if (shouldShow) {
+        setShowPopup(true)
+      }
+    }
+    checkPopup()
+  }, [])
 
   const handleConfirm = async () => {
     if (savedItems.length === 0) {
@@ -41,17 +51,8 @@ export const ResultPage = ({ items }: Props) => {
           })
         })
       )
-
-      // 등록 성공 후 팝업 표시 여부 확인
-      // "다시 보지 않기"를 누른 적 없으면 팝업 표시
-      // 팝업 닫히면 홈으로 이동 (handlePopupClose에서 처리)
-      const shouldShow = await shouldShowClothingDetailPopup()
-      if (shouldShow) {
-        setShowPopup(true)
-      } else {
-        router.replace('/')
-      }
-
+      // ✅ 저장 완료 후 바로 홈으로
+      router.replace('/')
     } catch {
       Alert.alert('Error', 'Failed to save. Please try again.')
     } finally {
@@ -61,7 +62,6 @@ export const ResultPage = ({ items }: Props) => {
 
   const handlePopupClose = () => {
     setShowPopup(false)
-    router.replace('/')
   }
 
   return (

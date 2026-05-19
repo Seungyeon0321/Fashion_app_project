@@ -186,7 +186,7 @@ def _search_closet(state: OutfitState, params: dict) -> list[dict]:
                 WHERE user_id = %s
                   AND "isArchived" = false
                   AND "isWashing" = false
-                  AND category = ANY(%s)
+                  AND category = ANY(%s::"Category"[])
                   AND embedding IS NOT NULL
                   AND (embedding <=> %s::vector) <= %s
                 ORDER BY embedding <=> %s::vector
@@ -221,7 +221,7 @@ def _search_closet(state: OutfitState, params: dict) -> list[dict]:
                 WHERE user_id = %s
                   AND "isArchived" = false
                   AND "isWashing" = false
-                  AND category = ANY(%s)
+                  AND category = ANY(%s::"Category"[])  
                 ORDER BY "wearCount" DESC
                 LIMIT %s
             """, (user_id, target_categories, MAX_RETRIEVE))

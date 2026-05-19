@@ -7,7 +7,11 @@ import { PresetKey } from './types';
 
 export function useStylePresets() {
   const savedStyles = useStyleStore((s) => s.savedStyles);
-  const [selected, setSelected] = useState<PresetKey[]>(savedStyles as PresetKey[]);
+  const [selected, setSelected] = useState<PresetKey[]>(
+    savedStyles
+      .filter((s) => s.presetKey != null)
+      .map((s) => s.presetKey as PresetKey)
+);
   const showToast = useToastStore((s) => s.show);
 
   const { data: presets = [], isLoading } = useQuery({

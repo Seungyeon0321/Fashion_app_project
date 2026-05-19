@@ -36,6 +36,15 @@ export class ClosetService {
             }
         });
 
+         // ← embedding은 Prisma가 Unsupported 타입이라 raw SQL로 복사
+        await this.prisma.$executeRaw`
+        UPDATE closet_items
+        SET embedding = (
+            SELECT embedding FROM clothing_items WHERE id = ${source.id}
+        )
+        WHERE id = ${closetItem.id}
+    `;
+
         return {
             ...closetItem,
             imageUrl: closetItem.cropS3Key
