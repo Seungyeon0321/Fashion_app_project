@@ -28,6 +28,11 @@ from google.auth.transport.requests import Request
 
 from stylist.outfit_state import OutfitState
 
+import psycopg2
+
+def get_db_connection():
+    return psycopg2.connect(os.getenv("DATABASE_URL"))
+
 load_dotenv()
 
 # ── LLM ──────────────────────────────────────────────────────────────
@@ -294,6 +299,23 @@ def planner(state: OutfitState) -> dict:
     """
     errors  = []
     user_id = state.get("user_id", "")
+    gender = state.get("gender")
+
+    if not gender:
+        try:
+            conn = get_db_connection()
+            cur  = conn.cursor()
+            cur.execute(
+                'SELECT gender FROM users WHERE id = %s',
+                (int(user_id),)
+            )
+            row = cur.fetchone()
+            cur.close()
+            conn.close()
+            gender = row[0] if row else "MALE"  # fallback: MALE
+        except Exception as e:
+            errors.append(f"[planner] gender 조회 실패: {e}")
+            gender = "MALE"  # fallback
 
     # ── 1. 날씨 (이미 있으면 재호출 스킵) ───────────────────────────
     if state.get("weather") and state.get("season"):
@@ -368,5 +390,6 @@ def planner(state: OutfitState) -> dict:
         "intent":            intent,
         "avoid_constraints": avoid_constraints,
         "conflict_warning":  conflict_warning,
+        "gender":            gender, 
         "errors":            errors,
     }

@@ -10,6 +10,7 @@ class OutfitState(TypedDict):
     source: Optional[str]                    # "closet" | "external"
     anchor_item_id: Optional[int]
     style_reference_ids: Optional[List[int]]
+    gender: Optional[str]  # ← 추가 "MALE" | "FEMALE"
 
     # Planner
     weather: Optional[str]
@@ -23,6 +24,14 @@ class OutfitState(TypedDict):
     style_vector: Optional[List[float]]      # 512차원, L2 정규화
     style_keywords: Optional[List[str]]
     has_style_context: Optional[bool]
+
+    # Query Builder
+    search_queries: Optional[dict]
+    # 예: { "TOP": "오버핏 베이지 미니멀 티셔츠 봄", "BOTTOM": "슬랙스 베이지 봄" }
+
+    user_brand_profile: Optional[dict]
+    # MVP: 빈 dict — 좋아요 코디 누적 후 채워질 예정
+    # 예: { "preferred_brands": ["COS"], "preferred_colors": ["beige"], "preferred_fit": ["overfit"] }
 
     # Retrieval
     retrieved_items: Optional[List[dict]]

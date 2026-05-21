@@ -1,59 +1,34 @@
-# ai-worker/stylist/nodes/retrieval.py
+# ai-worker/stylist/agents/retrieval.py
 """
-Retrieval 노드
+Retrieval 노드 — 라우터
 
 역할:
-  Style Analyzer가 계산한 style_vector를 기반으로
-  실제 아이템을 가져온다.
+  source에 따라 closet_retrieval 또는 external_retrieval로 라우팅.
+  NCP 필터, 앵커 강제 포함 등 공통 후처리 담당.
 
 파이프라인에서의 위치:
-  Style Analyzer → [Retrieval] → Ranker
+  Query Builder → [Retrieval] → Ranker
 
-두 가지 데이터 소스:
-  closet   → 사용자 옷장에서 pgvector 코사인 유사도 검색
-  external → 네이버 쇼핑 API (실제 연동)
-
-4가지 경우의 수:
-  source=closet   + anchor O → 앵커 고정 + 옷장 pgvector 검색
-  source=closet   + anchor X → 옷장 전체 pgvector 검색
-  source=external + anchor O → 앵커(내 옷) 고정 + 네이버 쇼핑
-  source=external + anchor X → 네이버 쇼핑만
+분리된 파일:
+  closet_retrieval.py   ← 옷장 pgvector 검색
+  external_retrieval.py ← 네이버 API + 비동기 이미지 점수
+  retrieval_utils.py    ← NCP 필터, 앵커 처리 공통 함수
 
 relaxation_level:
-  Validator가 결과 부족 판단 시 retry_count를 올리고 Retrieval로 돌아옴.
-  retry_count를 보고 검색 조건을 단계적으로 완화함.
-
+  Validator가 결과 부족 판단 시 retry_count 증가 → Retrieval 재호출.
   level 0: 유사도 0.85 이상, 카테고리 엄격
   level 1: 유사도 0.70 이상, 카테고리 엄격
   level 2: 유사도 0.70 이상, 카테고리 완화
-  level 3: 유사도 없음, 태그/카테고리 기반 fallback
-
-presigned URL:
-  보안상 S3 URL을 직접 노출하지 않음.
-  presigned URL 생성은 Response 노드에서 최종 아이템 확정 후 처리.
-
-DB 접근 방식:
-  psycopg2 직접 연결 (기존 retrieval.py 패턴과 통일)
+  level 3: 유사도 없음, wearCount 기반 fallback
 """
 
-import os
-import re
-import psycopg2
-import httpx
-import numpy as np
-from typing import Optional
 from dotenv import load_dotenv
-
 from stylist.outfit_state import OutfitState
+from stylist.agents.closet_retrieval   import search_closet
+from stylist.agents.external_retrieval import search_external
+from stylist.agents.retrieval_utils    import filter_ncp, ensure_anchor_included
 
 load_dotenv()
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# 상수 정의
-# ──────────────────────────────────────────────────────────────────────────────
-
-MAX_RETRIEVE = 20
 
 # relaxation_level별 검색 파라미터
 RELAXATION_PARAMS = {
@@ -63,76 +38,52 @@ RELAXATION_PARAMS = {
     3: {"similarity_threshold": 0.00, "relax_category": True},
 }
 
-# 카테고리 한국어 매핑 (네이버 쇼핑 검색 쿼리용)
-CATEGORY_KR = {
-    "TOP":    "티셔츠",
-    "BOTTOM": "바지",
-    "OUTER":  "아우터",
-    "SHOES":  "신발",
-    "BAG":    "가방",
-    "ACC":    "액세서리",
-    "DRESS":  "원피스",
-}
-
-# intent 한국어 매핑 (네이버 쇼핑 검색 쿼리용)
-INTENT_KR = {
-    "casual":  "캐주얼",
-    "formal":  "포멀",
-    "sporty":  "스포티",
-}
-
-
-def get_connection():
-    """psycopg2 DB 연결. 기존 retrieval.py와 동일한 패턴."""
-    return psycopg2.connect(os.getenv("DATABASE_URL"))
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# 메인 노드 함수
-# ──────────────────────────────────────────────────────────────────────────────
 
 def retrieval(state: OutfitState) -> dict:
     """
     Retrieval 노드 메인 함수.
 
-    retry_count를 보고 relaxation_level을 결정한 뒤
-    source에 따라 closet 또는 external 검색을 수행.
+    처리 순서:
+      1. retry_count → relaxation_level 결정
+      2. source에 따라 closet / external 검색
+      3. NCP 필터 (싫어요 조합 아이템 제거)
+      4. 앵커 강제 포함
     """
     errors = []
 
     try:
-        # retry_count → relaxation_level 결정
         retry_count      = state.get("retry_count") or 0
         relaxation_level = min(retry_count, max(RELAXATION_PARAMS.keys()))
         params           = RELAXATION_PARAMS[relaxation_level]
 
-        print(f"[Retrieval] retry_count={retry_count}, level={relaxation_level}, "
+        print(f"[Retrieval] retry={retry_count}, level={relaxation_level}, "
               f"threshold={params['similarity_threshold']}")
 
         source = state.get("source") or "closet"
 
+        # ── 소스별 검색 ──────────────────────────────────────────────
         if source == "closet":
-            retrieved_items = _search_closet(state, params)
+            retrieved_items = search_closet(state, params)
         else:
-            retrieved_items = _search_external(state, params)
+            retrieved_items = search_external(state, params)
 
-        # NCP 필터: 싫어요 조합 아이템 제거 (앵커 예외)
+        # ── NCP 필터 ─────────────────────────────────────────────────
         if state.get("excluded_outfits"):
-            retrieved_items = _filter_ncp(
+            retrieved_items = filter_ncp(
                 items=retrieved_items,
                 excluded_outfits=state["excluded_outfits"],
                 anchor_item_id=state.get("anchor_item_id"),
             )
 
-        # 앵커 강제 포함: 유사도 임계값 때문에 검색 결과에서 빠질 수 있으므로
+        # ── 앵커 강제 포함 ───────────────────────────────────────────
         if state.get("anchor_item") and state.get("anchor_item_id"):
-            retrieved_items = _ensure_anchor_included(
+            retrieved_items = ensure_anchor_included(
                 items=retrieved_items,
                 anchor_item=state["anchor_item"],
                 anchor_item_id=state["anchor_item_id"],
             )
 
-        print(f"[Retrieval] 검색 완료: {len(retrieved_items)}개")
+        print(f"[Retrieval] 완료: {len(retrieved_items)}개")
 
         return {
             "retrieved_items":  retrieved_items,
@@ -146,368 +97,3 @@ def retrieval(state: OutfitState) -> dict:
             "relaxation_level": 0,
             "errors":           [f"retrieval 예외: {str(e)}"],
         }
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# closet 검색 (pgvector)
-# ──────────────────────────────────────────────────────────────────────────────
-
-def _search_closet(state: OutfitState, params: dict) -> list[dict]:
-    """
-    사용자 옷장에서 pgvector 코사인 유사도 검색.
-
-    has_style_context = True  → style_vector 기반 유사도 검색
-    has_style_context = False → 카테고리/wearCount 기반 fallback
-
-    pgvector 코사인 거리 연산자 <=>:
-        0에 가까울수록 유사 (완전히 같으면 0, 완전히 다르면 2)
-        유사도 = 1 - 코사인거리
-        threshold=0.85 → 거리 <= 0.15인 것만 검색
-
-    presigned URL 미생성:
-        crop_s3_key만 저장하고 URL은 Response 노드에서 생성.
-    """
-    user_id           = int(state["user_id"])
-    has_style_context = state.get("has_style_context", False)
-    style_vector      = state.get("style_vector")
-    threshold         = params["similarity_threshold"]
-    relax_category    = params["relax_category"]
-
-    target_categories = _get_target_categories(
-        intent=state.get("intent"),
-        relax=relax_category,
-    )
-
-    conn = get_connection()
-    cur  = conn.cursor()
-
-    try:
-        if has_style_context and style_vector and threshold > 0:
-            # ── 벡터 유사도 검색 ──────────────────────────────────────────
-            vector_str         = "[" + ",".join(str(float(x)) for x in style_vector) + "]"
-            distance_threshold = 1.0 - threshold
-
-            cur.execute("""
-                SELECT
-                    id,
-                    category,
-                    "subCategory",
-                    colors,
-                    brand,
-                    material,
-                    fit,
-                    style,
-                    name,
-                    crop_s3_key,
-                    1 - (embedding <=> %s::vector) AS similarity
-                FROM closet_items
-                WHERE user_id = %s
-                  AND "isArchived" = false
-                  AND "isWashing" = false
-                  AND category = ANY(%s::"Category"[])
-                  AND embedding IS NOT NULL
-                  AND (embedding <=> %s::vector) <= %s
-                ORDER BY embedding <=> %s::vector
-                LIMIT %s
-            """, (
-                vector_str,
-                user_id,
-                target_categories,
-                vector_str,
-                distance_threshold,
-                vector_str,
-                MAX_RETRIEVE,
-            ))
-
-        else:
-            # ── 카테고리 기반 fallback (level 3 또는 has_style_context=False) ──
-            cur.execute("""
-                SELECT
-                    id,
-                    category,
-                    "subCategory",
-                    colors,
-                    brand,
-                    material,
-                    fit,
-                    style,
-                    name,
-                    crop_s3_key,
-                    0.5 AS similarity
-                FROM closet_items
-                WHERE user_id = %s
-                  AND "isArchived" = false
-                  AND "isWashing" = false
-                  AND category = ANY(%s::"Category"[])
-                ORDER BY "wearCount" DESC
-                LIMIT %s
-            """, (user_id, target_categories, MAX_RETRIEVE))
-
-        rows = cur.fetchall()
-
-    finally:
-        cur.close()
-        conn.close()
-
-    return [_row_to_closet_item(row) for row in rows]
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# external 검색 (네이버 쇼핑 API)
-# ──────────────────────────────────────────────────────────────────────────────
-
-def _search_external(state: OutfitState, params: dict) -> list[dict]:
-    """
-    네이버 쇼핑 API로 외부 아이템 검색.
-    API 키 없거나 실패 시 fallback으로 전환.
-    """
-    client_id     = os.getenv("NAVER_CLIENT_ID")
-    client_secret = os.getenv("NAVER_CLIENT_SECRET")
-
-    if not client_id or not client_secret:
-        print("[Retrieval] 네이버 API 키 없음 — fallback")
-        return _search_external_fallback(state)
-
-    style_keywords    = state.get("style_keywords") or []
-    intent            = state.get("intent") or "casual"
-    target_categories = _get_target_categories(
-        intent=intent,
-        relax=params["relax_category"],
-    )
-
-    # 검색 키워드 조합
-    # style_keywords 있으면 우선 사용 (e.g. ["minimal", "quiet_luxury"])
-    # 없으면 intent 한국어로 fallback
-    base_keyword = " ".join(style_keywords[:2]) if style_keywords else INTENT_KR.get(intent, "캐주얼")
-
-    headers = {
-        "X-Naver-Client-Id":     client_id,
-        "X-Naver-Client-Secret": client_secret,
-    }
-
-    all_items = []
-
-    # TOP, BOTTOM, OUTER 우선 검색 (카테고리별 3개씩)
-    priority_categories = ["TOP", "BOTTOM", "OUTER"]
-    search_targets = [c for c in priority_categories if c in target_categories]
-
-    for category in search_targets:
-        query = f"{base_keyword} {CATEGORY_KR.get(category, category)}"
-
-        try:
-            response = httpx.get(
-                "https://openapi.naver.com/v1/search/shop.json",
-                headers=headers,
-                params={
-                    "query":   query,
-                    "display": 3,
-                    "sort":    "sim",
-                },
-                timeout=5.0,
-            )
-            response.raise_for_status()
-            data = response.json()
-
-            for item in data.get("items", []):
-                parsed = _parse_naver_item(item, category)
-                if parsed:
-                    all_items.append(parsed)
-
-        except Exception as e:
-            print(f"[Retrieval] 네이버 검색 실패 ({category}): {e}")
-            continue
-
-    print(f"[Retrieval] 네이버 쇼핑 검색 완료: {len(all_items)}개")
-
-    if not all_items:
-        print("[Retrieval] 결과 없음 — fallback")
-        return _search_external_fallback(state)
-
-    return all_items
-
-
-def _parse_naver_item(raw: dict, category: str) -> dict | None:
-    """
-    네이버 쇼핑 API 응답을 내부 표준 dict로 변환.
-
-    네이버 응답 주요 필드:
-        title:      상품명 (HTML <b> 태그 포함 → 제거 필요)
-        brand:      브랜드명
-        image:      상품 이미지 URL
-        link:       상품 상세 페이지 URL
-        lprice:     최저가
-        mallName:   쇼핑몰명
-        productId:  상품 고유 ID
-    """
-    title = re.sub(r"<[^>]+>", "", raw.get("title", "")).strip()
-    if not title:
-        return None
-
-    return {
-        "id":          f"naver_{raw.get('productId', '')}",
-        "source":      "naver_shopping",
-        "name":        title,
-        "brand":       raw.get("brand") or raw.get("mallName", ""),
-        "category":    category,
-        "subCategory": None,     # 네이버 API 세부 카테고리 매핑 어려움 — MVP None
-        "colors":      [],       # 네이버 API 색상 정보 없음 — MVP 빈 배열
-        "material":    None,
-        "fit":         None,
-        "style":       None,
-        "price":       int(raw.get("lprice", 0)),
-        "imageUrl":    raw.get("image", ""),
-        "purchaseUrl": raw.get("link", ""),
-        "crop_s3_key": None,     # 외부 아이템은 S3 없음
-        "similarity":  0.75,     # 네이버 API 유사도 없음 — 고정값
-        "is_anchor":   False,
-        "is_external": True,
-    }
-
-
-def _search_external_fallback(state: OutfitState) -> list[dict]:
-    """
-    네이버 API 키 없거나 전체 실패 시 최소 fallback.
-    실제 서비스에서는 거의 안 쓰임 — 개발/테스트 환경용.
-    """
-    intent = state.get("intent") or "casual"
-
-    return [
-        {
-            "id":          "fallback_ext_001",
-            "source":      "naver_shopping",
-            "name":        f"[Fallback] {intent} 기본 티셔츠",
-            "brand":       "",
-            "category":    "TOP",
-            "subCategory": None,
-            "colors":      [],
-            "material":    None,
-            "fit":         None,
-            "style":       None,
-            "price":       0,
-            "imageUrl":    None,
-            "purchaseUrl": None,
-            "crop_s3_key": None,
-            "similarity":  0.5,
-            "is_anchor":   False,
-            "is_external": True,
-        },
-    ]
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# NCP 필터
-# ──────────────────────────────────────────────────────────────────────────────
-
-def _filter_ncp(
-    items: list[dict],
-    excluded_outfits: list[dict],
-    anchor_item_id: Optional[int],
-) -> list[dict]:
-    """
-    NCP(싫어요 조합)에 등장하는 아이템을 검색 결과에서 제거.
-
-    조합 단위 필터:
-        "이 아이템이 싫어요"가 아니라 "이 조합이 싫어요"이므로
-        excluded_outfits에 등장하는 아이템 ID를 개별 제거하는 방식.
-
-    앵커 예외:
-        앵커는 NCP에 있어도 제거하지 않음.
-    """
-    excluded_ids: set[int] = set()
-    for outfit in excluded_outfits:
-        for item_id in outfit.get("item_ids", []):
-            excluded_ids.add(item_id)
-
-    if anchor_item_id:
-        excluded_ids.discard(anchor_item_id)
-
-    filtered = []
-    for item in items:
-        item_id = item.get("id")
-        if isinstance(item_id, int) and item_id in excluded_ids:
-            print(f"[Retrieval] NCP 필터: item_id={item_id} 제거")
-            continue
-        filtered.append(item)
-
-    return filtered
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# 앵커 강제 포함
-# ──────────────────────────────────────────────────────────────────────────────
-
-def _ensure_anchor_included(
-    items: list[dict],
-    anchor_item: dict,
-    anchor_item_id: int,
-) -> list[dict]:
-    """
-    앵커 아이템이 검색 결과에 포함돼 있는지 확인하고, 없으면 맨 앞에 삽입.
-
-    왜 필요한가?
-        유사도 임계값 때문에 앵커가 검색 결과에서 빠질 수 있음.
-        앵커는 사용자가 직접 지정한 아이템이므로 무조건 포함.
-    """
-    existing_ids = {item.get("id") for item in items}
-
-    if anchor_item_id in existing_ids:
-        for item in items:
-            if item.get("id") == anchor_item_id:
-                item["is_anchor"] = True
-        return items
-
-    anchor_entry = {
-        **anchor_item,
-        "source":      "closet",
-        "crop_s3_key": None,
-        "is_anchor":   True,
-        "similarity":  1.0,
-        "is_external": False,
-    }
-
-    print(f"[Retrieval] 앵커 강제 삽입: item_id={anchor_item_id}")
-    return [anchor_entry] + items
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# 헬퍼 함수들
-# ──────────────────────────────────────────────────────────────────────────────
-
-def _get_target_categories(
-    intent: Optional[str],
-    relax: bool,
-) -> list[str]:
-    """
-    검색할 카테고리 목록 결정.
-    relax=True: DRESS 추가.
-    """
-    categories = ["TOP", "BOTTOM", "OUTER", "SHOES", "BAG", "ACC"]
-    if relax:
-        categories.append("DRESS")
-    return categories
-
-
-def _row_to_closet_item(row: tuple) -> dict:
-    """
-    psycopg2 row 튜플을 Retrieval 표준 dict로 변환.
-
-    SELECT 순서:
-        0=id, 1=category, 2=subCategory, 3=colors, 4=brand,
-        5=material, 6=fit, 7=style, 8=name, 9=crop_s3_key, 10=similarity
-    """
-    return {
-        "id":          row[0],
-        "source":      "closet",
-        "category":    row[1],
-        "subCategory": row[2],
-        "colors":      row[3],
-        "brand":       row[4],
-        "material":    row[5],
-        "fit":         row[6],
-        "style":       row[7],
-        "name":        row[8],
-        "crop_s3_key": row[9],
-        "similarity":  float(row[10]),
-        "is_anchor":   False,
-        "is_external": False,
-    }
