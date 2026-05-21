@@ -1,11 +1,4 @@
 # ai-worker/stylist/query_strategies/naver.py
-"""
-네이버 쇼핑 전용 Query Strategy
-
-역할:
-  한국 쇼핑몰에 최적화된 검색 쿼리를 LLM으로 생성.
-  LLM 실패 시 규칙 기반 fallback으로 자동 전환.
-"""
 
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import SystemMessage, HumanMessage
@@ -46,10 +39,11 @@ NAVER_QUERY_SYSTEM = """당신은 한국 패션 쇼핑몰 검색 전문가입니
 규칙:
 - 반드시 한국어로 작성
 - 10단어 이내로 간결하게
-- 브랜드명 포함 금지 (특정 브랜드 편향 방지)
+- 브랜드명 포함 금지
 - 성별을 반드시 첫 단어로 포함 (남성 or 여성)
-- 색상, 핏, 소재, 스타일 키워드 자연스럽게 조합
-- 네이버 쇼핑에서 실제로 검색했을 때 잘 나올 법한 단어 선택
+- 색상, 핏, 스타일 키워드 자연스럽게 조합
+- 너무 구체적인 소재 표현 지양 ("라이트톤", "얇은 소재" 같은 표현은 검색 결과가 없을 수 있음)
+- 실제 네이버 쇼핑에서 검색 결과가 많이 나올 법한 대중적인 단어 선택
 - 검색어만 출력, 설명 없이"""
 
 NAVER_QUERY_HUMAN = """성별: {gender_kr}
@@ -59,8 +53,10 @@ NAVER_QUERY_HUMAN = """성별: {gender_kr}
 스타일 키워드: {style_keywords}
 앵커 아이템 정보: {anchor_info}
 선호 정보: {brand_profile}
+이미 선택된 아이템: {selected_items}
 
-위 정보를 바탕으로 네이버 쇼핑 검색어를 만들어주세요."""
+위 정보를 바탕으로 네이버 쇼핑 검색어를 만들어주세요.
+이미 선택된 아이템이 있다면 색상/스타일이 어울리는 아이템을 찾을 수 있는 검색어를 만들어주세요."""
 
 
 class NaverQueryStrategy(QueryStrategy):
@@ -81,11 +77,13 @@ class NaverQueryStrategy(QueryStrategy):
         anchor_item: dict | None,
         user_brand_profile: dict | None,
         gender: str = "MALE",
+        selected_items: list[dict] | None = None,  # ← 색상 체인용 추가
     ) -> str:
         try:
             return self._build_with_llm(
                 category, intent, season,
-                style_keywords, anchor_item, user_brand_profile, gender,
+                style_keywords, anchor_item, user_brand_profile,
+                gender, selected_items or [],
             )
         except Exception as e:
             print(f"[NaverQueryStrategy] LLM 실패, fallback 사용: {e}")
@@ -100,6 +98,7 @@ class NaverQueryStrategy(QueryStrategy):
         anchor_item: dict | None,
         user_brand_profile: dict | None,
         gender: str,
+        selected_items: list[dict],
     ) -> str:
         anchor_info = "없음"
         if anchor_item:
@@ -123,6 +122,20 @@ class NaverQueryStrategy(QueryStrategy):
                 parts.append(f"선호 핏: {', '.join(user_brand_profile['preferred_fit'][:2])}")
             brand_profile = " / ".join(parts) if parts else "없음"
 
+        # 이미 선택된 아이템 색상/카테고리 요약 (색상 체인)
+        selected_summary = "없음"
+        if selected_items:
+            parts = []
+            for item in selected_items:
+                cat = item.get("category", "")
+                colors = item.get("colors") or []
+                name = item.get("name", "")
+                if colors:
+                    parts.append(f"{cat}({', '.join(colors[:2])})")
+                elif name:
+                    parts.append(f"{cat}({name[:10]})")
+            selected_summary = ", ".join(parts) if parts else "없음"
+
         human_text = NAVER_QUERY_HUMAN.format(
             gender_kr=GENDER_KR.get(gender, "남성"),
             category_kr=CATEGORY_KR.get(category, category),
@@ -131,6 +144,7 @@ class NaverQueryStrategy(QueryStrategy):
             style_keywords=", ".join(style_keywords) if style_keywords else "없음",
             anchor_info=anchor_info,
             brand_profile=brand_profile,
+            selected_items=selected_summary,
         )
 
         response = self._llm.invoke([
@@ -150,6 +164,10 @@ class NaverQueryStrategy(QueryStrategy):
         style_keywords: list[str],
         gender: str = "MALE",
     ) -> str:
+        """
+        LLM 실패 시 규칙 기반 fallback.
+        단순하게 "남성 캐주얼 상의 봄" 형태로.
+        """
         parts = [
             GENDER_KR.get(gender, "남성"),
             INTENT_KR.get(intent, "캐주얼"),
@@ -157,3 +175,10 @@ class NaverQueryStrategy(QueryStrategy):
             SEASON_KR.get(season, ""),
         ]
         return " ".join(p for p in parts if p)
+
+    def build_simple_query(self, category: str, gender: str) -> str:
+        """
+        결과 0개일 때 사용하는 단순 fallback 쿼리.
+        예: "남성 상의"
+        """
+        return f"{GENDER_KR.get(gender, '남성')} {CATEGORY_KR.get(category, category)}"

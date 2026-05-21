@@ -306,7 +306,7 @@ def planner(state: OutfitState) -> dict:
             conn = get_db_connection()
             cur  = conn.cursor()
             cur.execute(
-                'SELECT gender FROM users WHERE id = %s',
+                'SELECT gender FROM User WHERE id = %s',
                 (int(user_id),)
             )
             row = cur.fetchone()
