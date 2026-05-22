@@ -1,24 +1,38 @@
 # ai-worker/stylist/query_strategies/naver.py
+"""
+네이버 쇼핑 검색어 빌더 — Step 37 단순화 버전
 
-from langchain_anthropic import ChatAnthropic
-from langchain_core.messages import SystemMessage, HumanMessage
+Step 36까지: 2-hop LLM 호출
+  hop1 (LLM): "어울리는 아이템 3개 추천"
+  hop2 (LLM): "아이템명 → 검색어 변환"
 
+Step 37 이후: outfit_composer가 hop1 흡수, hop2는 룰 기반
+  - composer가 만든 아이템명을 받음 (예: "화이트 옥스포드 셔츠")
+  - 성별/카테고리/계절 키워드를 단순 문자열 조합으로 추가
+  - 결과: "남성 화이트 옥스포드 셔츠 셔츠 봄"  (← 카테고리 키워드 중복 시 정리)
+
+장점:
+  - LLM 호출 9회 제거 (3 proposals × 3 categories)
+  - 응답 약 9초 단축
+  - 결정론적 (디버깅 쉬움)
+  - 비용 절감
+
+중복 키워드 처리:
+  composer 프롬프트에서 성별/계절/카테고리 단어 제외하도록 지시하지만,
+  방어적으로 중복 검사 후 제거.
+"""
+
+from typing import Optional
 from .base import QueryStrategy
 
-CATEGORY_KR = {
-    "TOP":    "상의",
-    "BOTTOM": "하의",
-    "OUTER":  "아우터",
-    "SHOES":  "신발",
-    "BAG":    "가방",
-    "ACC":    "액세서리",
-    "DRESS":  "원피스",
-}
 
-INTENT_KR = {
-    "casual":  "캐주얼",
-    "formal":  "포멀",
-    "sporty":  "스포티",
+# ──────────────────────────────────────────────────────────────────────────────
+# 상수
+# ──────────────────────────────────────────────────────────────────────────────
+
+GENDER_KR = {
+    "MALE":   "남성",
+    "FEMALE": "여성",
 }
 
 SEASON_KR = {
@@ -28,157 +42,91 @@ SEASON_KR = {
     "winter": "겨울",
 }
 
-GENDER_KR = {
-    "MALE":   "남성",
-    "FEMALE": "여성",
+# 성별 × 카테고리 검색 시 강제로 추가할 키워드
+# 카테고리만 봐도 어떤 상품인지 명확해지도록 보조
+CATEGORY_REQUIRED_KEYWORDS: dict[str, dict[str, str]] = {
+    "MALE": {
+        "TOP":    "셔츠 티셔츠 니트",  # OR 검색 효과를 노린 공백 구분
+        "BOTTOM": "팬츠 바지",
+        "OUTER":  "자켓 코트 가디건",
+    },
+    "FEMALE": {
+        "TOP":    "블라우스 셔츠 니트",
+        "BOTTOM": "스커트 팬츠",
+        "OUTER":  "자켓 코트 가디건",
+        "DRESS":  "원피스 드레스",
+    },
 }
 
-NAVER_QUERY_SYSTEM = """당신은 한국 패션 쇼핑몰 검색 전문가입니다.
-주어진 정보를 바탕으로 네이버 쇼핑에서 스타일리한 상품을 찾기 위한 최적의 검색어를 만들어주세요.
+# composer가 만든 아이템명에 이미 들어있을 수 있는 단어들 (중복 방지용)
+# 예: composer가 "화이트 셔츠"를 만들었으면 카테고리 키워드 "셔츠"는 중복
+COMMON_CATEGORY_WORDS = {
+    "셔츠", "티셔츠", "니트", "맨투맨", "후드",
+    "팬츠", "바지", "데님", "청바지", "슬랙스", "조거", "치노",
+    "자켓", "코트", "가디건", "블레이저", "점퍼", "패딩",
+    "스커트", "원피스", "드레스",
+    "블라우스",
+}
 
-규칙:
-- 반드시 한국어로 작성
-- 10단어 이내로 간결하게
-- 브랜드명 포함 금지
-- 성별을 반드시 첫 단어로 포함 (남성 or 여성)
-- 색상, 핏, 스타일 키워드 자연스럽게 조합
-- 너무 구체적인 소재 표현 지양 ("라이트톤", "얇은 소재" 같은 표현은 검색 결과가 없을 수 있음)
-- 실제 네이버 쇼핑에서 검색 결과가 많이 나올 법한 대중적인 단어 선택
-- 검색어만 출력, 설명 없이"""
 
-NAVER_QUERY_HUMAN = """성별: {gender_kr}
-카테고리: {category_kr}
-스타일 의도: {intent_kr}
-계절: {season_kr}
-스타일 키워드: {style_keywords}
-앵커 아이템 정보: {anchor_info}
-선호 정보: {brand_profile}
-이미 선택된 아이템: {selected_items}
-
-위 정보를 바탕으로 네이버 쇼핑 검색어를 만들어주세요.
-이미 선택된 아이템이 있다면 색상/스타일이 어울리는 아이템을 찾을 수 있는 검색어를 만들어주세요."""
-
+# ──────────────────────────────────────────────────────────────────────────────
+# Strategy
+# ──────────────────────────────────────────────────────────────────────────────
 
 class NaverQueryStrategy(QueryStrategy):
+    """
+    네이버 쇼핑 검색어 생성 전략 — 룰 기반.
 
-    def __init__(self):
-        self._llm = ChatAnthropic(model="claude-haiku-4-5", max_tokens=64)
+    composer가 만든 아이템명을 받아서 다음 형식으로 변환:
+      "{성별} {아이템명} {카테고리 키워드} {계절}"
 
-    @property
-    def platform_name(self) -> str:
-        return "naver"
+    예시:
+      build_query("화이트 옥스포드 셔츠", category="TOP", gender="MALE", season="spring")
+        → "남성 화이트 옥스포드 셔츠 티셔츠 니트 봄"
+        ※ 아이템명에 "셔츠"가 이미 있으면 카테고리 키워드에서 "셔츠" 제거
+    """
 
     def build_query(
         self,
+        item_name: str,
         category: str,
-        intent: str,
-        season: str,
-        style_keywords: list[str],
-        anchor_item: dict | None,
-        user_brand_profile: dict | None,
         gender: str = "MALE",
-        selected_items: list[dict] | None = None,  # ← 색상 체인용 추가
+        season: str = "spring",
     ) -> str:
-        try:
-            return self._build_with_llm(
-                category, intent, season,
-                style_keywords, anchor_item, user_brand_profile,
-                gender, selected_items or [],
-            )
-        except Exception as e:
-            print(f"[NaverQueryStrategy] LLM 실패, fallback 사용: {e}")
-            return self._fallback_query(category, intent, season, style_keywords, gender)
+        """
+        composer가 만든 아이템명을 네이버 검색어로 변환.
 
-    def _build_with_llm(
-        self,
-        category: str,
-        intent: str,
-        season: str,
-        style_keywords: list[str],
-        anchor_item: dict | None,
-        user_brand_profile: dict | None,
-        gender: str,
-        selected_items: list[dict],
-    ) -> str:
-        anchor_info = "없음"
-        if anchor_item:
-            parts = []
-            if anchor_item.get("colors"):
-                parts.append(f"색상: {', '.join(anchor_item['colors'])}")
-            if anchor_item.get("fit"):
-                parts.append(f"핏: {anchor_item['fit']}")
-            if anchor_item.get("material"):
-                parts.append(f"소재: {anchor_item['material']}")
-            if anchor_item.get("style"):
-                parts.append(f"스타일: {anchor_item['style']}")
-            anchor_info = " / ".join(parts) if parts else "없음"
+        Args:
+            item_name: composer 출력 아이템명 (예: "화이트 옥스포드 셔츠")
+            category:  "TOP" | "BOTTOM" | "OUTER" | "DRESS"
+            gender:    "MALE" | "FEMALE"
+            season:    "spring" | "summer" | "fall" | "winter"
 
-        brand_profile = "없음"
-        if user_brand_profile:
-            parts = []
-            if user_brand_profile.get("preferred_colors"):
-                parts.append(f"선호 색상: {', '.join(user_brand_profile['preferred_colors'][:3])}")
-            if user_brand_profile.get("preferred_fit"):
-                parts.append(f"선호 핏: {', '.join(user_brand_profile['preferred_fit'][:2])}")
-            brand_profile = " / ".join(parts) if parts else "없음"
+        Returns:
+            검색어 문자열 (네이버 쇼핑 API의 query 파라미터로 사용)
+        """
+        item_name = (item_name or "").strip()
+        if not item_name:
+            return ""
 
-        # 이미 선택된 아이템 색상/카테고리 요약 (색상 체인)
-        selected_summary = "없음"
-        if selected_items:
-            parts = []
-            for item in selected_items:
-                cat = item.get("category", "")
-                colors = item.get("colors") or []
-                name = item.get("name", "")
-                if colors:
-                    parts.append(f"{cat}({', '.join(colors[:2])})")
-                elif name:
-                    parts.append(f"{cat}({name[:10]})")
-            selected_summary = ", ".join(parts) if parts else "없음"
-
-        human_text = NAVER_QUERY_HUMAN.format(
-            gender_kr=GENDER_KR.get(gender, "남성"),
-            category_kr=CATEGORY_KR.get(category, category),
-            intent_kr=INTENT_KR.get(intent, intent),
-            season_kr=SEASON_KR.get(season, season),
-            style_keywords=", ".join(style_keywords) if style_keywords else "없음",
-            anchor_info=anchor_info,
-            brand_profile=brand_profile,
-            selected_items=selected_summary,
+        # 1. 카테고리 키워드 가져오기
+        category_keywords = (
+            CATEGORY_REQUIRED_KEYWORDS
+            .get(gender, CATEGORY_REQUIRED_KEYWORDS["MALE"])
+            .get(category, "")
         )
 
-        response = self._llm.invoke([
-            SystemMessage(content=NAVER_QUERY_SYSTEM),
-            HumanMessage(content=human_text),
-        ])
+        # 2. 아이템명에 이미 있는 카테고리 단어는 키워드에서 제거 (중복 방지)
+        if category_keywords:
+            keyword_tokens = category_keywords.split()
+            filtered = [tok for tok in keyword_tokens if tok not in item_name]
+            category_keywords = " ".join(filtered)
 
-        query = response.content.strip()
-        print(f"[NaverQueryStrategy] 생성된 쿼리 ({category}, {gender}): {query}")
-        return query
-
-    def _fallback_query(
-        self,
-        category: str,
-        intent: str,
-        season: str,
-        style_keywords: list[str],
-        gender: str = "MALE",
-    ) -> str:
-        """
-        LLM 실패 시 규칙 기반 fallback.
-        단순하게 "남성 캐주얼 상의 봄" 형태로.
-        """
+        # 3. 최종 조합
         parts = [
             GENDER_KR.get(gender, "남성"),
-            INTENT_KR.get(intent, "캐주얼"),
-            CATEGORY_KR.get(category, category),
+            item_name,
+            category_keywords,
             SEASON_KR.get(season, ""),
         ]
-        return " ".join(p for p in parts if p)
-
-    def build_simple_query(self, category: str, gender: str) -> str:
-        """
-        결과 0개일 때 사용하는 단순 fallback 쿼리.
-        예: "남성 상의"
-        """
-        return f"{GENDER_KR.get(gender, '남성')} {CATEGORY_KR.get(category, category)}"
+        return " ".join(p for p in parts if p).strip()

@@ -2,23 +2,22 @@
 """
 Fashion Stylist FastAPI 엔드포인트
 
-역할:
-  NestJS backend에서 /recommend로 POST 요청을 받아
-  LangGraph 파이프라인을 실행하고 결과를 반환한다.
-
-  추가: /encode/reference
-  NestJS StyleReferenceService에서 CUSTOM 레퍼런스 업로드 후
-  fire-and-forget으로 호출.
-  S3 이미지 → CLIP 벡터 → StyleReference.embedding 업데이트.
+/recommend      → SSE 스트리밍 (진행 상태 실시간 전달)
+/recommend/sync → 기존 JSON 응답 (하위 호환용)
+/encode/reference → CLIP 벡터 인코딩
 """
 
 import os
 import io
+import json
+import queue
+import threading
 import psycopg2
 import boto3
 import numpy as np
 from PIL import Image
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Optional, List
 from dotenv import load_dotenv
@@ -29,23 +28,17 @@ from shared.clip_encoder import CLIPEncoder
 load_dotenv()
 
 app = FastAPI(title="Fashion Stylist API")
-
-# CLIP 인코더 싱글톤
-# 모듈 로드 시 한 번만 생성 — 매 요청마다 모델 로드하면 느림
 _clip_encoder = CLIPEncoder()
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# 공통 헬퍼
+# 헬퍼
 # ──────────────────────────────────────────────────────────────────────────────
 
 def get_db_connection():
-    """psycopg2 DB 연결. style_analyzer.py와 동일한 패턴."""
     return psycopg2.connect(os.getenv("DATABASE_URL"))
 
-
 def get_s3_client():
-    """S3 클라이언트. pipeline.py와 동일한 패턴."""
     return boto3.client(
         "s3",
         region_name=os.getenv("AWS_REGION"),
@@ -55,7 +48,7 @@ def get_s3_client():
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# /recommend 스키마 (기존 유지)
+# 스키마
 # ──────────────────────────────────────────────────────────────────────────────
 
 class RecommendRequest(BaseModel):
@@ -94,33 +87,12 @@ class RecommendResponse(BaseModel):
     relaxation_level: Optional[int] = None
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# /encode/reference 스키마 (신규)
-# ──────────────────────────────────────────────────────────────────────────────
-
 class EncodeReferenceRequest(BaseModel):
-    """
-    NestJS StyleReferenceService._requestEncoding()에서 전달.
-
-    reference_id:
-        StyleReference 테이블의 PK.
-        CLIP 벡터를 저장할 대상 row.
-
-    s3_key:
-        레퍼런스 전용 S3 버킷 내 이미지 경로.
-        예: "42/references/2026-05-19_a3f8b2c1.jpg"
-        NestJS가 업로드 후 반환한 key 그대로 전달.
-    """
     reference_id: int
     s3_key:       str
 
 
 class EncodeReferenceResponse(BaseModel):
-    """
-    reference_id: 처리된 StyleReference ID
-    status:       "ok" (성공) / "error" (실패)
-    message:      에러 시 상세 메시지
-    """
     reference_id: int
     status:       str
     message:      Optional[str] = None
@@ -132,59 +104,46 @@ class EncodeReferenceResponse(BaseModel):
 
 @app.get("/health")
 def health():
-    """헬스체크. Docker Compose의 healthcheck에서 사용."""
     return {"status": "ok"}
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# POST /recommend (기존 유지)
+# 공통: initial_state 생성
 # ──────────────────────────────────────────────────────────────────────────────
 
-@app.post("/recommend", response_model=RecommendResponse)
-def recommend(request: RecommendRequest):
-    """
-    코디 추천 엔드포인트.
-    LangGraph 파이프라인 실행 후 결과 반환.
-    """
-    initial_state = {
-        "user_message":        request.user_message,
-        "user_id":             str(request.user_id),
-        "source":              request.source,
-        "anchor_item_id":      request.anchor_item_id,
-        "style_reference_ids": request.style_reference_ids or [],
-        "intent":              request.intent,
-        "weather":             None,
-        "calendar_events":     None,
-        "season":              None,
-        "avoid_constraints":   None,
-        "conflict_warning":    None,
-        "anchor_item":         None,
-        "style_vector":        None,
-        "style_keywords":      None,
-        "has_style_context":   None,
-        "retrieved_items":     None,
-        "relaxation_level":    None,
-        "ranked_items":        None,
-        "guardrail_passed":    None,
-        "retry_count":         0,
-        "failure_reason":      None,
-        "final_response":      None,
+def _build_initial_state(request: RecommendRequest) -> dict:
+    return {
+        "user_message":           request.user_message,
+        "user_id":                str(request.user_id),
+        "source":                 request.source,
+        "anchor_item_id":         request.anchor_item_id,
+        "style_reference_ids":    request.style_reference_ids or [],
+        "intent":                 request.intent,
+        "weather":                None,
+        "calendar_events":        None,
+        "season":                 None,
+        "avoid_constraints":      None,
+        "conflict_warning":       None,
+        "anchor_item":            None,
+        "style_vector":           None,
+        "style_keywords":         None,
+        "has_style_context":      None,
+        "retrieved_items":        None,
+        "relaxation_level":       None,
+        "ranked_items":           None,
+        "guardrail_passed":       None,
+        "retry_count":            0,
+        "failure_reason":         None,
+        "final_response":         None,
         "recommended_outfit_ids": None,
-        "session_history":     [],
-        "excluded_outfits":    request.excluded_outfits or [],
-        "errors":              [],
+        "session_history":        [],
+        "excluded_outfits":       request.excluded_outfits or [],
+        "errors":                 [],
+        "progress_callback":      None,  # SSE 엔드포인트에서 주입
     }
 
-    config = {"configurable": {"thread_id": str(request.user_id)}}
 
-    try:
-        result = graph.invoke(initial_state, config=config)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"LangGraph 실행 오류: {str(e)}")
-
-    if not result.get("final_response"):
-        raise HTTPException(status_code=500, detail="추천 결과를 생성하지 못했습니다.")
-
+def _build_response(result: dict) -> RecommendResponse:
     ranked_items = [
         RecommendItemResponse(
             id=item.get("id"),
@@ -203,7 +162,6 @@ def recommend(request: RecommendRequest):
         )
         for item in (result.get("ranked_items") or [])
     ]
-
     return RecommendResponse(
         intent=result.get("intent"),
         calendar_events=result.get("calendar_events") or [],
@@ -216,36 +174,108 @@ def recommend(request: RecommendRequest):
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# POST /encode/reference (신규)
+# POST /recommend  — SSE 스트리밍
+# ──────────────────────────────────────────────────────────────────────────────
+
+@app.post("/recommend")
+def recommend(request: RecommendRequest):
+    """
+    SSE 스트리밍 코디 추천 엔드포인트.
+
+    이벤트 형식:
+      data: {"type": "progress", "message": "상의를 고르고 있어요..."}
+      data: {"type": "progress", "message": "하의를 매칭하고 있어요..."}
+      data: {"type": "result",   "data": { ...RecommendResponse... }}
+      data: {"type": "error",    "message": "..."}
+
+    프론트 사용법 (React Native):
+      EventSource 또는 fetch + ReadableStream으로 수신
+    """
+    # LangGraph는 동기 실행이므로 별도 스레드에서 돌리고
+    # 진행 상태는 Queue를 통해 SSE 스트림으로 전달
+    msg_queue: queue.Queue = queue.Queue()
+
+    def progress_callback(message: str):
+        """external_retrieval.py에서 각 단계 완료 시 호출"""
+        msg_queue.put({"type": "progress", "message": message})
+
+    def run_graph():
+        try:
+            initial_state = _build_initial_state(request)
+            initial_state["progress_callback"] = progress_callback
+
+            config = {"configurable": {"thread_id": str(request.user_id)}}
+            result = graph.invoke(initial_state, config=config)
+
+            if not result.get("final_response"):
+                msg_queue.put({"type": "error", "message": "추천 결과를 생성하지 못했습니다."})
+                return
+
+            response_data = _build_response(result)
+            msg_queue.put({"type": "result", "data": response_data.model_dump()})
+
+        except Exception as e:
+            msg_queue.put({"type": "error", "message": str(e)})
+        finally:
+            msg_queue.put(None)  # 스트림 종료 신호
+
+    # LangGraph 별도 스레드에서 실행
+    thread = threading.Thread(target=run_graph, daemon=True)
+    thread.start()
+
+    def event_stream():
+        while True:
+            item = msg_queue.get()
+            if item is None:
+                break  # 스트림 종료
+            yield f"data: {json.dumps(item, ensure_ascii=False)}\n\n"
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control":               "no-cache",
+            "X-Accel-Buffering":           "no",   # nginx 버퍼링 비활성화
+            "Access-Control-Allow-Origin": "*",
+        },
+    )
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# POST /recommend/sync  — 기존 JSON 응답 (하위 호환)
+# ──────────────────────────────────────────────────────────────────────────────
+
+@app.post("/recommend/sync", response_model=RecommendResponse)
+def recommend_sync(request: RecommendRequest):
+    """
+    기존 방식 (JSON 응답).
+    Postman 테스트 또는 SSE 미지원 환경용.
+    """
+    initial_state = _build_initial_state(request)
+    config        = {"configurable": {"thread_id": str(request.user_id)}}
+
+    try:
+        result = graph.invoke(initial_state, config=config)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"LangGraph 실행 오류: {str(e)}")
+
+    if not result.get("final_response"):
+        raise HTTPException(status_code=500, detail="추천 결과를 생성하지 못했습니다.")
+
+    return _build_response(result)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# POST /encode/reference
 # ──────────────────────────────────────────────────────────────────────────────
 
 @app.post("/encode/reference", response_model=EncodeReferenceResponse)
 def encode_reference(request: EncodeReferenceRequest):
-    """
-    CUSTOM 레퍼런스 이미지 → CLIP 벡터 → DB 저장.
-
-    NestJS StyleReferenceService가 업로드 직후 fire-and-forget으로 호출.
-    사용자 응답과 무관하게 백그라운드에서 처리됨.
-
-    처리 순서:
-      ① 레퍼런스 전용 S3 버킷에서 이미지 다운로드
-      ② CLIP으로 이미지 전체 → 512차원 벡터 생성
-         (SegFormer crop 없음 — 전체 무드/스타일 분석)
-      ③ StyleReference.embedding DB 업데이트
-
-    실패해도 HTTP 200 반환:
-      NestJS가 fire-and-forget이라 응답을 확인하지 않음.
-      에러는 status="error"로 응답 + 서버 로그에 기록.
-      embedding이 null로 남으면 다음 추천에서 이 레퍼런스 무시됨.
-    """
     reference_id = request.reference_id
     s3_key       = request.s3_key
-
-    print(f"[EncodeReference] 시작 reference_id={reference_id}, s3_key={s3_key}")
+    print(f"[EncodeReference] 시작 reference_id={reference_id}")
 
     try:
-        # ── ① S3에서 이미지 다운로드 ──────────────────────────────────
-        # 레퍼런스 전용 버킷에서 다운로드
         s3     = get_s3_client()
         bucket = os.getenv("AWS_S3_REFERENCE_BUCKET")
 
@@ -253,24 +283,11 @@ def encode_reference(request: EncodeReferenceRequest):
         image_bytes = response["Body"].read()
         image       = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
-        print(f"[EncodeReference] 이미지 다운로드 완료: {image.size}")
-
-        # ── ② CLIP 인코딩 ─────────────────────────────────────────────
-        # encode_image() — 이미지 전체를 벡터로
-        # encode_text()  — 텍스트를 벡터로 (PRESET용)
-        # 레퍼런스는 이미지 전체 무드를 잡아야 하므로 encode_image() 사용
-        vector = _clip_encoder.encode_image(image)
-
-        print(f"[EncodeReference] CLIP 인코딩 완료: shape={vector.shape}")
-
-        # ── ③ DB 업데이트 ─────────────────────────────────────────────
-        # numpy → "[0.1,0.2,...]" 문자열 변환 후 ::vector 캐스팅
-        # style_analyzer.py의 _save_preset_embedding()과 동일한 패턴
+        vector     = _clip_encoder.encode_image(image)
         vector_str = "[" + ",".join(str(float(x)) for x in vector) + "]"
 
         conn = get_db_connection()
         cur  = conn.cursor()
-
         try:
             cur.execute("""
                 UPDATE "StyleReference"
@@ -278,20 +295,14 @@ def encode_reference(request: EncodeReferenceRequest):
                 WHERE id = %s
             """, (vector_str, reference_id))
             conn.commit()
-            print(f"[EncodeReference] DB 업데이트 완료 reference_id={reference_id}")
         finally:
             cur.close()
             conn.close()
 
-        return EncodeReferenceResponse(
-            reference_id=reference_id,
-            status="ok",
-        )
+        return EncodeReferenceResponse(reference_id=reference_id, status="ok")
 
     except Exception as e:
-        # 실패해도 NestJS에 500 던지지 않음
-        # fire-and-forget이라 NestJS는 이미 응답 완료 상태
-        print(f"[EncodeReference] 실패 reference_id={reference_id}: {e}")
+        print(f"[EncodeReference] 실패: {e}")
         return EncodeReferenceResponse(
             reference_id=reference_id,
             status="error",

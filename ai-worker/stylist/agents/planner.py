@@ -193,8 +193,8 @@ def get_weather() -> dict:
     condition = data["weather"][0]["main"].lower()
 
     # 온도 기반 시즌 계산 (기존 로직 유지)
-    if temp >= 20:   season = "summer"
-    elif temp >= 10: season = "spring"
+    if temp >= 23:   season = "summer"
+    elif temp >= 12: season = "spring"
     elif temp >= 0:  season = "fall"
     else:            season = "winter"
 
@@ -306,7 +306,7 @@ def planner(state: OutfitState) -> dict:
             conn = get_db_connection()
             cur  = conn.cursor()
             cur.execute(
-                'SELECT gender FROM User WHERE id = %s',
+                'SELECT gender FROM "User" WHERE id = %s',
                 (int(user_id),)
             )
             row = cur.fetchone()

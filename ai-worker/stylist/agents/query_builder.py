@@ -1,100 +1,53 @@
 # ai-worker/stylist/agents/query_builder.py
 """
-Query Builder 노드
+Query Builder — Step 37 역할 축소
 
-역할:
-  Style Analyzer가 추출한 style_keywords, 앵커 정보, intent, season을 받아
-  플랫폼에 최적화된 검색 쿼리를 카테고리별로 생성한다.
+Step 36까지: external + closet 양쪽 쿼리 생성 (TOP만 미리 생성)
+Step 37 이후: closet 전용
 
-파이프라인에서의 위치:
-  Style Analyzer → [Query Builder] → Retrieval
+변경 이유:
+  external은 outfit_composer가 코디 비전을 먼저 만들고,
+  naver.py의 룰 기반 build_query()가 검색어를 만들어줘서
+  query_builder가 external 흐름에서 할 일이 없어짐.
 
-설계 원칙:
-  - 플랫폼별 전략을 QueryStrategy 서브클래스로 분리
-  - source("naver", "google" 등)에 따라 전략 자동 선택
-  - 새 플랫폼 추가 시 query_strategies/ 에 파일만 추가하면 됨
-
-출력:
-  search_queries: {
-    "TOP":    "오버핏 베이지 미니멀 캐주얼 티셔츠 봄",
-    "BOTTOM": "와이드 슬랙스 베이지 캐주얼 봄",
-    "OUTER":  "린넨 자켓 미니멀 캐주얼 봄",
-  }
-
-source="closet"일 때:
-  pgvector 검색은 style_vector를 직접 사용하므로
-  search_queries 생성을 건너뜀 (빈 dict 반환).
-  Query Builder는 external 전용 노드.
+  closet은 pgvector 유사도 검색이라 여전히 쿼리가 필요.
+  style_vector + style_keywords 기반으로 각 카테고리 쿼리 생성.
 """
 
-# ai-worker/stylist/agents/query_builder.py
-
 from stylist.outfit_state import OutfitState
-from stylist.query_strategies.naver import NaverQueryStrategy
-from stylist.query_strategies.base import QueryStrategy
 
-SEARCH_CATEGORIES = ["TOP", "BOTTOM", "OUTER"]
-
-STRATEGY_MAP: dict[str, QueryStrategy] = {
-    "naver": NaverQueryStrategy(),
-}
-
-SOURCE_TO_PLATFORM: dict[str, str] = {
-    "external": "naver",
-    "naver":    "naver",
-}
+CHAIN_ORDER = ["TOP", "BOTTOM", "OUTER", "DRESS"]
 
 
 def query_builder(state: OutfitState) -> dict:
-    errors = []
+    """
+    LangGraph 노드 함수 — closet 전용.
 
-    try:
-        source = state.get("source") or "closet"
+    source가 "external"이면 아무것도 안 하고 통과.
+    source가 "closet"이면 각 카테고리별 검색 쿼리 생성.
+    """
+    source = state.get("source") or "external"
 
-        # closet은 pgvector 검색 → 쿼리 불필요
-        if source == "closet":
-            print("[QueryBuilder] source=closet, 쿼리 생성 스킵")
-            return {"search_queries": {}, "errors": errors}
+    # external 흐름은 composer → item_fetcher가 처리
+    if source == "external":
+        return {}
 
-        platform = SOURCE_TO_PLATFORM.get(source, "naver")
-        strategy = STRATEGY_MAP.get(platform)
+    # ── closet 흐름 ───────────────────────────────────────────────────────────
+    intent         = state.get("intent") or "casual"
+    season         = state.get("season") or "spring"
+    style_keywords = state.get("style_keywords") or []
+    anchor_item    = state.get("anchor_item")
 
-        if not strategy:
-            errors.append(f"[QueryBuilder] 알 수 없는 플랫폼: {platform}, naver로 fallback")
-            strategy = STRATEGY_MAP["naver"]
+    keywords_str = " ".join(style_keywords) if style_keywords else intent
 
-        print(f"[QueryBuilder] platform={platform}, strategy={strategy.platform_name}")
+    queries: dict[str, str] = {}
+    for category in CHAIN_ORDER:
+        # 앵커 카테고리는 쿼리 생성 불필요 (closet에서 앵커 자체 사용)
+        if anchor_item and anchor_item.get("category") == category:
+            continue
 
-        intent             = state.get("intent") or "casual"
-        season             = state.get("season") or "spring"
-        style_keywords     = state.get("style_keywords") or []
-        anchor_item        = state.get("anchor_item")
-        user_brand_profile = state.get("user_brand_profile") or {}
-        gender             = state.get("gender") or "MALE"   # ← 추가
+        season_kr = {"spring": "봄", "summer": "여름", "fall": "가을", "winter": "겨울"}.get(season, "")
+        queries[category] = f"{keywords_str} {season_kr}".strip()
 
-        search_queries: dict[str, str] = {}
-
-        for category in SEARCH_CATEGORIES:
-            query = strategy.build_query(
-                category=category,
-                intent=intent,
-                season=season,
-                style_keywords=style_keywords,
-                anchor_item=anchor_item,
-                user_brand_profile=user_brand_profile,
-                gender=gender,                               # ← 추가
-            )
-            search_queries[category] = query
-
-        print(f"[QueryBuilder] 쿼리 생성 완료: {search_queries}")
-
-        return {
-            "search_queries": search_queries,
-            "errors":         errors,
-        }
-
-    except Exception as e:
-        return {
-            "search_queries": {},
-            "errors":         [f"query_builder 예외: {str(e)}"],
-        }
+    print(f"[QueryBuilder] closet 쿼리 생성: {list(queries.keys())}")
+    return {"search_queries": queries}

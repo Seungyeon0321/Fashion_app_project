@@ -30,7 +30,6 @@ from stylist.agents.retrieval_utils    import filter_ncp, ensure_anchor_included
 
 load_dotenv()
 
-# relaxation_level별 검색 파라미터
 RELAXATION_PARAMS = {
     0: {"similarity_threshold": 0.85, "relax_category": False},
     1: {"similarity_threshold": 0.70, "relax_category": False},
@@ -40,15 +39,6 @@ RELAXATION_PARAMS = {
 
 
 def retrieval(state: OutfitState) -> dict:
-    """
-    Retrieval 노드 메인 함수.
-
-    처리 순서:
-      1. retry_count → relaxation_level 결정
-      2. source에 따라 closet / external 검색
-      3. NCP 필터 (싫어요 조합 아이템 제거)
-      4. 앵커 강제 포함
-    """
     errors = []
 
     try:
@@ -65,7 +55,14 @@ def retrieval(state: OutfitState) -> dict:
         if source == "closet":
             retrieved_items = search_closet(state, params)
         else:
-            retrieved_items = search_external(state, params)
+            # progress_callback: main.py SSE 엔드포인트에서 state에 주입
+            # "상의를 고르고 있어요..." 등 진행 상태를 프론트에 실시간 전달
+            # closet은 pgvector 단순 조회라 진행 상태 불필요
+            progress_callback = state.get("progress_callback")
+            retrieved_items   = search_external(
+                state, params,
+                progress_callback=progress_callback,
+            )
 
         # ── NCP 필터 ─────────────────────────────────────────────────
         if state.get("excluded_outfits"):
