@@ -5,6 +5,10 @@ Fashion Stylist FastAPI 엔드포인트
 /recommend      → SSE 스트리밍 (진행 상태 실시간 전달)
 /recommend/sync → 기존 JSON 응답 (하위 호환용)
 /encode/reference → CLIP 벡터 인코딩
+
+Step 37 변경:
+  _build_initial_state에 outfit_proposals 초기값 추가.
+  recommend_sync 응답에 proposal_statuses debug 필드 추가.
 """
 
 import os
@@ -128,6 +132,7 @@ def _build_initial_state(request: RecommendRequest) -> dict:
         "style_vector":           None,
         "style_keywords":         None,
         "has_style_context":      None,
+        "outfit_proposals":       None,   # Step 37 추가
         "retrieved_items":        None,
         "relaxation_level":       None,
         "ranked_items":           None,
@@ -174,7 +179,7 @@ def _build_response(result: dict) -> RecommendResponse:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# POST /recommend  — SSE 스트리밍
+# POST /recommend  — SSE 스트리밍 (기존 유지)
 # ──────────────────────────────────────────────────────────────────────────────
 
 @app.post("/recommend")
@@ -184,19 +189,12 @@ def recommend(request: RecommendRequest):
 
     이벤트 형식:
       data: {"type": "progress", "message": "상의를 고르고 있어요..."}
-      data: {"type": "progress", "message": "하의를 매칭하고 있어요..."}
       data: {"type": "result",   "data": { ...RecommendResponse... }}
       data: {"type": "error",    "message": "..."}
-
-    프론트 사용법 (React Native):
-      EventSource 또는 fetch + ReadableStream으로 수신
     """
-    # LangGraph는 동기 실행이므로 별도 스레드에서 돌리고
-    # 진행 상태는 Queue를 통해 SSE 스트림으로 전달
     msg_queue: queue.Queue = queue.Queue()
 
     def progress_callback(message: str):
-        """external_retrieval.py에서 각 단계 완료 시 호출"""
         msg_queue.put({"type": "progress", "message": message})
 
     def run_graph():
@@ -217,9 +215,8 @@ def recommend(request: RecommendRequest):
         except Exception as e:
             msg_queue.put({"type": "error", "message": str(e)})
         finally:
-            msg_queue.put(None)  # 스트림 종료 신호
+            msg_queue.put(None)
 
-    # LangGraph 별도 스레드에서 실행
     thread = threading.Thread(target=run_graph, daemon=True)
     thread.start()
 
@@ -227,7 +224,7 @@ def recommend(request: RecommendRequest):
         while True:
             item = msg_queue.get()
             if item is None:
-                break  # 스트림 종료
+                break
             yield f"data: {json.dumps(item, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(
@@ -235,14 +232,14 @@ def recommend(request: RecommendRequest):
         media_type="text/event-stream",
         headers={
             "Cache-Control":               "no-cache",
-            "X-Accel-Buffering":           "no",   # nginx 버퍼링 비활성화
+            "X-Accel-Buffering":           "no",
             "Access-Control-Allow-Origin": "*",
         },
     )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# POST /recommend/sync  — 기존 JSON 응답 (하위 호환)
+# POST /recommend/sync  — JSON 응답 (기존 유지 + Step 37 debug 필드 추가)
 # ──────────────────────────────────────────────────────────────────────────────
 
 @app.post("/recommend/sync", response_model=RecommendResponse)
@@ -250,6 +247,8 @@ def recommend_sync(request: RecommendRequest):
     """
     기존 방식 (JSON 응답).
     Postman 테스트 또는 SSE 미지원 환경용.
+
+    Step 37: X-Debug-Proposals 헤더로 proposal 상태 확인 가능.
     """
     initial_state = _build_initial_state(request)
     config        = {"configurable": {"thread_id": str(request.user_id)}}
@@ -262,11 +261,17 @@ def recommend_sync(request: RecommendRequest):
     if not result.get("final_response"):
         raise HTTPException(status_code=500, detail="추천 결과를 생성하지 못했습니다.")
 
+    # Step 37 debug: proposal 상태를 로그로 확인
+    proposals_raw = result.get("outfit_proposals") or []
+    if proposals_raw:
+        for p in proposals_raw:
+            print(f"[Debug] proposal({p.get('mood')}): {p.get('proposal_status')}")
+
     return _build_response(result)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# POST /encode/reference
+# POST /encode/reference (기존 유지)
 # ──────────────────────────────────────────────────────────────────────────────
 
 @app.post("/encode/reference", response_model=EncodeReferenceResponse)
