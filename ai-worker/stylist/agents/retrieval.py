@@ -20,6 +20,11 @@ relaxation_level:
   level 1: 유사도 0.70 이상, 카테고리 엄격
   level 2: 유사도 0.70 이상, 카테고리 완화
   level 3: 유사도 없음, wearCount 기반 fallback
+
+Step 38 변경:
+  반환 dict에 outfit_proposals 추가.
+  search_external이 proposals를 in-place로 수정하므로,
+  수정된 proposals를 state에 다시 반영해야 Ranker/ResponseAgent가 참조 가능.
 """
 
 from dotenv import load_dotenv
@@ -53,16 +58,27 @@ def retrieval(state: OutfitState) -> dict:
 
         # ── 소스별 검색 ──────────────────────────────────────────────
         if source == "closet":
-            retrieved_items = search_closet(state, params)
+            retrieved_items  = search_closet(state, params)
+            # closet은 outfit_proposals 없음 → 기존 값 유지
+            outfit_proposals = state.get("outfit_proposals")
         else:
             # progress_callback: main.py SSE 엔드포인트에서 state에 주입
-            # "상의를 고르고 있어요..." 등 진행 상태를 프론트에 실시간 전달
-            # closet은 pgvector 단순 조회라 진행 상태 불필요
             progress_callback = state.get("progress_callback")
-            retrieved_items   = search_external(
+
+            # ── Step 38 핵심 수정 ─────────────────────────────────────
+            # search_external은 proposals를 in-place로 수정(resolved_item 채움)
+            # + 평면 list(retrieved_items)를 반환함.
+            # 수정된 proposals를 반환 dict에 포함해야
+            # Ranker / ResponseAgent가 mood별로 접근할 수 있음.
+            # 포함하지 않으면 LangGraph가 이전 state 값을 유지 →
+            # retry 시 빈 리스트로 덮어써지는 버그 발생.
+            retrieved_items = search_external(
                 state, params,
                 progress_callback=progress_callback,
             )
+            # search_external 호출 후 state["outfit_proposals"]는
+            # in-place 수정이 완료된 상태이므로 그대로 꺼내서 반환
+            outfit_proposals = state.get("outfit_proposals")
 
         # ── NCP 필터 ─────────────────────────────────────────────────
         if state.get("excluded_outfits"):
@@ -85,12 +101,20 @@ def retrieval(state: OutfitState) -> dict:
         return {
             "retrieved_items":  retrieved_items,
             "relaxation_level": relaxation_level,
+            # ── Step 38 추가 ──────────────────────────────────────────
+            # search_external이 in-place로 채운 proposals를 state에 반영.
+            # closet 흐름에선 기존 값(None or list) 그대로 유지.
+            "outfit_proposals": outfit_proposals,
             "errors":           errors,
         }
 
     except Exception as e:
+        import traceback
+        print(f"[Retrieval] 예외 발생!")
+        traceback.print_exc()    # ← 추가: 전체 스택트레이스 출력
         return {
             "retrieved_items":  [],
             "relaxation_level": 0,
+            "outfit_proposals": state.get("outfit_proposals"),
             "errors":           [f"retrieval 예외: {str(e)}"],
         }

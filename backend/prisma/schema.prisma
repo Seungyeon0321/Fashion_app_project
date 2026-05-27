@@ -30,6 +30,10 @@ model User {
   outfits       Outfit[]
   externalItems ExternalItem[]   // ← WishlistItem에서 교체
 
+    // ── Step 38: 피드백 시스템 ────────────────────────
+  outfitFeedbacks   OutfitFeedback[]
+  stylePreference   UserStylePreference?
+
   location  String?
 
   createdAt DateTime @default(now())
@@ -220,7 +224,113 @@ model OutfitItem {
 }
 
 // ==========================================
-// 8. Enums
+// 8. OutfitFeedback (Step 38 신규)
+// ==========================================
+// 사용자가 AI 추천 코디에 좋아요/싫어요를 표시한 기록
+// - 이벤트 로그 성격 (append-only)
+// - 학습용 메타데이터 자동 추출 저장
+// - Step 38: LIKE만 사용, Step 39: DISLIKE 추가
+model OutfitFeedback {
+  id                  Int          @id @default(autoincrement())
+  userId              Int          @map("user_id")
+  user                User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // ── 추천 세션 추적 ──
+  recommendSessionId  String       @map("recommend_session_id")
+  // Redis에 저장된 session_id (예: "rec_a3f2b8c1")
+  // 같은 세션 내 여러 proposal에 좋아요 가능
+
+  proposalIndex       Int          @map("proposal_index")
+  // 3개 중 몇 번째 proposal인지 (0, 1, 2)
+
+  proposalMood        String       @map("proposal_mood")
+  // "minimal" | "street" | "classic" 등
+
+  // ── 피드백 타입 ──
+  type                FeedbackType @default(LIKE)
+
+  // ── 코디 스냅샷 (하이브리드 저장) ──
+  outfitSnapshot      Json         @map("outfit_snapshot")
+  // {
+  //   items: [
+  //     { category, productName, brand, imageUrl, purchaseUrl },
+  //     ...
+  //   ],
+  //   anchor_item_id: Int | null
+  // }
+
+  // ── 집계 용이성을 위한 메타데이터 추출 ──
+  extractedBrands     String[]     @default([]) @map("extracted_brands")
+  extractedColors     String[]     @default([]) @map("extracted_colors")
+
+  // ── 컨텍스트 정보 ──
+  recommendSource     String       @map("recommend_source")
+  // "external" | "closet"
+
+  intent              String?
+  // "casual" | "formal" | "sporty"
+
+  createdAt           DateTime     @default(now()) @map("created_at")
+
+  @@map("outfit_feedbacks")
+  @@index([userId, type])
+  @@index([userId, createdAt])
+  @@index([userId, proposalMood])
+}
+
+// ==========================================
+// 9. UserStylePreference (Step 38 신규)
+// ==========================================
+// 사용자별 선호 프로필 (집계 캐시)
+// - 좋아요 누적 데이터에서 자동 추출
+// - 카운트는 즉시 업데이트, 전체 재계산은 배치 처리(추후)
+// - User와 1:1 관계
+model UserStylePreference {
+  id                    Int      @id @default(autoincrement())
+  userId                Int      @unique @map("user_id")
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // ── 무드 선호도 (정규화된 가중치) ──
+  moodScores            Json     @default("{}") @map("mood_scores")
+  // { "minimal": 0.7, "street": 0.2, "classic": 0.1 }
+  // 합계 = 1.0
+
+  topMood               String?  @map("top_mood")
+  // 가장 선호하는 무드 (composer 프롬프트 활용용)
+
+  // ── 색상 선호도 ──
+  preferredColors       String[] @default([]) @map("preferred_colors")
+  // ["white", "beige", "navy"] - 상위 N개
+
+  // ── 브랜드 친화도 ──
+  preferredBrands       String[] @default([]) @map("preferred_brands")
+  // ["Uniqlo", "COS"] - 상위 N개
+
+  // ── 회피 정보 (Step 39에서 활용) ──
+  avoidedColors         String[] @default([]) @map("avoided_colors")
+  avoidedBrands         String[] @default([]) @map("avoided_brands")
+  excludedItemKeywords  String[] @default([]) @map("excluded_item_keywords")
+
+  // ── 메타 통계 ──
+  totalLikes            Int      @default(0) @map("total_likes")
+  totalDislikes         Int      @default(0) @map("total_dislikes")
+
+  lastUpdatedAt         DateTime @updatedAt @map("last_updated_at")
+  createdAt             DateTime @default(now()) @map("created_at")
+
+  @@map("user_style_preferences")
+}
+
+// ==========================================
+// 10. FeedbackType Enum (Step 38 신규)
+// ==========================================
+enum FeedbackType {
+  LIKE
+  DISLIKE
+}
+
+// ==========================================
+// 11. Enums
 // ==========================================
 enum Gender {
   MALE

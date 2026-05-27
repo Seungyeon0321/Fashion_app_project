@@ -1,28 +1,34 @@
 # ai-worker/stylist/query_strategies/naver.py
 """
-네이버 쇼핑 검색어 빌더 — Step 37 단순화 버전
+네이버 쇼핑 검색어 빌더 — Step 38 단순화 버전
 
 Step 36까지: 2-hop LLM 호출
   hop1 (LLM): "어울리는 아이템 3개 추천"
   hop2 (LLM): "아이템명 → 검색어 변환"
 
-Step 37 이후: outfit_composer가 hop1 흡수, hop2는 룰 기반
-  - composer가 만든 아이템명을 받음 (예: "화이트 옥스포드 셔츠")
-  - 성별/카테고리/계절 키워드를 단순 문자열 조합으로 추가
-  - 결과: "남성 화이트 옥스포드 셔츠 셔츠 봄"  (← 카테고리 키워드 중복 시 정리)
+Step 37: outfit_composer가 hop1 흡수, hop2는 룰 기반
+  - 형식: "{성별} {아이템명} {카테고리 키워드} {계절}"
+  - 문제: 키워드가 7~9개로 너무 많아 검색 결과 0건이 빈번
+  - 예: "남성 베이지 와이드 치노 팬츠 바지 봄" → 검색 0건
 
-장점:
-  - LLM 호출 9회 제거 (3 proposals × 3 categories)
-  - 응답 약 9초 단축
-  - 결정론적 (디버깅 쉬움)
-  - 비용 절감
+Step 38 단순화: 성별 + 아이템명만
+  - 형식: "{성별} {아이템명}"
+  - 예: "남성 베이지 와이드 치노" → 풍부한 결과
 
-중복 키워드 처리:
-  composer 프롬프트에서 성별/계절/카테고리 단어 제외하도록 지시하지만,
-  방어적으로 중복 검사 후 제거.
+설계 근거:
+  1. 계절 키워드 제거
+     - 네이버 상품명에 '봄' 같은 단어는 드뭄 (S/S, 2026 봄/여름 등으로 표기)
+     - 계절은 composer가 이미 고려한 정보 (봄용 아이템을 만들어줌)
+     - 검색어에 또 넣으면 노이즈만 증가
+  2. 카테고리 키워드 제거
+     - composer가 만든 아이템명에 이미 카테고리 정보 포함 ("치노" → 자동으로 팬츠)
+     - "팬츠 바지" 같은 키워드 추가는 AND 검색 결과를 좁히기만 함
+  3. 성별 유지
+     - 한국 쇼핑몰은 성별 분리가 명확
+     - "치노 팬츠"만 검색하면 여성 제품이 섞여 나옴
+     - "남성 치노 팬츠"는 카테고리 분리 효과 명확
 """
 
-from typing import Optional
 from .base import QueryStrategy
 
 
@@ -35,39 +41,6 @@ GENDER_KR = {
     "FEMALE": "여성",
 }
 
-SEASON_KR = {
-    "spring": "봄",
-    "summer": "여름",
-    "fall":   "가을",
-    "winter": "겨울",
-}
-
-# 성별 × 카테고리 검색 시 강제로 추가할 키워드
-# 카테고리만 봐도 어떤 상품인지 명확해지도록 보조
-CATEGORY_REQUIRED_KEYWORDS: dict[str, dict[str, str]] = {
-    "MALE": {
-        "TOP":    "셔츠 티셔츠 니트",  # OR 검색 효과를 노린 공백 구분
-        "BOTTOM": "팬츠 바지",
-        "OUTER":  "자켓 코트 가디건",
-    },
-    "FEMALE": {
-        "TOP":    "블라우스 셔츠 니트",
-        "BOTTOM": "스커트 팬츠",
-        "OUTER":  "자켓 코트 가디건",
-        "DRESS":  "원피스 드레스",
-    },
-}
-
-# composer가 만든 아이템명에 이미 들어있을 수 있는 단어들 (중복 방지용)
-# 예: composer가 "화이트 셔츠"를 만들었으면 카테고리 키워드 "셔츠"는 중복
-COMMON_CATEGORY_WORDS = {
-    "셔츠", "티셔츠", "니트", "맨투맨", "후드",
-    "팬츠", "바지", "데님", "청바지", "슬랙스", "조거", "치노",
-    "자켓", "코트", "가디건", "블레이저", "점퍼", "패딩",
-    "스커트", "원피스", "드레스",
-    "블라우스",
-}
-
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Strategy
@@ -75,16 +48,25 @@ COMMON_CATEGORY_WORDS = {
 
 class NaverQueryStrategy(QueryStrategy):
     """
-    네이버 쇼핑 검색어 생성 전략 — 룰 기반.
+    네이버 쇼핑 검색어 생성 전략 — 단순 룰 기반.
 
     composer가 만든 아이템명을 받아서 다음 형식으로 변환:
-      "{성별} {아이템명} {카테고리 키워드} {계절}"
+      "{성별} {아이템명}"
 
     예시:
-      build_query("화이트 옥스포드 셔츠", category="TOP", gender="MALE", season="spring")
-        → "남성 화이트 옥스포드 셔츠 티셔츠 니트 봄"
-        ※ 아이템명에 "셔츠"가 이미 있으면 카테고리 키워드에서 "셔츠" 제거
+      build_query("화이트 옥스포드 셔츠", category="TOP", gender="MALE")
+        → "남성 화이트 옥스포드 셔츠"
+
+      build_query("베이지 와이드 치노", category="BOTTOM", gender="MALE")
+        → "남성 베이지 와이드 치노"
+
+      build_query("카키 MA-1 봄버 재킷", category="OUTER", gender="MALE")
+        → "남성 카키 MA-1 봄버 재킷"
     """
+
+    @property
+    def platform_name(self) -> str:
+        return "naver"
 
     def build_query(
         self,
@@ -99,34 +81,22 @@ class NaverQueryStrategy(QueryStrategy):
         Args:
             item_name: composer 출력 아이템명 (예: "화이트 옥스포드 셔츠")
             category:  "TOP" | "BOTTOM" | "OUTER" | "DRESS"
+                       (현재 구현에서는 사용 안 함. 인터페이스 호환용)
             gender:    "MALE" | "FEMALE"
             season:    "spring" | "summer" | "fall" | "winter"
+                       (현재 구현에서는 사용 안 함. 인터페이스 호환용)
 
         Returns:
             검색어 문자열 (네이버 쇼핑 API의 query 파라미터로 사용)
+
+        Note:
+            category와 season은 base.py 인터페이스 유지를 위해 받지만
+            현재 검색어 빌더는 사용하지 않음.
+            추후 카테고리별 검색 전략 분기가 필요해지면 활용 가능.
         """
         item_name = (item_name or "").strip()
         if not item_name:
             return ""
 
-        # 1. 카테고리 키워드 가져오기
-        category_keywords = (
-            CATEGORY_REQUIRED_KEYWORDS
-            .get(gender, CATEGORY_REQUIRED_KEYWORDS["MALE"])
-            .get(category, "")
-        )
-
-        # 2. 아이템명에 이미 있는 카테고리 단어는 키워드에서 제거 (중복 방지)
-        if category_keywords:
-            keyword_tokens = category_keywords.split()
-            filtered = [tok for tok in keyword_tokens if tok not in item_name]
-            category_keywords = " ".join(filtered)
-
-        # 3. 최종 조합
-        parts = [
-            GENDER_KR.get(gender, "남성"),
-            item_name,
-            category_keywords,
-            SEASON_KR.get(season, ""),
-        ]
-        return " ".join(p for p in parts if p).strip()
+        gender_kr = GENDER_KR.get(gender, "남성")
+        return f"{gender_kr} {item_name}"

@@ -10,7 +10,15 @@ Query Strategy 추상 클래스
   1. query_strategies/ 아래 새 파일 생성 (예: musinsa.py)
   2. QueryStrategy 상속
   3. build_query() 구현
-  4. query_builder.py의 STRATEGY_MAP에 등록
+  4. external_retrieval.py에서 인스턴스화하여 사용
+
+Step 37 변경:
+  build_query 시그니처가 변경됨.
+  옛 시그니처: (category, intent, season, style_keywords, anchor_item, user_brand_profile)
+    → composer가 없었을 때는 검색 전략이 직접 아이템명을 추론해야 했음
+  새 시그니처: (item_name, category, gender, season)
+    → outfit_composer가 이미 아이템명을 만들어주므로,
+      검색 전략은 단순히 그 이름을 플랫폼 검색어로 변환만 함
 """
 
 from abc import ABC, abstractmethod
@@ -20,37 +28,31 @@ class QueryStrategy(ABC):
     """
     플랫폼별 검색 쿼리 전략 추상 클래스.
 
-    build_query()를 구현하면 Query Builder 노드에서 자동으로 호출됨.
+    build_query()를 구현하면 external_retrieval.py에서 호출함.
     """
 
     @abstractmethod
     def build_query(
         self,
+        item_name: str,
         category: str,
-        intent: str,
-        season: str,
-        style_keywords: list[str],
-        anchor_item: dict | None,
-        user_brand_profile: dict | None,
+        gender: str = "MALE",
+        season: str = "spring",
     ) -> str:
         """
-        플랫폼에 최적화된 검색 쿼리 문자열 반환.
+        composer가 만든 아이템명을 플랫폼별 검색어로 변환.
 
         Args:
-            category:           검색 카테고리 ("TOP", "BOTTOM", "OUTER" 등)
-            intent:             스타일 의도 ("casual", "formal", "sporty")
-            season:             계절 ("spring", "summer", "fall", "winter")
-            style_keywords:     Style Analyzer가 추출한 스타일 키워드
-                                예: ["minimal", "quiet_luxury"]
-            anchor_item:        앵커 아이템 정보 (색상, 핏, 브랜드 참고용)
-                                없으면 None
-            user_brand_profile: 좋아요 코디에서 누적된 브랜드/색상/핏 선호도
-                                MVP에서는 빈 dict
+            item_name: outfit_composer가 만든 아이템명
+                       예: "화이트 옥스포드 셔츠"
+            category:  검색 카테고리 ("TOP", "BOTTOM", "OUTER", "DRESS")
+            gender:    "MALE" | "FEMALE"
+            season:    "spring" | "summer" | "fall" | "winter"
 
         Returns:
             str: 플랫폼에 최적화된 검색 쿼리
-                 예(네이버): "오버핏 베이지 미니멀 캐주얼 티셔츠 봄"
-                 예(구글):   "overfit beige minimal casual t-shirt spring"
+                 예(네이버): "남성 화이트 옥스포드 셔츠 티셔츠 니트 봄"
+                 예(구글):   "men white oxford shirt spring"
         """
         pass
 

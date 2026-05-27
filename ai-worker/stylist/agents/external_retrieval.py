@@ -27,12 +27,20 @@ External Retrieval — Step 37 리팩토링
   - 네이버 API 동시 호출 제한 (Semaphore 3)
   - 한 proposal 실패해도 다른 proposal 영향 없음 (return_exceptions)
   - rembg 트리밍은 동기 호출이므로 to_thread로 감쌈
+
+Step 38 변경:
+  - nest_asyncio.apply() 추가
+    Uvicorn은 자체 asyncio 루프 위에서 동작함.
+    그 안에서 asyncio.run()을 호출하면
+    "이미 이벤트 루프가 실행 중" 에러가 발생함.
+    nest_asyncio는 루프 중첩을 허용해서 이 문제를 해결함.
 """
 
 import os
 import re
 import io
 import asyncio
+import nest_asyncio          # Step 38 추가: asyncio 루프 중첩 허용
 from typing import Callable, Optional
 import numpy as np
 import httpx
@@ -45,6 +53,10 @@ from shared.clip_encoder import CLIPEncoder
 from shared.segformer_trimmer import trim_and_upload
 
 load_dotenv()
+
+# Step 38: Uvicorn 루프 안에서 asyncio.run() 호출 허용
+# 앱 import 시점에 한 번만 적용되면 충분함
+nest_asyncio.apply()
 
 _clip = CLIPEncoder()
 _REF_VECTORS: dict[str, np.ndarray] = {}
@@ -140,7 +152,7 @@ async def _search_naver_async(
                     "query":   query,
                     "display": SEARCH_DISPLAY,
                     "sort":    "sim",
-                    "filter":  "naverpay",  # 단독컷 비율 높은 상품 우선
+                    "filter":  "naverpay",
                 },
                 timeout=5.0,
             )
@@ -209,15 +221,13 @@ async def _resolve_item(
       1. primary 검색 → CLIP 점수 ≥ 0.25면 채택
       2. 실패 시 fallback 검색 → 동일 검증
       3. 둘 다 실패 시 None
-
-    반환된 item에는 crop_s3_key가 채워져 있음 (성공한 경우).
     """
     for attempt_name, query_text in [
         ("primary",  item_spec.get("primary",  "")),
         ("fallback", item_spec.get("fallback", "")),
     ]:
         if not query_text or query_text == "(앵커)":
-            continue  # 앵커는 별도 처리 경로
+            continue
 
         query = strategy.build_query(
             item_name=query_text,
@@ -231,11 +241,9 @@ async def _resolve_item(
             print(f"[ItemFetcher] {category}/{attempt_name} 검색 0건: '{query}'")
             continue
 
-        # CLIP 점수 계산
         items = await _score_items(client, items)
         items.sort(key=lambda x: x.get("imageScore") or 0.0, reverse=True)
 
-        # 임계값 통과 1위
         best = next(
             (it for it in items if (it.get("imageScore") or 0.0) >= CLIP_SCORE_THRESHOLD),
             None,
@@ -252,7 +260,6 @@ async def _resolve_item(
             f"{best.get('name','')[:25]} ({score:.3f})"
         )
 
-        # 트리밍 (rembg는 동기 함수 → to_thread로 비동기 실행)
         async with TRIM_SEMAPHORE:
             s3_key = await asyncio.to_thread(
                 trim_and_upload,
@@ -263,13 +270,12 @@ async def _resolve_item(
 
         if not s3_key:
             print(f"[ItemFetcher] {category}/{attempt_name} 트리밍 실패")
-            continue  # 다음 시도로 (fallback)
+            continue
 
         best = dict(best)
         best["crop_s3_key"] = s3_key
         return best
 
-    # primary, fallback 모두 실패
     return None
 
 
@@ -287,19 +293,13 @@ async def _resolve_proposal(
     strategy:    NaverQueryStrategy,
     notify:      Callable[[str], None],
 ) -> OutfitProposal:
-    """
-    한 proposal 안의 모든 카테고리를 동시에 해결.
-    앵커 카테고리는 검색 스킵 + state의 anchor_item 그대로 사용.
-    """
     mood = proposal.get("mood", "?")
     notify(PROGRESS_MESSAGES["PROPOSAL_START"].format(mood=mood))
 
     anchor_cat = proposal.get("anchor_category")
     items_dict = proposal.get("items", {})
 
-    # 카테고리별 task 생성
     async def _resolve_one_category(category: str, spec: OutfitItemSpec):
-        # 앵커 카테고리 → 검색 스킵, anchor_item을 resolved로
         if anchor_cat and category == anchor_cat and anchor_item:
             resolved = dict(anchor_item)
             resolved["is_anchor"]   = True
@@ -307,7 +307,6 @@ async def _resolve_proposal(
             resolved["source"]      = "closet"
             return category, resolved, "skipped"
 
-        # 일반 카테고리 → primary/fallback 검색
         resolved = await _resolve_item(
             client=client,
             category=category,
@@ -321,11 +320,9 @@ async def _resolve_proposal(
         status = "resolved" if resolved else "failed"
         return category, resolved, status
 
-    # 카테고리들 동시 실행
     tasks = [_resolve_one_category(cat, spec) for cat, spec in items_dict.items()]
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
-    # 결과를 proposal에 반영
     success_count = 0
     fail_count    = 0
     for res in results:
@@ -343,7 +340,6 @@ async def _resolve_proposal(
         else:
             fail_count += 1
 
-    # proposal 단위 status 결정
     if fail_count == 0:
         proposal["proposal_status"] = "resolved"
     elif success_count == 0:
@@ -373,8 +369,9 @@ def search_external(
     외부(네이버) 검색 + 트리밍 진입점.
 
     composer가 만든 outfit_proposals를 받아 병렬 처리.
-    반환값은 평면 list (기존 호환), 단 state["outfit_proposals"]는
-    제자리에서 변경되어 ranker/response_agent가 mood별로 접근 가능.
+    반환값은 평면 list (기존 호환).
+    state["outfit_proposals"]는 in-place로 수정되어
+    retrieval.py가 꺼내서 state에 반영함.
     """
     def _notify(msg: str):
         print(f"[ItemFetcher] {msg}")
@@ -401,7 +398,7 @@ def search_external(
     anchor_item = state.get("anchor_item")
     strategy    = NaverQueryStrategy()
 
-    # 비동기 본체를 동기 함수에서 실행
+    # Step 38: nest_asyncio.apply() 덕분에 이미 실행 중인 루프 안에서도 동작함
     resolved_proposals = asyncio.run(_run_all_proposals(
         proposals=proposals,
         anchor_item=anchor_item,
@@ -412,7 +409,6 @@ def search_external(
         notify=_notify,
     ))
 
-    # 평면 list로 변환 (기존 ranker 호환)
     flat_items: list[dict] = []
     for prop in resolved_proposals:
         for cat, spec in prop.get("items", {}).items():
@@ -455,7 +451,6 @@ async def _run_all_proposals(
         ]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-    # 예외 발생한 proposal은 status=failed로 표시하고 통과
     final = []
     for prop, res in zip(proposals, results):
         if isinstance(res, Exception):
@@ -468,7 +463,7 @@ async def _run_all_proposals(
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Fallback (Step 36과 동일)
+# Fallback
 # ──────────────────────────────────────────────────────────────────────────────
 
 def _fallback(state: OutfitState) -> list[dict]:

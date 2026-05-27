@@ -6,9 +6,13 @@ Step 37 변경:
   - OutfitItemSpec, OutfitProposal 타입 추가
   - outfit_proposals 필드 추가 (composer 출력 → item_fetcher 입력)
   - 기존 필드는 모두 유지 (closet 흐름, ranker, validator 호환성)
+
+Step 38 변경:
+  - session_id 필드 추가 (추천 세션 추적, /feedback/like 연동용)
+  - progress_callback 필드 추가 (SSE 주입값 타입 명시)
 """
 
-from typing import TypedDict, Optional, List, Dict, Annotated
+from typing import TypedDict, Optional, List, Dict, Annotated, Callable
 from operator import add
 
 
@@ -68,6 +72,19 @@ class OutfitState(TypedDict):
     anchor_item_id:      Optional[int]
     style_reference_ids: Optional[List[int]]
     gender:              Optional[str]                # "MALE" | "FEMALE"
+
+    # ── Step 38 추가 ─────────────────────────────────────────────────────────
+    # 추천 요청마다 main.py에서 생성되는 고유 ID (예: "rec_a3f2b8c1")
+    # 파이프라인 전체를 통과하며 변경되지 않음
+    # _build_response에서 꺼내서 응답에 포함 → 프론트가 저장 → 좋아요 시 전송
+    session_id:          Optional[str]
+
+    # ── Step 38 추가 ─────────────────────────────────────────────────────────
+    # SSE 엔드포인트(/recommend)에서 주입하는 콜백 함수
+    # 타입: (message: str) -> None
+    # /recommend/sync에서는 None (동기 응답이라 실시간 전송 불필요)
+    # Optional[Callable]로 선언해야 None 허용 + 타입 힌트 정확
+    progress_callback:   Optional[Callable]
 
     # ── Planner ──────────────────────────────────────────────────────────────
     weather:           Optional[str]

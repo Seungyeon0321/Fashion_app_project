@@ -9,11 +9,17 @@ Fashion Stylist FastAPI 엔드포인트
 Step 37 변경:
   _build_initial_state에 outfit_proposals 초기값 추가.
   recommend_sync 응답에 proposal_statuses debug 필드 추가.
+
+Step 38 변경:
+  uuid import 추가.
+  _build_initial_state에 session_id 생성 및 state 포함.
+  _build_response에서 session_id를 응답에 포함.
 """
 
 import os
 import io
 import json
+import uuid          # ← Step 38 추가: session_id 생성용
 import queue
 import threading
 import psycopg2
@@ -82,6 +88,12 @@ class RecommendItemResponse(BaseModel):
 
 
 class RecommendResponse(BaseModel):
+    # ── Step 38 추가 ──────────────────────────────────────────────────────────
+    # 추천 세션을 식별하는 고유 ID (예: "rec_a3f2b8c1")
+    # 프론트가 이 값을 저장해뒀다가, 좋아요 누를 때 같이 전송함
+    # → NestJS /feedback/like 에서 어떤 추천 결과에 좋아요를 눌렀는지 추적 가능
+    session_id:       str
+
     intent:           Optional[str] = None
     calendar_events:  Optional[List[str]] = []
     weather:          Optional[str] = None
@@ -116,7 +128,17 @@ def health():
 # ──────────────────────────────────────────────────────────────────────────────
 
 def _build_initial_state(request: RecommendRequest) -> dict:
+    # ── Step 38 추가 ──────────────────────────────────────────────────────────
+    # 추천 요청이 들어올 때마다 고유한 session_id를 생성함
+    # uuid4()는 128비트 랜덤값 → hex[:8]로 앞 8자리만 사용 (충돌 가능성 무시할 수준)
+    # 예: "rec_a3f2b8c1"
+    session_id = f"rec_{uuid.uuid4().hex[:8]}"
+
     return {
+        # ── Step 38 추가 ──────────────────────────────────────────────────────
+        # LangGraph state에 포함시켜야 파이프라인 끝에서 _build_response가 꺼낼 수 있음
+        "session_id":             session_id,
+
         "user_message":           request.user_message,
         "user_id":                str(request.user_id),
         "source":                 request.source,
@@ -168,6 +190,13 @@ def _build_response(result: dict) -> RecommendResponse:
         for item in (result.get("ranked_items") or [])
     ]
     return RecommendResponse(
+        # ── Step 38 추가 ──────────────────────────────────────────────────────
+        # _build_initial_state에서 state에 넣었던 session_id를 꺼내서 응답에 포함
+        # result는 LangGraph가 파이프라인을 돌고 난 최종 state이므로
+        # session_id가 그대로 살아있음
+        # fallback으로 "" 를 주지만 정상 흐름에서는 항상 값이 있어야 함
+        session_id=result.get("session_id", ""),
+
         intent=result.get("intent"),
         calendar_events=result.get("calendar_events") or [],
         weather=result.get("weather"),

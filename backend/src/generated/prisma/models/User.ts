@@ -268,6 +268,8 @@ export type UserWhereInput = {
   styleRefs?: Prisma.StyleReferenceListRelationFilter
   outfits?: Prisma.OutfitListRelationFilter
   externalItems?: Prisma.ExternalItemListRelationFilter
+  outfitFeedbacks?: Prisma.OutfitFeedbackListRelationFilter
+  stylePreference?: Prisma.XOR<Prisma.UserStylePreferenceNullableScalarRelationFilter, Prisma.UserStylePreferenceWhereInput> | null
 }
 
 export type UserOrderByWithRelationInput = {
@@ -286,6 +288,8 @@ export type UserOrderByWithRelationInput = {
   styleRefs?: Prisma.StyleReferenceOrderByRelationAggregateInput
   outfits?: Prisma.OutfitOrderByRelationAggregateInput
   externalItems?: Prisma.ExternalItemOrderByRelationAggregateInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackOrderByRelationAggregateInput
+  stylePreference?: Prisma.UserStylePreferenceOrderByWithRelationInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -307,6 +311,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   styleRefs?: Prisma.StyleReferenceListRelationFilter
   outfits?: Prisma.OutfitListRelationFilter
   externalItems?: Prisma.ExternalItemListRelationFilter
+  outfitFeedbacks?: Prisma.OutfitFeedbackListRelationFilter
+  stylePreference?: Prisma.XOR<Prisma.UserStylePreferenceNullableScalarRelationFilter, Prisma.UserStylePreferenceWhereInput> | null
 }, "id" | "email" | "googleId">
 
 export type UserOrderByWithAggregationInput = {
@@ -360,6 +366,8 @@ export type UserCreateInput = {
   styleRefs?: Prisma.StyleReferenceCreateNestedManyWithoutUserInput
   outfits?: Prisma.OutfitCreateNestedManyWithoutUserInput
   externalItems?: Prisma.ExternalItemCreateNestedManyWithoutUserInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackCreateNestedManyWithoutUserInput
+  stylePreference?: Prisma.UserStylePreferenceCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -378,6 +386,8 @@ export type UserUncheckedCreateInput = {
   styleRefs?: Prisma.StyleReferenceUncheckedCreateNestedManyWithoutUserInput
   outfits?: Prisma.OutfitUncheckedCreateNestedManyWithoutUserInput
   externalItems?: Prisma.ExternalItemUncheckedCreateNestedManyWithoutUserInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackUncheckedCreateNestedManyWithoutUserInput
+  stylePreference?: Prisma.UserStylePreferenceUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -395,6 +405,8 @@ export type UserUpdateInput = {
   styleRefs?: Prisma.StyleReferenceUpdateManyWithoutUserNestedInput
   outfits?: Prisma.OutfitUpdateManyWithoutUserNestedInput
   externalItems?: Prisma.ExternalItemUpdateManyWithoutUserNestedInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackUpdateManyWithoutUserNestedInput
+  stylePreference?: Prisma.UserStylePreferenceUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -413,6 +425,8 @@ export type UserUncheckedUpdateInput = {
   styleRefs?: Prisma.StyleReferenceUncheckedUpdateManyWithoutUserNestedInput
   outfits?: Prisma.OutfitUncheckedUpdateManyWithoutUserNestedInput
   externalItems?: Prisma.ExternalItemUncheckedUpdateManyWithoutUserNestedInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackUncheckedUpdateManyWithoutUserNestedInput
+  stylePreference?: Prisma.UserStylePreferenceUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -595,6 +609,34 @@ export type UserUpdateOneRequiredWithoutOutfitsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutOutfitsInput, Prisma.UserUpdateWithoutOutfitsInput>, Prisma.UserUncheckedUpdateWithoutOutfitsInput>
 }
 
+export type UserCreateNestedOneWithoutOutfitFeedbacksInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOutfitFeedbacksInput, Prisma.UserUncheckedCreateWithoutOutfitFeedbacksInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOutfitFeedbacksInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutOutfitFeedbacksNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOutfitFeedbacksInput, Prisma.UserUncheckedCreateWithoutOutfitFeedbacksInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOutfitFeedbacksInput
+  upsert?: Prisma.UserUpsertWithoutOutfitFeedbacksInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutOutfitFeedbacksInput, Prisma.UserUpdateWithoutOutfitFeedbacksInput>, Prisma.UserUncheckedUpdateWithoutOutfitFeedbacksInput>
+}
+
+export type UserCreateNestedOneWithoutStylePreferenceInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutStylePreferenceInput, Prisma.UserUncheckedCreateWithoutStylePreferenceInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutStylePreferenceInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutStylePreferenceNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutStylePreferenceInput, Prisma.UserUncheckedCreateWithoutStylePreferenceInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutStylePreferenceInput
+  upsert?: Prisma.UserUpsertWithoutStylePreferenceInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutStylePreferenceInput, Prisma.UserUpdateWithoutStylePreferenceInput>, Prisma.UserUncheckedUpdateWithoutStylePreferenceInput>
+}
+
 export type UserCreateWithoutClosetItemsInput = {
   email: string
   password?: string | null
@@ -609,6 +651,8 @@ export type UserCreateWithoutClosetItemsInput = {
   styleRefs?: Prisma.StyleReferenceCreateNestedManyWithoutUserInput
   outfits?: Prisma.OutfitCreateNestedManyWithoutUserInput
   externalItems?: Prisma.ExternalItemCreateNestedManyWithoutUserInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackCreateNestedManyWithoutUserInput
+  stylePreference?: Prisma.UserStylePreferenceCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutClosetItemsInput = {
@@ -626,6 +670,8 @@ export type UserUncheckedCreateWithoutClosetItemsInput = {
   styleRefs?: Prisma.StyleReferenceUncheckedCreateNestedManyWithoutUserInput
   outfits?: Prisma.OutfitUncheckedCreateNestedManyWithoutUserInput
   externalItems?: Prisma.ExternalItemUncheckedCreateNestedManyWithoutUserInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackUncheckedCreateNestedManyWithoutUserInput
+  stylePreference?: Prisma.UserStylePreferenceUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutClosetItemsInput = {
@@ -658,6 +704,8 @@ export type UserUpdateWithoutClosetItemsInput = {
   styleRefs?: Prisma.StyleReferenceUpdateManyWithoutUserNestedInput
   outfits?: Prisma.OutfitUpdateManyWithoutUserNestedInput
   externalItems?: Prisma.ExternalItemUpdateManyWithoutUserNestedInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackUpdateManyWithoutUserNestedInput
+  stylePreference?: Prisma.UserStylePreferenceUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutClosetItemsInput = {
@@ -675,6 +723,8 @@ export type UserUncheckedUpdateWithoutClosetItemsInput = {
   styleRefs?: Prisma.StyleReferenceUncheckedUpdateManyWithoutUserNestedInput
   outfits?: Prisma.OutfitUncheckedUpdateManyWithoutUserNestedInput
   externalItems?: Prisma.ExternalItemUncheckedUpdateManyWithoutUserNestedInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackUncheckedUpdateManyWithoutUserNestedInput
+  stylePreference?: Prisma.UserStylePreferenceUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutStyleRefsInput = {
@@ -691,6 +741,8 @@ export type UserCreateWithoutStyleRefsInput = {
   closetItems?: Prisma.ClosetItemCreateNestedManyWithoutUserInput
   outfits?: Prisma.OutfitCreateNestedManyWithoutUserInput
   externalItems?: Prisma.ExternalItemCreateNestedManyWithoutUserInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackCreateNestedManyWithoutUserInput
+  stylePreference?: Prisma.UserStylePreferenceCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutStyleRefsInput = {
@@ -708,6 +760,8 @@ export type UserUncheckedCreateWithoutStyleRefsInput = {
   closetItems?: Prisma.ClosetItemUncheckedCreateNestedManyWithoutUserInput
   outfits?: Prisma.OutfitUncheckedCreateNestedManyWithoutUserInput
   externalItems?: Prisma.ExternalItemUncheckedCreateNestedManyWithoutUserInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackUncheckedCreateNestedManyWithoutUserInput
+  stylePreference?: Prisma.UserStylePreferenceUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutStyleRefsInput = {
@@ -740,6 +794,8 @@ export type UserUpdateWithoutStyleRefsInput = {
   closetItems?: Prisma.ClosetItemUpdateManyWithoutUserNestedInput
   outfits?: Prisma.OutfitUpdateManyWithoutUserNestedInput
   externalItems?: Prisma.ExternalItemUpdateManyWithoutUserNestedInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackUpdateManyWithoutUserNestedInput
+  stylePreference?: Prisma.UserStylePreferenceUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutStyleRefsInput = {
@@ -757,6 +813,8 @@ export type UserUncheckedUpdateWithoutStyleRefsInput = {
   closetItems?: Prisma.ClosetItemUncheckedUpdateManyWithoutUserNestedInput
   outfits?: Prisma.OutfitUncheckedUpdateManyWithoutUserNestedInput
   externalItems?: Prisma.ExternalItemUncheckedUpdateManyWithoutUserNestedInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackUncheckedUpdateManyWithoutUserNestedInput
+  stylePreference?: Prisma.UserStylePreferenceUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutExternalItemsInput = {
@@ -773,6 +831,8 @@ export type UserCreateWithoutExternalItemsInput = {
   closetItems?: Prisma.ClosetItemCreateNestedManyWithoutUserInput
   styleRefs?: Prisma.StyleReferenceCreateNestedManyWithoutUserInput
   outfits?: Prisma.OutfitCreateNestedManyWithoutUserInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackCreateNestedManyWithoutUserInput
+  stylePreference?: Prisma.UserStylePreferenceCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutExternalItemsInput = {
@@ -790,6 +850,8 @@ export type UserUncheckedCreateWithoutExternalItemsInput = {
   closetItems?: Prisma.ClosetItemUncheckedCreateNestedManyWithoutUserInput
   styleRefs?: Prisma.StyleReferenceUncheckedCreateNestedManyWithoutUserInput
   outfits?: Prisma.OutfitUncheckedCreateNestedManyWithoutUserInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackUncheckedCreateNestedManyWithoutUserInput
+  stylePreference?: Prisma.UserStylePreferenceUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutExternalItemsInput = {
@@ -822,6 +884,8 @@ export type UserUpdateWithoutExternalItemsInput = {
   closetItems?: Prisma.ClosetItemUpdateManyWithoutUserNestedInput
   styleRefs?: Prisma.StyleReferenceUpdateManyWithoutUserNestedInput
   outfits?: Prisma.OutfitUpdateManyWithoutUserNestedInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackUpdateManyWithoutUserNestedInput
+  stylePreference?: Prisma.UserStylePreferenceUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutExternalItemsInput = {
@@ -839,6 +903,8 @@ export type UserUncheckedUpdateWithoutExternalItemsInput = {
   closetItems?: Prisma.ClosetItemUncheckedUpdateManyWithoutUserNestedInput
   styleRefs?: Prisma.StyleReferenceUncheckedUpdateManyWithoutUserNestedInput
   outfits?: Prisma.OutfitUncheckedUpdateManyWithoutUserNestedInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackUncheckedUpdateManyWithoutUserNestedInput
+  stylePreference?: Prisma.UserStylePreferenceUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutOutfitsInput = {
@@ -855,6 +921,8 @@ export type UserCreateWithoutOutfitsInput = {
   closetItems?: Prisma.ClosetItemCreateNestedManyWithoutUserInput
   styleRefs?: Prisma.StyleReferenceCreateNestedManyWithoutUserInput
   externalItems?: Prisma.ExternalItemCreateNestedManyWithoutUserInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackCreateNestedManyWithoutUserInput
+  stylePreference?: Prisma.UserStylePreferenceCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutOutfitsInput = {
@@ -872,6 +940,8 @@ export type UserUncheckedCreateWithoutOutfitsInput = {
   closetItems?: Prisma.ClosetItemUncheckedCreateNestedManyWithoutUserInput
   styleRefs?: Prisma.StyleReferenceUncheckedCreateNestedManyWithoutUserInput
   externalItems?: Prisma.ExternalItemUncheckedCreateNestedManyWithoutUserInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackUncheckedCreateNestedManyWithoutUserInput
+  stylePreference?: Prisma.UserStylePreferenceUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutOutfitsInput = {
@@ -904,6 +974,8 @@ export type UserUpdateWithoutOutfitsInput = {
   closetItems?: Prisma.ClosetItemUpdateManyWithoutUserNestedInput
   styleRefs?: Prisma.StyleReferenceUpdateManyWithoutUserNestedInput
   externalItems?: Prisma.ExternalItemUpdateManyWithoutUserNestedInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackUpdateManyWithoutUserNestedInput
+  stylePreference?: Prisma.UserStylePreferenceUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOutfitsInput = {
@@ -921,6 +993,188 @@ export type UserUncheckedUpdateWithoutOutfitsInput = {
   closetItems?: Prisma.ClosetItemUncheckedUpdateManyWithoutUserNestedInput
   styleRefs?: Prisma.StyleReferenceUncheckedUpdateManyWithoutUserNestedInput
   externalItems?: Prisma.ExternalItemUncheckedUpdateManyWithoutUserNestedInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackUncheckedUpdateManyWithoutUserNestedInput
+  stylePreference?: Prisma.UserStylePreferenceUncheckedUpdateOneWithoutUserNestedInput
+}
+
+export type UserCreateWithoutOutfitFeedbacksInput = {
+  email: string
+  password?: string | null
+  nickname?: string | null
+  gender?: $Enums.Gender | null
+  provider?: $Enums.AuthProvider
+  googleId?: string | null
+  avatarUrl?: string | null
+  location?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  closetItems?: Prisma.ClosetItemCreateNestedManyWithoutUserInput
+  styleRefs?: Prisma.StyleReferenceCreateNestedManyWithoutUserInput
+  outfits?: Prisma.OutfitCreateNestedManyWithoutUserInput
+  externalItems?: Prisma.ExternalItemCreateNestedManyWithoutUserInput
+  stylePreference?: Prisma.UserStylePreferenceCreateNestedOneWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutOutfitFeedbacksInput = {
+  id?: number
+  email: string
+  password?: string | null
+  nickname?: string | null
+  gender?: $Enums.Gender | null
+  provider?: $Enums.AuthProvider
+  googleId?: string | null
+  avatarUrl?: string | null
+  location?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  closetItems?: Prisma.ClosetItemUncheckedCreateNestedManyWithoutUserInput
+  styleRefs?: Prisma.StyleReferenceUncheckedCreateNestedManyWithoutUserInput
+  outfits?: Prisma.OutfitUncheckedCreateNestedManyWithoutUserInput
+  externalItems?: Prisma.ExternalItemUncheckedCreateNestedManyWithoutUserInput
+  stylePreference?: Prisma.UserStylePreferenceUncheckedCreateNestedOneWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutOutfitFeedbacksInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutOutfitFeedbacksInput, Prisma.UserUncheckedCreateWithoutOutfitFeedbacksInput>
+}
+
+export type UserUpsertWithoutOutfitFeedbacksInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutOutfitFeedbacksInput, Prisma.UserUncheckedUpdateWithoutOutfitFeedbacksInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutOutfitFeedbacksInput, Prisma.UserUncheckedCreateWithoutOutfitFeedbacksInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutOutfitFeedbacksInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutOutfitFeedbacksInput, Prisma.UserUncheckedUpdateWithoutOutfitFeedbacksInput>
+}
+
+export type UserUpdateWithoutOutfitFeedbacksInput = {
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closetItems?: Prisma.ClosetItemUpdateManyWithoutUserNestedInput
+  styleRefs?: Prisma.StyleReferenceUpdateManyWithoutUserNestedInput
+  outfits?: Prisma.OutfitUpdateManyWithoutUserNestedInput
+  externalItems?: Prisma.ExternalItemUpdateManyWithoutUserNestedInput
+  stylePreference?: Prisma.UserStylePreferenceUpdateOneWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutOutfitFeedbacksInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closetItems?: Prisma.ClosetItemUncheckedUpdateManyWithoutUserNestedInput
+  styleRefs?: Prisma.StyleReferenceUncheckedUpdateManyWithoutUserNestedInput
+  outfits?: Prisma.OutfitUncheckedUpdateManyWithoutUserNestedInput
+  externalItems?: Prisma.ExternalItemUncheckedUpdateManyWithoutUserNestedInput
+  stylePreference?: Prisma.UserStylePreferenceUncheckedUpdateOneWithoutUserNestedInput
+}
+
+export type UserCreateWithoutStylePreferenceInput = {
+  email: string
+  password?: string | null
+  nickname?: string | null
+  gender?: $Enums.Gender | null
+  provider?: $Enums.AuthProvider
+  googleId?: string | null
+  avatarUrl?: string | null
+  location?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  closetItems?: Prisma.ClosetItemCreateNestedManyWithoutUserInput
+  styleRefs?: Prisma.StyleReferenceCreateNestedManyWithoutUserInput
+  outfits?: Prisma.OutfitCreateNestedManyWithoutUserInput
+  externalItems?: Prisma.ExternalItemCreateNestedManyWithoutUserInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutStylePreferenceInput = {
+  id?: number
+  email: string
+  password?: string | null
+  nickname?: string | null
+  gender?: $Enums.Gender | null
+  provider?: $Enums.AuthProvider
+  googleId?: string | null
+  avatarUrl?: string | null
+  location?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  closetItems?: Prisma.ClosetItemUncheckedCreateNestedManyWithoutUserInput
+  styleRefs?: Prisma.StyleReferenceUncheckedCreateNestedManyWithoutUserInput
+  outfits?: Prisma.OutfitUncheckedCreateNestedManyWithoutUserInput
+  externalItems?: Prisma.ExternalItemUncheckedCreateNestedManyWithoutUserInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutStylePreferenceInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutStylePreferenceInput, Prisma.UserUncheckedCreateWithoutStylePreferenceInput>
+}
+
+export type UserUpsertWithoutStylePreferenceInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutStylePreferenceInput, Prisma.UserUncheckedUpdateWithoutStylePreferenceInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutStylePreferenceInput, Prisma.UserUncheckedCreateWithoutStylePreferenceInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutStylePreferenceInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutStylePreferenceInput, Prisma.UserUncheckedUpdateWithoutStylePreferenceInput>
+}
+
+export type UserUpdateWithoutStylePreferenceInput = {
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closetItems?: Prisma.ClosetItemUpdateManyWithoutUserNestedInput
+  styleRefs?: Prisma.StyleReferenceUpdateManyWithoutUserNestedInput
+  outfits?: Prisma.OutfitUpdateManyWithoutUserNestedInput
+  externalItems?: Prisma.ExternalItemUpdateManyWithoutUserNestedInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutStylePreferenceInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closetItems?: Prisma.ClosetItemUncheckedUpdateManyWithoutUserNestedInput
+  styleRefs?: Prisma.StyleReferenceUncheckedUpdateManyWithoutUserNestedInput
+  outfits?: Prisma.OutfitUncheckedUpdateManyWithoutUserNestedInput
+  externalItems?: Prisma.ExternalItemUncheckedUpdateManyWithoutUserNestedInput
+  outfitFeedbacks?: Prisma.OutfitFeedbackUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -933,6 +1187,7 @@ export type UserCountOutputType = {
   styleRefs: number
   outfits: number
   externalItems: number
+  outfitFeedbacks: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -940,6 +1195,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   styleRefs?: boolean | UserCountOutputTypeCountStyleRefsArgs
   outfits?: boolean | UserCountOutputTypeCountOutfitsArgs
   externalItems?: boolean | UserCountOutputTypeCountExternalItemsArgs
+  outfitFeedbacks?: boolean | UserCountOutputTypeCountOutfitFeedbacksArgs
 }
 
 /**
@@ -980,6 +1236,13 @@ export type UserCountOutputTypeCountExternalItemsArgs<ExtArgs extends runtime.Ty
   where?: Prisma.ExternalItemWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountOutfitFeedbacksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OutfitFeedbackWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -997,6 +1260,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   styleRefs?: boolean | Prisma.User$styleRefsArgs<ExtArgs>
   outfits?: boolean | Prisma.User$outfitsArgs<ExtArgs>
   externalItems?: boolean | Prisma.User$externalItemsArgs<ExtArgs>
+  outfitFeedbacks?: boolean | Prisma.User$outfitFeedbacksArgs<ExtArgs>
+  stylePreference?: boolean | Prisma.User$stylePreferenceArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1048,6 +1313,8 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   styleRefs?: boolean | Prisma.User$styleRefsArgs<ExtArgs>
   outfits?: boolean | Prisma.User$outfitsArgs<ExtArgs>
   externalItems?: boolean | Prisma.User$externalItemsArgs<ExtArgs>
+  outfitFeedbacks?: boolean | Prisma.User$outfitFeedbacksArgs<ExtArgs>
+  stylePreference?: boolean | Prisma.User$stylePreferenceArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1060,6 +1327,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     styleRefs: Prisma.$StyleReferencePayload<ExtArgs>[]
     outfits: Prisma.$OutfitPayload<ExtArgs>[]
     externalItems: Prisma.$ExternalItemPayload<ExtArgs>[]
+    outfitFeedbacks: Prisma.$OutfitFeedbackPayload<ExtArgs>[]
+    stylePreference: Prisma.$UserStylePreferencePayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1471,6 +1740,8 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   styleRefs<T extends Prisma.User$styleRefsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$styleRefsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StyleReferencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   outfits<T extends Prisma.User$outfitsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$outfitsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OutfitPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   externalItems<T extends Prisma.User$externalItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$externalItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExternalItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  outfitFeedbacks<T extends Prisma.User$outfitFeedbacksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$outfitFeedbacksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OutfitFeedbackPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  stylePreference<T extends Prisma.User$stylePreferenceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$stylePreferenceArgs<ExtArgs>>): Prisma.Prisma__UserStylePreferenceClient<runtime.Types.Result.GetResult<Prisma.$UserStylePreferencePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1992,6 +2263,49 @@ export type User$externalItemsArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.ExternalItemScalarFieldEnum | Prisma.ExternalItemScalarFieldEnum[]
+}
+
+/**
+ * User.outfitFeedbacks
+ */
+export type User$outfitFeedbacksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OutfitFeedback
+   */
+  select?: Prisma.OutfitFeedbackSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OutfitFeedback
+   */
+  omit?: Prisma.OutfitFeedbackOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OutfitFeedbackInclude<ExtArgs> | null
+  where?: Prisma.OutfitFeedbackWhereInput
+  orderBy?: Prisma.OutfitFeedbackOrderByWithRelationInput | Prisma.OutfitFeedbackOrderByWithRelationInput[]
+  cursor?: Prisma.OutfitFeedbackWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OutfitFeedbackScalarFieldEnum | Prisma.OutfitFeedbackScalarFieldEnum[]
+}
+
+/**
+ * User.stylePreference
+ */
+export type User$stylePreferenceArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserStylePreference
+   */
+  select?: Prisma.UserStylePreferenceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the UserStylePreference
+   */
+  omit?: Prisma.UserStylePreferenceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserStylePreferenceInclude<ExtArgs> | null
+  where?: Prisma.UserStylePreferenceWhereInput
 }
 
 /**

@@ -52,3 +52,13 @@ export type Outfit = Prisma.OutfitModel
  * 
  */
 export type OutfitItem = Prisma.OutfitItemModel
+/**
+ * Model OutfitFeedback
+ * 
+ */
+export type OutfitFeedback = Prisma.OutfitFeedbackModel
+/**
+ * Model UserStylePreference
+ * 
+ */
+export type UserStylePreference = Prisma.UserStylePreferenceModel

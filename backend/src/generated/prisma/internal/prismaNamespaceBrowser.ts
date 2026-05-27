@@ -57,7 +57,9 @@ export const ModelName = {
   StyleReference: 'StyleReference',
   ExternalItem: 'ExternalItem',
   Outfit: 'Outfit',
-  OutfitItem: 'OutfitItem'
+  OutfitItem: 'OutfitItem',
+  OutfitFeedback: 'OutfitFeedback',
+  UserStylePreference: 'UserStylePreference'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -203,6 +205,43 @@ export const OutfitItemScalarFieldEnum = {
 export type OutfitItemScalarFieldEnum = (typeof OutfitItemScalarFieldEnum)[keyof typeof OutfitItemScalarFieldEnum]
 
 
+export const OutfitFeedbackScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  recommendSessionId: 'recommendSessionId',
+  proposalIndex: 'proposalIndex',
+  proposalMood: 'proposalMood',
+  type: 'type',
+  outfitSnapshot: 'outfitSnapshot',
+  extractedBrands: 'extractedBrands',
+  extractedColors: 'extractedColors',
+  recommendSource: 'recommendSource',
+  intent: 'intent',
+  createdAt: 'createdAt'
+} as const
+
+export type OutfitFeedbackScalarFieldEnum = (typeof OutfitFeedbackScalarFieldEnum)[keyof typeof OutfitFeedbackScalarFieldEnum]
+
+
+export const UserStylePreferenceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  moodScores: 'moodScores',
+  topMood: 'topMood',
+  preferredColors: 'preferredColors',
+  preferredBrands: 'preferredBrands',
+  avoidedColors: 'avoidedColors',
+  avoidedBrands: 'avoidedBrands',
+  excludedItemKeywords: 'excludedItemKeywords',
+  totalLikes: 'totalLikes',
+  totalDislikes: 'totalDislikes',
+  lastUpdatedAt: 'lastUpdatedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type UserStylePreferenceScalarFieldEnum = (typeof UserStylePreferenceScalarFieldEnum)[keyof typeof UserStylePreferenceScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -217,6 +256,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {

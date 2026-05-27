@@ -9,6 +9,14 @@
 * 🟢 You can import this file directly.
 */
 
+export const FeedbackType = {
+  LIKE: 'LIKE',
+  DISLIKE: 'DISLIKE'
+} as const
+
+export type FeedbackType = (typeof FeedbackType)[keyof typeof FeedbackType]
+
+
 export const Gender = {
   MALE: 'MALE',
   FEMALE: 'FEMALE',
