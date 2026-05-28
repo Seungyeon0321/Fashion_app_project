@@ -1,13 +1,18 @@
-import { z } from "zod"
+// shared/util/env.ts
+
+import { z } from 'zod';
 
 const envSchema = z.object({
     BACKEND_API_URL: z.string().url(),
-})
+    FASTAPI_URL:     z.string().url(),
+});
 
 const _env = envSchema.safeParse({
     BACKEND_API_URL:
         process.env.EXPO_PUBLIC_BACKEND_API_URL ?? process.env.BACKEND_API_URL,
-})
+    FASTAPI_URL:
+        process.env.EXPO_PUBLIC_FASTAPI_URL ?? process.env.FASTAPI_URL,
+});
 
 if (!_env.success) {
     console.error('Invalid environment variables', _env.error.format())

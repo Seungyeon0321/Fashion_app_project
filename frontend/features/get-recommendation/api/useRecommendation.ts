@@ -1,36 +1,33 @@
 // features/get-recommendation/api/useRecommendation.ts
 
-import { useMutation } from '@tanstack/react-query';
-import { api } from '@/shared/lib/api';
+import { useRef, useCallback } from 'react';
 import { useStyleStore } from '@/features/style-reference/model/styleStore';
+import { ENV } from '@/shared/util/env';
+import { api } from '@/shared/lib/api';
 import type { RecommendSource } from '../model/sourcePickerStore';
 
 export type RecommendPayload = {
-  intent:           string;
-  source:           RecommendSource;
-  anchor_item_id?:  number;
-  // string[] → number[]
-  // SavedStyle.id는 DB PK (number)
-  // style_reference_ids는 자동 포함되므로 외부에서 직접 넘길 필요 없음
-  // 필요시 오버라이드 가능하도록 optional 유지
+  intent:               string;
+  source:               RecommendSource;
+  anchor_item_id?:      number;
   style_reference_ids?: number[];
 };
 
 export type RecommendedItem = {
-  id:           number | string;  // closet=number, external mock=string
-  name:         string | null;
-  imageUrl:     string | null;
-  category:     string;
-  subCategory:  string | null;
-  brand:        string | null;
-  colors:       string[];
-  material:     string | null;
-  fit:          string | null;
-  similarity:   number | null;
-  is_anchor:    boolean;
-  is_external:  boolean;
-  purchaseUrl:  string | null;    // external 아이템 구매 링크
-}
+  id:          number | string;
+  name:        string | null;
+  imageUrl:    string | null;
+  category:    string;
+  subCategory: string | null;
+  brand:       string | null;
+  colors:      string[];
+  material:    string | null;
+  fit:         string | null;
+  similarity:  number | null;
+  is_anchor:   boolean;
+  is_external: boolean;
+  purchaseUrl: string | null;
+};
 
 export type RecommendationResponse = {
   intent:           string | null;
@@ -38,53 +35,109 @@ export type RecommendationResponse = {
   weather:          string | null;
   ranked_items:     RecommendedItem[];
   final_response:   string;
-  // conflict_warning: Style Analyzer에서 세팅
-  // "anchor_ncp_conflict"이면 프론트에서 안내 표시
   conflict_warning: string | null;
-  // relaxation_level: 몇 번째 완화 단계에서 결과가 나왔는지
-  // 디버깅/모니터링용, UI 표시는 선택사항
   relaxation_level: number | null;
 };
 
+type RecommendOptions = {
+  onProgress: (message: string) => void;
+  onSuccess:  (data: RecommendationResponse) => void;
+  onError:    (error: Error) => void;
+};
+
 export function useRecommendation() {
-  // Zustand store에서 savedStyles 구독
-  // Source Picker CONFIRM 시점에 store에 이미 최신 데이터가 있음
-  const savedStyles = useStyleStore((s) => s.savedStyles)
+  const savedStyles = useStyleStore((s) => s.savedStyles);
+  const xhrRef      = useRef<XMLHttpRequest | null>(null);
 
-  return useMutation<RecommendationResponse, Error, RecommendPayload>({
-    mutationFn: async (payload) => {
-      // style_reference_ids 자동 포함
-      // payload에 명시적으로 넘긴 값이 있으면 그걸 우선 사용
-      // 없으면 store의 savedStyles에서 id 추출해서 자동 포함
-      //
-      // 왜 자동 포함인가?
-      //   Source Picker에서 CONFIRM할 때마다 수동으로 ids를 넘기는 건 번거로움.
-      //   홈 진입 시 useMyStyles()가 store를 채워두므로
-      //   여기서 그냥 읽어서 자동으로 붙여주는 게 깔끔.
+  const mutate = useCallback(
+    async (payload: RecommendPayload, options: RecommendOptions) => {
+      // 이전 요청 중단
+      xhrRef.current?.abort();
+
       const style_reference_ids =
-        payload.style_reference_ids ??
-        savedStyles.map((s) => s.id)
-
-      console.log('Requesting recommendation with payload:', {
-        ...payload,
-        style_reference_ids,
-      });
+        payload.style_reference_ids ?? savedStyles.map((s) => s.id);
 
       try {
-        const { data } = await api.post<RecommendationResponse>(
-        '/style/recommend',
-        {
-          ...payload,
-          style_reference_ids,
-        }
-      );
+        // Step 1: NestJS에서 user_id 받기
+        const { data: context } = await api.get<{
+          user_id:     number;
+          fastapi_url: string;
+        }>('/style/context');
 
-      console.log('📥 API 응답:', JSON.stringify(data));
-      return data;
-      } catch (error) {
-          console.log('💥 에러 발생')
-    throw error;
+        // Step 2: XMLHttpRequest로 SSE 스트리밍
+        // 이유: React Native의 fetch는 response.body(ReadableStream) 미지원
+        //       XHR의 onprogress는 청크 단위로 데이터를 받을 수 있어서
+        //       SSE 파싱에 적합함
+        await new Promise<void>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhrRef.current = xhr;
+
+          xhr.open('POST', `${ENV.FASTAPI_URL}/recommend`);
+          xhr.setRequestHeader('Content-Type', 'application/json');
+          xhr.responseType = 'text';
+
+          let processedLength = 0;  // 이미 처리한 위치 추적
+
+          xhr.onprogress = () => {
+            // XHR은 청크가 올 때마다 onprogress 호출
+            // xhr.responseText는 지금까지 받은 전체 텍스트 (누적)
+            // processedLength 이후 새로 온 부분만 파싱
+            const newChunk = xhr.responseText.slice(processedLength);
+            processedLength = xhr.responseText.length;
+
+            // SSE 이벤트는 "\n\n"으로 구분
+            const parts = newChunk.split('\n\n');
+
+            for (const part of parts) {
+              const line = part.trim();
+              if (!line.startsWith('data:')) continue;
+
+              const jsonStr = line.slice(5).trim();
+              try {
+                const event = JSON.parse(jsonStr);
+
+                if (event.type === 'progress') {
+                  options.onProgress(event.message);
+                } else if (event.type === 'result') {
+                  options.onSuccess(event.data);
+                  resolve();
+                }
+              } catch {
+                // heartbeat 등 무시
+              }
+            }
+          };
+
+          xhr.onload = () => {
+            if (xhr.status >= 400) {
+              reject(new Error(`HTTP ${xhr.status}`));
+            } else {
+              resolve();
+            }
+          };
+
+          xhr.onerror = () => reject(new Error('Network error'));
+          xhr.onabort = () => resolve();  // 의도적 중단은 에러 아님
+
+          xhr.send(JSON.stringify({
+            ...payload,
+            style_reference_ids,
+            user_id: context.user_id,
+          }));
+        });
+
+      } catch (error: any) {
+        options.onError(
+          error instanceof Error ? error : new Error(String(error))
+        );
       }
     },
-  });
+    [savedStyles]
+  );
+
+  const abort = useCallback(() => {
+    xhrRef.current?.abort();
+  }, []);
+
+  return { mutate, abort };
 }

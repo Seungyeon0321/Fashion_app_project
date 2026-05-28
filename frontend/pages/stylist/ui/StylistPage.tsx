@@ -1,6 +1,6 @@
 // pages/stylist/ui/StylistPage.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { IntentSelector } from '@/features/select-intent/ui/IntentSelector';
 import { type Intent, useIntentStore } from '@/features/select-intent/model/intentStore';
@@ -18,29 +18,43 @@ import { ScreenLayout } from '@/shared/ui/ScreenLayout';
 import type { RecommendSource, AnchorClosetItem } from '@/features/get-recommendation/model/sourcePickerStore';
 
 export function StylistPage() {
-  const selectedIntent        = useIntentStore((s) => s.selectedIntent);
-  const openSheet             = useSourcePickerStore((s) => s.openSheet);
-  const { mutate, isPending } = useRecommendation();
+  const selectedIntent = useIntentStore((s) => s.selectedIntent);
+  const openSheet      = useSourcePickerStore((s) => s.openSheet);
+  const { mutate, abort } = useRecommendation();
 
+  const [isPending,          setIsPending]          = useState(false);
+  const [progressMessage,    setProgressMessage]    = useState<string | null>(null);
   const [modalVisible,       setModalVisible]       = useState(false);
   const [recommendationData, setRecommendationData] = useState<RecommendationResponse | null>(null);
   const [lastPayload,        setLastPayload]        = useState<RecommendPayload | null>(null);
 
-  const handleIntentPress = (_key: Intent) => {
-    openSheet();
-  };
+  // 언마운트 시 SSE 정리
+  useEffect(() => {
+    return () => abort();
+  }, []);
+
+  const handleIntentPress = (_key: Intent) => openSheet();
 
   const requestRecommendation = (payload: RecommendPayload) => {
     setLastPayload(payload);
+    setIsPending(true);
+    setProgressMessage(null);
+
     mutate(payload, {
+      onProgress: (message) => {
+        // "classic 무드의 아이템을 찾는 중..." → 오버레이에 표시
+        setProgressMessage(message);
+      },
       onSuccess: (data) => {
+        setIsPending(false);
+        setProgressMessage(null);
         setRecommendationData(data);
         setModalVisible(true);
       },
-      onError: (error: any) => {
-        console.error('❌ error:', error?.message);
-        console.error('❌ response:', error?.response?.data);
-        console.error('❌ status:', error?.response?.status);
+      onError: (error) => {
+        setIsPending(false);
+        setProgressMessage(null);
+        console.error('❌ error:', error.message);
       },
     });
   };
@@ -79,8 +93,8 @@ export function StylistPage() {
 
       <SourcePickerSheet onConfirm={handleSourceConfirm} />
 
-      {/* API 호출 중 오버레이 — ScreenLayout 위에 덮음 */}
-      {isPending && <StylingOverlay />}
+      {/* SSE 진행 중 오버레이 — progress 메시지 실시간 표시 */}
+      {isPending && <StylingOverlay message={progressMessage} />}
 
       <RecommendationModal
         visible={modalVisible}
@@ -93,8 +107,5 @@ export function StylistPage() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingBottom: 16,
-  },
+  container: { flex: 1, paddingBottom: 16 },
 });
