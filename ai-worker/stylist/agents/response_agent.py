@@ -14,10 +14,14 @@ presigned URL 처리:
     crop_s3_key 있음 → presigned URL  (rembg 트리밍 완료)
     crop_s3_key 없음 → imageUrl 그대로 (CLIP 점수 미달 fallback)
 
-  Step 37 추가:
-    external 흐름 시 outfit_proposals 기반 응답 구성.
-    proposal별로 mood + items 배열 형태로 직렬화.
-    ranked_items도 함께 반환 (기존 RecommendResponse 호환용).
+Step 37 추가:
+  external 흐름 시 outfit_proposals 기반 응답 구성.
+
+Step 38-pre 추가:
+  proposals를 resolved > partial > failed 순으로 정렬.
+  1순위 proposal만 ranked_items로 반환.
+  2순위~3순위는 Redis에 저장 (save_proposals).
+  LLM 메시지는 1순위에 대해서만 생성 (비용 절감).
 """
 
 import os
@@ -28,6 +32,7 @@ from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from stylist.outfit_state import OutfitState, OutfitProposal
+from shared.redis_client import save_proposals
 
 load_dotenv()
 
@@ -45,47 +50,66 @@ S3_BUCKET = os.getenv("AWS_S3_BUCKET")
 def response_agent(state: OutfitState) -> dict:
     source = state.get("source") or "closet"
 
-    # Step 37: external 흐름은 proposals 기반 응답
     if source == "external":
         return _respond_external(state)
 
-    # closet 흐름: 기존 로직 유지
     return _respond_closet(state)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Step 37: external 흐름 응답
+# Step 37 + 38-pre: external 흐름 응답
 # ──────────────────────────────────────────────────────────────────────────────
 
 def _respond_external(state: OutfitState) -> dict:
     """
     External 흐름 응답 구성.
 
-    outfit_proposals → presigned URL 변환 → proposals 배열 직렬화.
-    기존 RecommendResponse 호환을 위해 ranked_items도 함께 반환.
+    Step 38-pre 변경:
+      1. proposals를 resolved > partial > failed 순으로 정렬
+      2. 각 proposal을 presigned URL 포함 형태로 직렬화
+      3. 1순위 LLM 메시지 생성
+      4. 2~3순위를 Redis에 저장
+      5. 1순위만 ranked_items로 반환
     """
     proposals: list[OutfitProposal] = state.get("outfit_proposals") or []
+    user_id         = state.get("user_id") or "unknown"
+    session_id      = state.get("session_id") or ""
     intent          = state.get("intent") or "casual"
     weather         = state.get("weather") or "unknown"
     calendar_events = state.get("calendar_events") or []
 
-    serialized_proposals = []
-    all_items_with_url: list[dict] = []
+    # ── 1. proposals 정렬: resolved > partial > failed ────────────────────
+    # Redis 저장 순서 = 유저에게 보여줄 순서이므로
+    # 가장 완성도 높은 코디가 먼저 오도록 정렬
+    def _sort_key(p):
+        return {"resolved": 0, "partial": 1, "failed": 2}.get(
+            p.get("proposal_status", "failed"), 2
+        )
 
-    for prop in proposals:
-        if prop.get("proposal_status") not in ("resolved", "partial"):
-            continue
+    sorted_proposals = sorted(proposals, key=_sort_key)
 
-        mood  = prop.get("mood", "general")
-        items = []
+    valid_proposals = [
+        p for p in sorted_proposals
+        if p.get("proposal_status") in ("resolved", "partial")
+    ]
 
+    if not valid_proposals:
+        return {
+            "final_response":         "적합한 코디를 찾지 못했어요. 다시 시도해주세요.",
+            "ranked_items":           [],
+            "recommended_outfit_ids": [],
+        }
+
+    # ── 2. 각 proposal presigned URL 변환 ────────────────────────────────
+    def _serialize_proposal(prop: dict) -> list[dict]:
+        """proposal 1개의 아이템들을 presigned URL 포함 형태로 변환."""
+        items_with_url = []
         for category, spec in prop.get("items", {}).items():
             resolved = spec.get("resolved_item")
             if not resolved:
                 continue
 
-            resolved = dict(resolved)
-            # crop_s3_key → presigned URL 변환 (기존 _attach_image_urls 동일 규칙)
+            resolved    = dict(resolved)
             crop_s3_key = resolved.get("crop_s3_key")
             is_external = resolved.get("is_external", True)
 
@@ -103,19 +127,42 @@ def _respond_external(state: OutfitState) -> dict:
                         resolved["imageUrl"] = None
             elif not is_external:
                 resolved["imageUrl"] = None
-            # external + crop_s3_key 없음 → imageUrl 그대로 유지 (네이버 원본)
+            # external + crop_s3_key 없음 → imageUrl 그대로 (네이버 원본)
 
-            items.append(resolved)
-            all_items_with_url.append(resolved)
+            items_with_url.append(resolved)
+        return items_with_url
 
-        if items:
-            serialized_proposals.append({
-                "mood":  mood,
-                "items": items,
-            })
+    # 모든 valid proposal을 직렬화
+    # Redis에 저장할 때 URL 포함된 상태로 저장해야
+    # 나중에 꺼낼 때 S3 재호출 없이 바로 사용 가능
+    serialized_list = []
+    for prop in valid_proposals:
+        items = _serialize_proposal(prop)
+        if not items:
+            continue
+        serialized_list.append({
+            "mood":             prop.get("mood", "general"),
+            "ranked_items":     items,
+            "intent":           intent,
+            "weather":          weather,
+            "calendar_events":  calendar_events,
+            "final_response":   None,   # 아래에서 1순위만 채움
+            "conflict_warning": state.get("conflict_warning"),
+            "relaxation_level": state.get("relaxation_level"),
+        })
 
-    # LLM 추천 메시지 생성 (기존과 동일한 방식)
-    items_text    = _build_items_text(all_items_with_url)
+    if not serialized_list:
+        return {
+            "final_response":         "코디 아이템 정보를 불러오지 못했어요.",
+            "ranked_items":           [],
+            "recommended_outfit_ids": [],
+        }
+
+    # ── 3. 1순위 LLM 메시지 생성 ──────────────────────────────────────────
+    # 2~3순위는 나중에 꺼낼 때 final_response가 None이면
+    # main.py에서 fallback 메시지로 대체 (비용 절감)
+    first_items   = serialized_list[0]["ranked_items"]
+    items_text    = _build_items_text(first_items)
     calendar_text = ", ".join(calendar_events) if calendar_events else "No events today"
 
     try:
@@ -131,22 +178,37 @@ Recommended items:
 
 Write a friendly outfit recommendation:"""),
         ])
-        final_response = response.content.strip()
-    except Exception as e:
-        final_response = "코디를 준비했어요. 마음에 드는 스타일을 골라보세요!"
+        first_message = response.content.strip()
+    except Exception:
+        first_message = "코디를 준비했어요. 마음에 드는 스타일을 골라보세요!"
 
-    # proposals를 JSON 문자열로 final_response에도 포함 (기존 _build_response 호환)
-    # main.py의 _build_response가 ranked_items를 사용하므로 ranked_items도 반환
+    serialized_list[0]["final_response"] = first_message
+
+    # ── 4. 2~3순위 Redis 저장 ──────────────────────────────────────────────
+    # 1순위는 지금 바로 반환하므로 Redis에는 2번째부터 저장
+    # pop_next_proposal이 cursor 순서대로 꺼냄
+    remaining = serialized_list[1:]
+    if remaining:
+        try:
+            save_proposals(user_id, session_id, remaining)
+            print(f"[ResponseAgent] Redis 저장 완료: {len(remaining)}개 (session={session_id})")
+        except Exception as e:
+            # Redis 저장 실패해도 1순위 응답은 정상 반환
+            # 다음 요청에서 캐시 miss → 파이프라인 재실행으로 자동 복구
+            print(f"[ResponseAgent] Redis 저장 실패 (무시): {e}")
+
+    # ── 5. 1순위만 반환 ────────────────────────────────────────────────────
+    first = serialized_list[0]
     recommended_outfit_ids = [
-        item["id"] for item in all_items_with_url
+        item["id"] for item in first["ranked_items"]
         if isinstance(item.get("id"), int)
     ]
 
-    print(f"[ResponseAgent] external: {len(serialized_proposals)}개 proposal 응답")
+    print(f"[ResponseAgent] external: 1순위 반환, {len(remaining)}개 Redis 저장")
 
     return {
-        "final_response":         final_response,
-        "ranked_items":           all_items_with_url,   # main.py RecommendResponse 호환
+        "final_response":         first["final_response"],
+        "ranked_items":           first["ranked_items"],
         "recommended_outfit_ids": recommended_outfit_ids,
     }
 
@@ -164,12 +226,9 @@ def _respond_closet(state: OutfitState) -> dict:
     conflict_warning = state.get("conflict_warning")
 
     try:
-        # ① presigned URL 추가
         items_with_url = _attach_image_urls(ranked_items)
-
-        # ② LLM 프롬프트 구성
-        items_text    = _build_items_text(items_with_url)
-        calendar_text = ", ".join(calendar_events) if calendar_events else "No events today"
+        items_text     = _build_items_text(items_with_url)
+        calendar_text  = ", ".join(calendar_events) if calendar_events else "No events today"
 
         conflict_context = ""
         if conflict_warning == "anchor_ncp_conflict":

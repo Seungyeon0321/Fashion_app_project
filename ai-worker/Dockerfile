@@ -17,4 +17,6 @@ COPY shared/ ./shared/
 
 COPY .env.docker .env
 
-CMD ["python", "-m", "app.workers.clothing_worker"]
+# ← 변경: clothing_worker 단독 실행 → uvicorn으로 FastAPI 실행
+# 큐 워커는 main.py의 lifespan에서 background thread로 실행됨
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]

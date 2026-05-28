@@ -145,10 +145,11 @@ def run_worker() -> None:
 
     # signal은 운영체제가 실행 중인 프로세스에게 보내는 짧은 메세지 입니다. 예를 들어, 사용자가 터미널에서 Ctrl+C를 누르면, 운영체제는 실행 중인 프로세스에게 SIGINT 신호를 보냅니다.
     # 보통 프로그램은 시그널을 받으면 즉시 강제 종료되지만, 파이썬의 signal 라이브러리를 사용하면 이 신호가 받으면 내가 정함 함수를 실행해줘 라고 예약할 수 있다.
-    signal.signal(signal.SIGINT,  _handle_signal)
-    signal.signal(signal.SIGTERM, _handle_signal)
-
-    logger.info("Worker 시작 | queue=%s", QUEUE_NAME)
+    import threading
+    if threading.current_thread() is threading.main_thread():
+        signal.signal(signal.SIGINT,  _handle_signal)
+        signal.signal(signal.SIGTERM, _handle_signal)
+        logger.info("Worker 시작 | queue=%s", QUEUE_NAME)
 
     while not shutdown["flag"]:
         # BLMOVE: wait 리스트 오른쪽에서 꺼내 active 왼쪽으로 push (atomic)

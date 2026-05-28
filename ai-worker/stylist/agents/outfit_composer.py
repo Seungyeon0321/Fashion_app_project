@@ -30,6 +30,11 @@ Fallback 정책:
 다양성 정책:
   3개 proposal은 무드가 서로 달라야 함 (예: minimal/street/classic).
   레퍼런스가 가죽자켓 위주여도 매번 가죽자켓만 추천하지 않도록 LLM에 명시.
+
+Step 38-pre 변경:
+  temperature 0.6 → 0.9 (다양성 향상)
+  excluded_outfits → 프롬프트에 주입 (이전 추천 반복 방지)
+  _build_excluded_section 함수 추가
 """
 
 import json
@@ -45,11 +50,9 @@ from stylist.outfit_state import OutfitState, OutfitProposal, OutfitItemSpec
 # LLM 설정
 # ──────────────────────────────────────────────────────────────────────────────
 
-# 일관성 있는 구조화 출력이 필요해서 temperature는 낮게 (0.6)
-# 하지만 3개 무드의 다양성은 프롬프트로 강제
 _llm = ChatAnthropic(
     model="claude-sonnet-4-20250514",
-    temperature=0.6,
+    temperature=0.9,   # Step 38-pre: 0.6 → 0.9 (다양성 향상)
     max_tokens=2000,
 )
 
@@ -161,6 +164,7 @@ COMPOSER_HUMAN = """다음 컨텍스트로 코디 3개를 설계해주세요.
 날씨: {weather}
 일정: {calendar_str}
 {anchor_section}
+{excluded_section}
 
 위 컨텍스트에 맞는 서로 다른 무드의 코디 3개를 JSON으로 출력하세요."""
 
@@ -170,15 +174,7 @@ COMPOSER_HUMAN = """다음 컨텍스트로 코디 3개를 설계해주세요.
 # ──────────────────────────────────────────────────────────────────────────────
 
 def outfit_composer(state: OutfitState) -> dict:
-    """
-    LangGraph 노드 함수.
-
-    Returns:
-        {"outfit_proposals": [...]} 형태로 state 병합.
-        실패 시 빈 list + errors 누적.
-    """
     try:
-        # state에서 입력 추출
         gender         = state.get("gender") or "MALE"
         intent         = state.get("intent") or "casual"
         season         = state.get("season") or "spring"
@@ -186,18 +182,16 @@ def outfit_composer(state: OutfitState) -> dict:
         weather        = state.get("weather") or "정보 없음"
         calendar       = state.get("calendar_events") or []
         anchor_item    = state.get("anchor_item")
+        excluded       = state.get("excluded_outfits") or []   # Step 38-pre 추가
 
-        # 한국어 변환
         gender_kr          = GENDER_KR.get(gender, "남성")
         intent_kr          = INTENT_KR.get(intent, intent)
         season_kr          = SEASON_KR.get(season, season)
         style_keywords_str = ", ".join(style_keywords) if style_keywords else "특정 키워드 없음"
         calendar_str       = ", ".join(calendar) if calendar else "특별한 일정 없음"
+        anchor_section     = _build_anchor_section(anchor_item)
+        excluded_section   = _build_excluded_section(excluded)   # Step 38-pre 추가
 
-        # 앵커 섹션 구성
-        anchor_section = _build_anchor_section(anchor_item)
-
-        # 프롬프트 조립
         human_prompt = COMPOSER_HUMAN.format(
             gender_kr=gender_kr,
             season_kr=season_kr,
@@ -206,9 +200,9 @@ def outfit_composer(state: OutfitState) -> dict:
             weather=weather,
             calendar_str=calendar_str,
             anchor_section=anchor_section,
+            excluded_section=excluded_section,   # Step 38-pre 추가
         )
 
-        # LLM 호출
         print("[OutfitComposer] LLM 코디 생성 시작")
         response = _llm.invoke([
             SystemMessage(content=COMPOSER_SYSTEM),
@@ -216,7 +210,6 @@ def outfit_composer(state: OutfitState) -> dict:
         ])
         raw_output = response.content if isinstance(response.content, str) else str(response.content)
 
-        # JSON 파싱
         proposals = _parse_llm_output(raw_output, anchor_item)
 
         if not proposals:
@@ -225,7 +218,6 @@ def outfit_composer(state: OutfitState) -> dict:
                 "errors": ["composer: LLM 출력 파싱 실패 또는 빈 결과"],
             }
 
-        # 로그
         for i, prop in enumerate(proposals):
             mood = prop.get("mood", "?")
             items_summary = ", ".join(
@@ -249,20 +241,17 @@ def outfit_composer(state: OutfitState) -> dict:
 # ──────────────────────────────────────────────────────────────────────────────
 
 def _build_anchor_section(anchor_item: Optional[dict]) -> str:
-    """앵커가 있으면 프롬프트에 포함시킬 텍스트 생성."""
     if not anchor_item:
         return "앵커 아이템: 없음 (모든 카테고리 자유롭게 추천)"
 
-    name     = anchor_item.get("name", "이름 없음")
-    category = anchor_item.get("category", "?")
-    colors   = anchor_item.get("colors") or []
-    material = anchor_item.get("material") or ""
-    fit      = anchor_item.get("fit") or ""
-
+    name        = anchor_item.get("name", "이름 없음")
+    category    = anchor_item.get("category", "?")
+    colors      = anchor_item.get("colors") or []
+    material    = anchor_item.get("material") or ""
+    fit         = anchor_item.get("fit") or ""
     category_kr = CATEGORY_KR.get(category, category)
     color_str   = ", ".join(colors) if colors else ""
-
-    details = " ".join(filter(None, [color_str, material, fit, name]))
+    details     = " ".join(filter(None, [color_str, material, fit, name]))
 
     return (
         f"앵커 아이템: {details} (카테고리: {category_kr}, 키: {category})\n"
@@ -272,21 +261,47 @@ def _build_anchor_section(anchor_item: Optional[dict]) -> str:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+# 헬퍼: 제외 코디 섹션 빌드 (Step 38-pre 추가)
+# ──────────────────────────────────────────────────────────────────────────────
+
+def _build_excluded_section(excluded_outfits: list) -> str:
+    """
+    이전에 추천했던 코디 목록을 프롬프트 텍스트로 변환.
+    LLM이 같은 조합을 반복하지 않도록 명시적으로 알려줌.
+    excluded_outfits가 없으면 빈 안내 문구만 반환.
+    """
+    if not excluded_outfits:
+        return "이전 추천 이력: 없음"
+
+    lines = ["이전에 추천한 코디 (절대 반복 금지):"]
+    for i, outfit in enumerate(excluded_outfits):
+        if isinstance(outfit, dict):
+            items = outfit.get("items", {})
+            if items:
+                combo = " + ".join(
+                    f"{cat}: {name}"
+                    for cat, name in items.items()
+                    if name
+                )
+                lines.append(f"  {i+1}. {combo}")
+
+    if len(lines) == 1:
+        return "이전 추천 이력: 없음"
+
+    lines.append("→ 위 아이템 조합과 겹치지 않는 완전히 새로운 코디를 만드세요.")
+    return "\n".join(lines)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 # 헬퍼: LLM 출력 파싱
 # ──────────────────────────────────────────────────────────────────────────────
 
 def _parse_llm_output(raw: str, anchor_item: Optional[dict]) -> List[OutfitProposal]:
-    """
-    LLM 출력에서 JSON 추출 + OutfitProposal 정규화.
-    """
-    # 코드펜스 제거 (LLM이 가끔 ```json ... ``` 형태로 감쌈)
     cleaned = raw.strip()
     if cleaned.startswith("```"):
-        # 첫 줄과 마지막 줄 제거
-        lines = cleaned.split("\n")
+        lines   = cleaned.split("\n")
         cleaned = "\n".join(lines[1:-1]) if len(lines) >= 3 else cleaned
 
-    # JSON 부분만 추출 (혹시 LLM이 앞뒤에 설명 붙였을 경우)
     start = cleaned.find("{")
     end   = cleaned.rfind("}")
     if start == -1 or end == -1:
@@ -313,12 +328,11 @@ def _parse_llm_output(raw: str, anchor_item: Optional[dict]) -> List[OutfitPropo
         if not isinstance(raw_prop, dict):
             continue
 
-        mood       = raw_prop.get("mood", "general")
-        raw_items  = raw_prop.get("items", {})
+        mood      = raw_prop.get("mood", "general")
+        raw_items = raw_prop.get("items", {})
         if not isinstance(raw_items, dict):
             continue
 
-        # 각 카테고리 아이템을 OutfitItemSpec 형식으로 정규화
         items: Dict[str, OutfitItemSpec] = {}
         for cat, spec in raw_items.items():
             if not isinstance(spec, dict):
@@ -326,14 +340,11 @@ def _parse_llm_output(raw: str, anchor_item: Optional[dict]) -> List[OutfitPropo
             primary  = str(spec.get("primary", "")).strip()
             fallback = str(spec.get("fallback", primary)).strip() or primary
 
-            # 앵커 카테고리는 status를 미리 "pending"으로 두되, item_fetcher가 "skipped"로 변경
-            initial_status = "pending"
-
             items[cat] = OutfitItemSpec(
                 primary=primary,
                 fallback=fallback,
                 resolved_item=None,
-                status=initial_status,
+                status="pending",
             )
 
         if not items:

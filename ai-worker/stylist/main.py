@@ -14,12 +14,18 @@ Step 38 변경:
   uuid import 추가.
   _build_initial_state에 session_id 생성 및 state 포함.
   _build_response에서 session_id를 응답에 포함.
+
+Step 38-pre 변경:
+  RecommendRequest에 session_id Optional 필드 추가.
+  recommend_sync에 Redis 캐시 분기 로직 추가.
+  _build_initial_state에서 기존 session_id 있으면 재사용.
+  redis_client import 추가 (pop_next_proposal).
 """
 
 import os
 import io
 import json
-import uuid          # ← Step 38 추가: session_id 생성용
+import uuid
 import queue
 import threading
 import psycopg2
@@ -34,6 +40,7 @@ from dotenv import load_dotenv
 
 from .graph import graph
 from shared.clip_encoder import CLIPEncoder
+from shared.redis_client import pop_next_proposal
 
 load_dotenv()
 
@@ -69,8 +76,10 @@ class RecommendRequest(BaseModel):
     anchor_item_id:      Optional[int] = None
     style_reference_ids: Optional[List[int]] = []
     excluded_outfits:    Optional[List[dict]] = []
+    session_id:          Optional[str] = None   # ← Step 38-pre 추가
 
 
+# BaseModel로 정의된 응답 스키마는 FastAPI의 response_model로 활용되어
 class RecommendItemResponse(BaseModel):
     id:          object
     category:    str
@@ -88,12 +97,7 @@ class RecommendItemResponse(BaseModel):
 
 
 class RecommendResponse(BaseModel):
-    # ── Step 38 추가 ──────────────────────────────────────────────────────────
-    # 추천 세션을 식별하는 고유 ID (예: "rec_a3f2b8c1")
-    # 프론트가 이 값을 저장해뒀다가, 좋아요 누를 때 같이 전송함
-    # → NestJS /feedback/like 에서 어떤 추천 결과에 좋아요를 눌렀는지 추적 가능
     session_id:       str
-
     intent:           Optional[str] = None
     calendar_events:  Optional[List[str]] = []
     weather:          Optional[str] = None
@@ -128,17 +132,14 @@ def health():
 # ──────────────────────────────────────────────────────────────────────────────
 
 def _build_initial_state(request: RecommendRequest) -> dict:
-    # ── Step 38 추가 ──────────────────────────────────────────────────────────
-    # 추천 요청이 들어올 때마다 고유한 session_id를 생성함
-    # uuid4()는 128비트 랜덤값 → hex[:8]로 앞 8자리만 사용 (충돌 가능성 무시할 수준)
-    # 예: "rec_a3f2b8c1"
-    session_id = f"rec_{uuid.uuid4().hex[:8]}"
+    # Step 38-pre:
+    # 기존 session_id가 있으면 재사용, 없으면 새로 발급.
+    # 소진 후 새 파이프라인 실행 시에는 recommend_sync에서
+    # session_id=None으로 초기화한 뒤 넘겨주므로 여기선 그냥 받은 값 사용.
+    session_id = request.session_id or f"rec_{uuid.uuid4().hex[:8]}"
 
     return {
-        # ── Step 38 추가 ──────────────────────────────────────────────────────
-        # LangGraph state에 포함시켜야 파이프라인 끝에서 _build_response가 꺼낼 수 있음
         "session_id":             session_id,
-
         "user_message":           request.user_message,
         "user_id":                str(request.user_id),
         "source":                 request.source,
@@ -154,7 +155,7 @@ def _build_initial_state(request: RecommendRequest) -> dict:
         "style_vector":           None,
         "style_keywords":         None,
         "has_style_context":      None,
-        "outfit_proposals":       None,   # Step 37 추가
+        "outfit_proposals":       None,
         "retrieved_items":        None,
         "relaxation_level":       None,
         "ranked_items":           None,
@@ -166,7 +167,7 @@ def _build_initial_state(request: RecommendRequest) -> dict:
         "session_history":        [],
         "excluded_outfits":       request.excluded_outfits or [],
         "errors":                 [],
-        "progress_callback":      None,  # SSE 엔드포인트에서 주입
+        "progress_callback":      None,
     }
 
 
@@ -190,13 +191,7 @@ def _build_response(result: dict) -> RecommendResponse:
         for item in (result.get("ranked_items") or [])
     ]
     return RecommendResponse(
-        # ── Step 38 추가 ──────────────────────────────────────────────────────
-        # _build_initial_state에서 state에 넣었던 session_id를 꺼내서 응답에 포함
-        # result는 LangGraph가 파이프라인을 돌고 난 최종 state이므로
-        # session_id가 그대로 살아있음
-        # fallback으로 "" 를 주지만 정상 흐름에서는 항상 값이 있어야 함
         session_id=result.get("session_id", ""),
-
         intent=result.get("intent"),
         calendar_events=result.get("calendar_events") or [],
         weather=result.get("weather"),
@@ -208,7 +203,7 @@ def _build_response(result: dict) -> RecommendResponse:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# POST /recommend  — SSE 스트리밍 (기존 유지)
+# POST /recommend  — SSE 스트리밍
 # ──────────────────────────────────────────────────────────────────────────────
 
 @app.post("/recommend")
@@ -239,6 +234,8 @@ def recommend(request: RecommendRequest):
                 return
 
             response_data = _build_response(result)
+            # model_dump()은 _build_response에서 받은 결과물에서 사용하는 pydantic의 내장 기능이다.
+            # .model_dump()은 pydantic 모델 인스턴스를 dict로 변환해준다. FastAPI의 StreamingResponse로 보낼 때 JSON 직렬화가 가능하도록 하기 위해 사용한다.
             msg_queue.put({"type": "result", "data": response_data.model_dump()})
 
         except Exception as e:
@@ -246,6 +243,8 @@ def recommend(request: RecommendRequest):
         finally:
             msg_queue.put(None)
 
+    # graph 실행을 별도 스레드에서 수행하여 SSE 스트리밍과 병행 처리 (해당 graph는 메인 스레드가 아닌 별도 스레드에서 실행됨)
+    # daemon=True로 설정하여 메인 스레드 종료 시 자동으로 종료되도록 함
     thread = threading.Thread(target=run_graph, daemon=True)
     thread.start()
 
@@ -268,7 +267,7 @@ def recommend(request: RecommendRequest):
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# POST /recommend/sync  — JSON 응답 (기존 유지 + Step 37 debug 필드 추가)
+# POST /recommend/sync  — JSON 응답
 # ──────────────────────────────────────────────────────────────────────────────
 
 @app.post("/recommend/sync", response_model=RecommendResponse)
@@ -277,8 +276,62 @@ def recommend_sync(request: RecommendRequest):
     기존 방식 (JSON 응답).
     Postman 테스트 또는 SSE 미지원 환경용.
 
-    Step 37: X-Debug-Proposals 헤더로 proposal 상태 확인 가능.
+    Step 38-pre:
+      session_id 있음 → Redis 캐시 조회 먼저 시도
+      캐시 HIT       → 파이프라인 실행 없이 즉시 반환 (~0.5초)
+      캐시 MISS/소진  → 새 파이프라인 실행
+      Redis 장애      → 파이프라인으로 자동 fallback
     """
+    user_id = str(request.user_id)
+
+    # ── Step 38-pre: Redis 캐시 분기 ──────────────────────────────────────
+    if request.session_id:
+        try:
+            cached = pop_next_proposal(user_id, request.session_id)
+
+            if cached is not None:
+                # 캐시 HIT: Redis에서 꺼낸 proposal을 바로 응답으로 변환
+                print(f"[Cache HIT] session={request.session_id}")
+                ranked_items = [
+                    RecommendItemResponse(
+                        id=item.get("id"),
+                        category=item.get("category", ""),
+                        subCategory=item.get("subCategory"),
+                        name=item.get("name"),
+                        brand=item.get("brand"),
+                        colors=item.get("colors") or [],
+                        material=item.get("material"),
+                        fit=item.get("fit"),
+                        imageUrl=item.get("imageUrl"),
+                        purchaseUrl=item.get("purchaseUrl"),
+                        similarity=item.get("similarity"),
+                        is_anchor=item.get("is_anchor", False),
+                        is_external=item.get("is_external", False),
+                    )
+                    for item in (cached.get("ranked_items") or [])
+                ]
+                return RecommendResponse(
+                    session_id=request.session_id,
+                    intent=cached.get("intent"),
+                    calendar_events=cached.get("calendar_events") or [],
+                    weather=cached.get("weather"),
+                    ranked_items=ranked_items,
+                    final_response=cached.get("final_response") or "코디를 준비했어요!",
+                    conflict_warning=cached.get("conflict_warning"),
+                    relaxation_level=cached.get("relaxation_level"),
+                )
+
+            # 캐시 MISS (소진): session_id 초기화 후 새 파이프라인 실행
+            print(f"[Cache MISS] session={request.session_id} 소진 → 새 파이프라인 실행")
+            request = request.model_copy(update={"session_id": None})
+
+        except Exception as e:
+            # Redis 장애: 파이프라인으로 fallback (서비스 중단 방지)
+            print(f"[Cache ERROR] Redis 조회 실패, fallback to pipeline: {e}")
+            request = request.model_copy(update={"session_id": None})
+    # ── 캐시 분기 끝 ──────────────────────────────────────────────────────
+
+    # 파이프라인 실행 (첫 요청 or 소진 or Redis 장애)
     initial_state = _build_initial_state(request)
     config        = {"configurable": {"thread_id": str(request.user_id)}}
 
@@ -290,7 +343,6 @@ def recommend_sync(request: RecommendRequest):
     if not result.get("final_response"):
         raise HTTPException(status_code=500, detail="추천 결과를 생성하지 못했습니다.")
 
-    # Step 37 debug: proposal 상태를 로그로 확인
     proposals_raw = result.get("outfit_proposals") or []
     if proposals_raw:
         for p in proposals_raw:
@@ -300,7 +352,7 @@ def recommend_sync(request: RecommendRequest):
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# POST /encode/reference (기존 유지)
+# POST /encode/reference
 # ──────────────────────────────────────────────────────────────────────────────
 
 @app.post("/encode/reference", response_model=EncodeReferenceResponse)

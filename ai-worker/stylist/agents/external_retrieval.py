@@ -9,38 +9,27 @@ External Retrieval — Step 37 리팩토링
     - 3개 proposal 병렬 처리 (asyncio.gather)
     - 각 proposal의 카테고리별로:
         1. primary 검색 → CLIP 검증
-        2. 실패 시 fallback 검색 → CLIP 검증
+        2. 실패 시 fallback 검색 → 동일 검증
         3. 앵커 카테고리는 스킵 (state["anchor_item"] 사용)
     - 검색 성공 시 즉시 rembg 트리밍 → S3 업로드
        ↓
   outfit_proposals 채워진 상태로 반환
   retrieved_items (평면 list)로도 ranker에 전달 (기존 호환)
 
-이전 구조 (~Step 36)와의 차이:
-  - hop1 후보 30개 풀 검색 제거 (composer가 이미 아이템명 확정)
-  - 스택 LLM (confirmed_items) 제거 (proposal이 독립적)
-  - 카테고리 순차 처리 제거 (proposal 병렬)
-  - filter=naverpay 유지 (단독컷 비율 ↑)
-  - CLIP 임계값 0.25 유지
-
-병렬 처리 안전장치:
-  - 네이버 API 동시 호출 제한 (Semaphore 3)
-  - 한 proposal 실패해도 다른 proposal 영향 없음 (return_exceptions)
-  - rembg 트리밍은 동기 호출이므로 to_thread로 감쌈
-
 Step 38 변경:
-  - nest_asyncio.apply() 추가
-    Uvicorn은 자체 asyncio 루프 위에서 동작함.
-    그 안에서 asyncio.run()을 호출하면
-    "이미 이벤트 루프가 실행 중" 에러가 발생함.
-    nest_asyncio는 루프 중첩을 허용해서 이 문제를 해결함.
+  nest_asyncio.apply() 추가
+
+Step 38-pre 변경:
+  검색 결과 상위 3개 중 랜덤 선택 (매번 다른 상품 추천)
+  import random 추가
 """
 
 import os
 import re
 import io
+import random        # Step 38-pre 추가: 검색 결과 랜덤화
 import asyncio
-import nest_asyncio          # Step 38 추가: asyncio 루프 중첩 허용
+import nest_asyncio
 from typing import Callable, Optional
 import numpy as np
 import httpx
@@ -54,24 +43,15 @@ from shared.segformer_trimmer import trim_and_upload
 
 load_dotenv()
 
-# Step 38: Uvicorn 루프 안에서 asyncio.run() 호출 허용
-# 앱 import 시점에 한 번만 적용되면 충분함
 nest_asyncio.apply()
 
 _clip = CLIPEncoder()
 _REF_VECTORS: dict[str, np.ndarray] = {}
 
-# CLIP 점수 임계값 (Step 36과 동일)
 CLIP_SCORE_THRESHOLD = 0.25
-
-# 검색당 결과 수 (composer가 이미 아이템명 확정해줘서 적게 가져와도 됨)
-SEARCH_DISPLAY = 10
-
-# 네이버 API 동시 호출 제한 (레이트 리밋 방어)
-NAVER_SEMAPHORE = asyncio.Semaphore(3)
-
-# rembg 트리밍 동시 호출 제한 (CPU/메모리 보호)
-TRIM_SEMAPHORE = asyncio.Semaphore(2)
+SEARCH_DISPLAY       = 10
+NAVER_SEMAPHORE      = asyncio.Semaphore(3)
+TRIM_SEMAPHORE       = asyncio.Semaphore(2)
 
 PROGRESS_MESSAGES = {
     "COMPOSE_START":  "코디 비전을 그리고 있어요...",
@@ -83,7 +63,7 @@ PROGRESS_MESSAGES = {
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# CLIP 기준 벡터 (단독컷 vs 착용샷 판별용, Step 36과 동일)
+# CLIP 기준 벡터
 # ──────────────────────────────────────────────────────────────────────────────
 
 def _get_ref_vectors() -> dict[str, np.ndarray]:
@@ -137,12 +117,11 @@ def _parse_naver_item(raw: dict, category: str) -> Optional[dict]:
 
 
 async def _search_naver_async(
-    client: httpx.AsyncClient,
+    client:   httpx.AsyncClient,
     category: str,
-    query: str,
-    headers: dict,
+    query:    str,
+    headers:  dict,
 ) -> list[dict]:
-    """네이버 쇼핑 비동기 검색. 세마포어로 동시 호출 제한."""
     async with NAVER_SEMAPHORE:
         try:
             response = await client.get(
@@ -172,11 +151,10 @@ async def _search_naver_async(
 # ──────────────────────────────────────────────────────────────────────────────
 
 async def _score_image_async(client: httpx.AsyncClient, image_url: str) -> float:
-    """단일 이미지 CLIP 점수 (단독컷 가능성)."""
     if not image_url:
         return 0.0
     try:
-        response = await client.get(image_url, timeout=5.0)
+        response  = await client.get(image_url, timeout=5.0)
         response.raise_for_status()
         image     = PILImage.open(io.BytesIO(response.content)).convert("RGB")
         image_vec = _clip.encode_image(image)
@@ -191,10 +169,9 @@ async def _score_image_async(client: httpx.AsyncClient, image_url: str) -> float
 
 
 async def _score_items(client: httpx.AsyncClient, items: list[dict]) -> list[dict]:
-    """여러 이미지 CLIP 점수 동시 계산."""
     if not items:
         return items
-    tasks = [_score_image_async(client, item.get("imageUrl", "")) for item in items]
+    tasks  = [_score_image_async(client, item.get("imageUrl", "")) for item in items]
     scores = await asyncio.gather(*tasks, return_exceptions=True)
     for item, score in zip(items, scores):
         item["imageScore"] = score if isinstance(score, (int, float)) else 0.0
@@ -206,22 +183,14 @@ async def _score_items(client: httpx.AsyncClient, items: list[dict]) -> list[dic
 # ──────────────────────────────────────────────────────────────────────────────
 
 async def _resolve_item(
-    client:     httpx.AsyncClient,
-    category:   str,
-    item_spec:  OutfitItemSpec,
-    gender:     str,
-    season:     str,
-    headers:    dict,
-    strategy:   NaverQueryStrategy,
+    client:    httpx.AsyncClient,
+    category:  str,
+    item_spec: OutfitItemSpec,
+    gender:    str,
+    season:    str,
+    headers:   dict,
+    strategy:  NaverQueryStrategy,
 ) -> Optional[dict]:
-    """
-    한 카테고리의 아이템을 검색·검증·트리밍해서 resolved_item dict를 반환.
-
-    순서:
-      1. primary 검색 → CLIP 점수 ≥ 0.25면 채택
-      2. 실패 시 fallback 검색 → 동일 검증
-      3. 둘 다 실패 시 None
-    """
     for attempt_name, query_text in [
         ("primary",  item_spec.get("primary",  "")),
         ("fallback", item_spec.get("fallback", "")),
@@ -242,17 +211,23 @@ async def _resolve_item(
             continue
 
         items = await _score_items(client, items)
-        items.sort(key=lambda x: x.get("imageScore") or 0.0, reverse=True)
 
-        best = next(
-            (it for it in items if (it.get("imageScore") or 0.0) >= CLIP_SCORE_THRESHOLD),
-            None,
-        )
+        # Step 38-pre: 임계값 통과한 아이템 필터링 후 상위 3개 중 랜덤 선택
+        # 이전: 항상 1위 고정 → 매번 같은 상품
+        # 변경: 상위 3개 풀에서 랜덤 → 매번 다른 상품
+        valid_items = [
+            it for it in items
+            if (it.get("imageScore") or 0.0) >= CLIP_SCORE_THRESHOLD
+        ]
 
-        if not best:
-            top_score = items[0].get("imageScore", 0) if items else 0
+        if not valid_items:
+            top_score = max((it.get("imageScore", 0) for it in items), default=0)
             print(f"[ItemFetcher] {category}/{attempt_name} 임계값 미달 (최고 {top_score:.3f})")
             continue
+
+        valid_items.sort(key=lambda x: x.get("imageScore") or 0.0, reverse=True)
+        pool = valid_items[:3]   # 상위 3개 풀
+        best = random.choice(pool)
 
         score = best.get("imageScore", 0)
         print(
@@ -316,11 +291,10 @@ async def _resolve_proposal(
             headers=headers,
             strategy=strategy,
         )
-
         status = "resolved" if resolved else "failed"
         return category, resolved, status
 
-    tasks = [_resolve_one_category(cat, spec) for cat, spec in items_dict.items()]
+    tasks   = [_resolve_one_category(cat, spec) for cat, spec in items_dict.items()]
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     success_count = 0
@@ -352,7 +326,6 @@ async def _resolve_proposal(
         f"[ItemFetcher] proposal({mood}) 완료: "
         f"{success_count} 성공 / {fail_count} 실패 → {proposal['proposal_status']}"
     )
-
     return proposal
 
 
@@ -365,14 +338,6 @@ def search_external(
     params:            dict,
     progress_callback: Optional[Callable[[str], None]] = None,
 ) -> list[dict]:
-    """
-    외부(네이버) 검색 + 트리밍 진입점.
-
-    composer가 만든 outfit_proposals를 받아 병렬 처리.
-    반환값은 평면 list (기존 호환).
-    state["outfit_proposals"]는 in-place로 수정되어
-    retrieval.py가 꺼내서 state에 반영함.
-    """
     def _notify(msg: str):
         print(f"[ItemFetcher] {msg}")
         if progress_callback:
@@ -398,7 +363,6 @@ def search_external(
     anchor_item = state.get("anchor_item")
     strategy    = NaverQueryStrategy()
 
-    # Step 38: nest_asyncio.apply() 덕분에 이미 실행 중인 루프 안에서도 동작함
     resolved_proposals = asyncio.run(_run_all_proposals(
         proposals=proposals,
         anchor_item=anchor_item,
@@ -434,7 +398,6 @@ async def _run_all_proposals(
     strategy:    NaverQueryStrategy,
     notify:      Callable[[str], None],
 ) -> list[OutfitProposal]:
-    """3개 proposal을 asyncio.gather로 동시 실행."""
     async with httpx.AsyncClient() as client:
         tasks = [
             _resolve_proposal(
