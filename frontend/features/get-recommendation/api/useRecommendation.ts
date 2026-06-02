@@ -31,13 +31,15 @@ export type RecommendedItem = {
 };
 
 export type RecommendationResponse = {
-  intent:           string | null;
-  calendar_events:  string[];
-  weather:          string | null;
-  ranked_items:     RecommendedItem[];
+  session_id:       string;
+  intent?:          string;
+  proposal_mood?:   string;   // ← 추가
+  calendar_events?: string[];
+  weather?:         string;
+  ranked_items:     RecommendItem[];
   final_response:   string;
-  conflict_warning: string | null;
-  relaxation_level: number | null;
+  conflict_warning?: string;
+  relaxation_level?: number;
 };
 
 type RecommendOptions = {

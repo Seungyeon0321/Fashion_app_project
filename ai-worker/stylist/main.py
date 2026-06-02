@@ -99,6 +99,7 @@ class RecommendItemResponse(BaseModel):
 class RecommendResponse(BaseModel):
     session_id:       str
     intent:           Optional[str] = None
+    proposal_mood:    Optional[str] = None   # ← 추가
     calendar_events:  Optional[List[str]] = []
     weather:          Optional[str] = None
     ranked_items:     List[RecommendItemResponse] = []
@@ -172,6 +173,10 @@ def _build_initial_state(request: RecommendRequest) -> dict:
 
 
 def _build_response(result: dict) -> RecommendResponse:
+    outfit_proposals = result.get("outfit_proposals") or []
+    proposal_mood = (
+        outfit_proposals[0].get("mood") if outfit_proposals else None
+    ) or result.get("intent")
     ranked_items = [
         RecommendItemResponse(
             id=item.get("id"),
@@ -193,6 +198,7 @@ def _build_response(result: dict) -> RecommendResponse:
     return RecommendResponse(
         session_id=result.get("session_id", ""),
         intent=result.get("intent"),
+        proposal_mood=proposal_mood,
         calendar_events=result.get("calendar_events") or [],
         weather=result.get("weather"),
         ranked_items=ranked_items,
