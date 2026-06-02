@@ -2,32 +2,20 @@
 """
 External Retrieval — Step 37 리팩토링
 
-새 흐름:
-  composer → outfit_proposals (3개 코디 비전)
-       ↓
-  item_fetcher (이 파일)
-    - 3개 proposal 병렬 처리 (asyncio.gather)
-    - 각 proposal의 카테고리별로:
-        1. primary 검색 → CLIP 검증
-        2. 실패 시 fallback 검색 → 동일 검증
-        3. 앵커 카테고리는 스킵 (state["anchor_item"] 사용)
-    - 검색 성공 시 즉시 rembg 트리밍 → S3 업로드
-       ↓
-  outfit_proposals 채워진 상태로 반환
-  retrieved_items (평면 list)로도 ranker에 전달 (기존 호환)
+(기존 docstring 유지)
 
-Step 38 변경:
-  nest_asyncio.apply() 추가
-
-Step 38-pre 변경:
-  검색 결과 상위 3개 중 랜덤 선택 (매번 다른 상품 추천)
-  import random 추가
+Step 39 (Bug Fix):
+  NAVER_SEMAPHORE, TRIM_SEMAPHORE를 모듈 레벨이 아닌
+  _run_all_proposals 진입 시점에 생성하도록 변경.
+  이유: asyncio.run()이 매번 새 이벤트 루프를 생성하는데
+  모듈 레벨 Semaphore는 첫 번째 루프에 영구적으로 묶여서
+  두 번째 요청부터 "bound to a different event loop" 에러 발생.
 """
 
 import os
 import re
 import io
-import random        # Step 38-pre 추가: 검색 결과 랜덤화
+import random
 import asyncio
 import nest_asyncio
 from typing import Callable, Optional
@@ -50,15 +38,17 @@ _REF_VECTORS: dict[str, np.ndarray] = {}
 
 CLIP_SCORE_THRESHOLD = 0.25
 SEARCH_DISPLAY       = 10
-NAVER_SEMAPHORE      = asyncio.Semaphore(3)
-TRIM_SEMAPHORE       = asyncio.Semaphore(2)
+
+# ⚠️ NAVER_SEMAPHORE, TRIM_SEMAPHORE를 여기서 제거
+#    (모듈 레벨에서 생성하면 첫 이벤트 루프에 영구히 묶여서
+#     두 번째 요청부터 "different event loop" 에러 발생)
 
 PROGRESS_MESSAGES = {
-    "COMPOSE_START":  "코디 비전을 그리고 있어요...",
-    "PROPOSAL_START": "{mood} 무드의 아이템을 찾는 중...",
-    "PROPOSAL_DONE":  "{mood} 무드 코디 완성!",
-    "TRIM":           "이미지를 다듬고 있어요...",
-    "DONE":           "코디를 완성하고 있어요...",
+    "COMPOSE_START":  "Creating your outfit vision...",
+    "PROPOSAL_START": "Finding {mood} mood items...",
+    "PROPOSAL_DONE":  "{mood} outfit complete!",
+    "TRIM":           "Refining images...",
+    "DONE":           "Putting your look together...",
 }
 
 
@@ -116,13 +106,15 @@ def _parse_naver_item(raw: dict, category: str) -> Optional[dict]:
     }
 
 
+# 변경: naver_semaphore를 인자로 받음
 async def _search_naver_async(
-    client:   httpx.AsyncClient,
-    category: str,
-    query:    str,
-    headers:  dict,
+    client:          httpx.AsyncClient,
+    category:        str,
+    query:           str,
+    headers:         dict,
+    naver_semaphore: asyncio.Semaphore,
 ) -> list[dict]:
-    async with NAVER_SEMAPHORE:
+    async with naver_semaphore:
         try:
             response = await client.get(
                 "https://openapi.naver.com/v1/search/shop.json",
@@ -182,14 +174,17 @@ async def _score_items(client: httpx.AsyncClient, items: list[dict]) -> list[dic
 # 한 아이템 해결 (primary → fallback 순차 시도)
 # ──────────────────────────────────────────────────────────────────────────────
 
+# 변경: naver_semaphore, trim_semaphore를 인자로 받음
 async def _resolve_item(
-    client:    httpx.AsyncClient,
-    category:  str,
-    item_spec: OutfitItemSpec,
-    gender:    str,
-    season:    str,
-    headers:   dict,
-    strategy:  NaverQueryStrategy,
+    client:          httpx.AsyncClient,
+    category:        str,
+    item_spec:       OutfitItemSpec,
+    gender:          str,
+    season:          str,
+    headers:         dict,
+    strategy:        NaverQueryStrategy,
+    naver_semaphore: asyncio.Semaphore,
+    trim_semaphore:  asyncio.Semaphore,
 ) -> Optional[dict]:
     for attempt_name, query_text in [
         ("primary",  item_spec.get("primary",  "")),
@@ -205,16 +200,15 @@ async def _resolve_item(
             season=season,
         )
 
-        items = await _search_naver_async(client, category, query, headers)
+        items = await _search_naver_async(
+            client, category, query, headers, naver_semaphore,
+        )
         if not items:
             print(f"[ItemFetcher] {category}/{attempt_name} 검색 0건: '{query}'")
             continue
 
         items = await _score_items(client, items)
 
-        # Step 38-pre: 임계값 통과한 아이템 필터링 후 상위 3개 중 랜덤 선택
-        # 이전: 항상 1위 고정 → 매번 같은 상품
-        # 변경: 상위 3개 풀에서 랜덤 → 매번 다른 상품
         valid_items = [
             it for it in items
             if (it.get("imageScore") or 0.0) >= CLIP_SCORE_THRESHOLD
@@ -226,7 +220,7 @@ async def _resolve_item(
             continue
 
         valid_items.sort(key=lambda x: x.get("imageScore") or 0.0, reverse=True)
-        pool = valid_items[:3]   # 상위 3개 풀
+        pool = valid_items[:3]
         best = random.choice(pool)
 
         score = best.get("imageScore", 0)
@@ -235,7 +229,7 @@ async def _resolve_item(
             f"{best.get('name','')[:25]} ({score:.3f})"
         )
 
-        async with TRIM_SEMAPHORE:
+        async with trim_semaphore:
             s3_key = await asyncio.to_thread(
                 trim_and_upload,
                 image_url=best.get("imageUrl", ""),
@@ -258,15 +252,18 @@ async def _resolve_item(
 # 한 proposal 해결 (모든 카테고리 동시 처리)
 # ──────────────────────────────────────────────────────────────────────────────
 
+# 변경: naver_semaphore, trim_semaphore를 인자로 받음
 async def _resolve_proposal(
-    client:      httpx.AsyncClient,
-    proposal:    OutfitProposal,
-    anchor_item: Optional[dict],
-    gender:      str,
-    season:      str,
-    headers:     dict,
-    strategy:    NaverQueryStrategy,
-    notify:      Callable[[str], None],
+    client:          httpx.AsyncClient,
+    proposal:        OutfitProposal,
+    anchor_item:     Optional[dict],
+    gender:          str,
+    season:          str,
+    headers:         dict,
+    strategy:        NaverQueryStrategy,
+    notify:          Callable[[str], None],
+    naver_semaphore: asyncio.Semaphore,
+    trim_semaphore:  asyncio.Semaphore,
 ) -> OutfitProposal:
     mood = proposal.get("mood", "?")
     notify(PROGRESS_MESSAGES["PROPOSAL_START"].format(mood=mood))
@@ -290,6 +287,8 @@ async def _resolve_proposal(
             season=season,
             headers=headers,
             strategy=strategy,
+            naver_semaphore=naver_semaphore,
+            trim_semaphore=trim_semaphore,
         )
         status = "resolved" if resolved else "failed"
         return category, resolved, status
@@ -398,6 +397,13 @@ async def _run_all_proposals(
     strategy:    NaverQueryStrategy,
     notify:      Callable[[str], None],
 ) -> list[OutfitProposal]:
+    # 변경: Semaphore를 여기서 생성
+    # 이유: 매 요청마다 새로운 asyncio.run()이 새 이벤트 루프를 만드는데
+    #      Semaphore는 생성 시점의 이벤트 루프에 묶임
+    #      이 함수는 asyncio.run() 안에서 호출되므로 현재 루프에 안전하게 묶임
+    naver_semaphore = asyncio.Semaphore(3)
+    trim_semaphore  = asyncio.Semaphore(2)
+
     async with httpx.AsyncClient() as client:
         tasks = [
             _resolve_proposal(
@@ -409,6 +415,8 @@ async def _run_all_proposals(
                 headers=headers,
                 strategy=strategy,
                 notify=notify,
+                naver_semaphore=naver_semaphore,
+                trim_semaphore=trim_semaphore,
             )
             for prop in proposals
         ]

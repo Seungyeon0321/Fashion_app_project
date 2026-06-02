@@ -18,8 +18,8 @@ import { ScreenLayout } from '@/shared/ui/ScreenLayout';
 import type { RecommendSource, AnchorClosetItem } from '@/features/get-recommendation/model/sourcePickerStore';
 
 export function StylistPage() {
-  const selectedIntent = useIntentStore((s) => s.selectedIntent);
-  const openSheet      = useSourcePickerStore((s) => s.openSheet);
+  const selectedIntent  = useIntentStore((s) => s.selectedIntent);
+  const openSheet       = useSourcePickerStore((s) => s.openSheet);
   const { mutate, abort } = useRecommendation();
 
   const [isPending,          setIsPending]          = useState(false);
@@ -28,7 +28,6 @@ export function StylistPage() {
   const [recommendationData, setRecommendationData] = useState<RecommendationResponse | null>(null);
   const [lastPayload,        setLastPayload]        = useState<RecommendPayload | null>(null);
 
-  // 언마운트 시 SSE 정리
   useEffect(() => {
     return () => abort();
   }, []);
@@ -41,10 +40,7 @@ export function StylistPage() {
     setProgressMessage(null);
 
     mutate(payload, {
-      onProgress: (message) => {
-        // "classic 무드의 아이템을 찾는 중..." → 오버레이에 표시
-        setProgressMessage(message);
-      },
+      onProgress: (message) => setProgressMessage(message),
       onSuccess: (data) => {
         setIsPending(false);
         setProgressMessage(null);
@@ -93,7 +89,6 @@ export function StylistPage() {
 
       <SourcePickerSheet onConfirm={handleSourceConfirm} />
 
-      {/* SSE 진행 중 오버레이 — progress 메시지 실시간 표시 */}
       {isPending && <StylingOverlay message={progressMessage} />}
 
       <RecommendationModal

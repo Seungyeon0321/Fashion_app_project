@@ -2,8 +2,9 @@
 
 import { useRef, useCallback } from 'react';
 import { useStyleStore } from '@/features/style-reference/model/styleStore';
+import { useAuthStore } from '@/shared/store/authStore';
 import { ENV } from '@/shared/util/env';
-import { api } from '@/shared/lib/api';
+import EventSource from 'react-native-sse';
 import type { RecommendSource } from '../model/sourcePickerStore';
 
 export type RecommendPayload = {
@@ -47,96 +48,82 @@ type RecommendOptions = {
 
 export function useRecommendation() {
   const savedStyles = useStyleStore((s) => s.savedStyles);
-  const xhrRef      = useRef<XMLHttpRequest | null>(null);
+  const token       = useAuthStore((s) => s.token);
+
+  // EventSource 인스턴스 저장 — abort용
+  const esRef = useRef<InstanceType<typeof EventSource> | null>(null);
 
   const mutate = useCallback(
-    async (payload: RecommendPayload, options: RecommendOptions) => {
-      // 이전 요청 중단
-      xhrRef.current?.abort();
+    (payload: RecommendPayload, options: RecommendOptions) => {
+      // 이전 연결 종료
+      esRef.current?.close();
 
       const style_reference_ids =
         payload.style_reference_ids ?? savedStyles.map((s) => s.id);
 
-      try {
-        // Step 1: NestJS에서 user_id 받기
-        const { data: context } = await api.get<{
-          user_id:     number;
-          fastapi_url: string;
-        }>('/style/context');
+      // query string 구성
+      const params = new URLSearchParams({
+        intent: payload.intent,
+        source: payload.source,
+      });
 
-        // Step 2: XMLHttpRequest로 SSE 스트리밍
-        // 이유: React Native의 fetch는 response.body(ReadableStream) 미지원
-        //       XHR의 onprogress는 청크 단위로 데이터를 받을 수 있어서
-        //       SSE 파싱에 적합함
-        await new Promise<void>((resolve, reject) => {
-          const xhr = new XMLHttpRequest();
-          xhrRef.current = xhr;
-
-          xhr.open('POST', `${ENV.FASTAPI_URL}/recommend`);
-          xhr.setRequestHeader('Content-Type', 'application/json');
-          xhr.responseType = 'text';
-
-          let processedLength = 0;  // 이미 처리한 위치 추적
-
-          xhr.onprogress = () => {
-            // XHR은 청크가 올 때마다 onprogress 호출
-            // xhr.responseText는 지금까지 받은 전체 텍스트 (누적)
-            // processedLength 이후 새로 온 부분만 파싱
-            const newChunk = xhr.responseText.slice(processedLength);
-            processedLength = xhr.responseText.length;
-
-            // SSE 이벤트는 "\n\n"으로 구분
-            const parts = newChunk.split('\n\n');
-
-            for (const part of parts) {
-              const line = part.trim();
-              if (!line.startsWith('data:')) continue;
-
-              const jsonStr = line.slice(5).trim();
-              try {
-                const event = JSON.parse(jsonStr);
-
-                if (event.type === 'progress') {
-                  options.onProgress(event.message);
-                } else if (event.type === 'result') {
-                  options.onSuccess(event.data);
-                  resolve();
-                }
-              } catch {
-                // heartbeat 등 무시
-              }
-            }
-          };
-
-          xhr.onload = () => {
-            if (xhr.status >= 400) {
-              reject(new Error(`HTTP ${xhr.status}`));
-            } else {
-              resolve();
-            }
-          };
-
-          xhr.onerror = () => reject(new Error('Network error'));
-          xhr.onabort = () => resolve();  // 의도적 중단은 에러 아님
-
-          xhr.send(JSON.stringify({
-            ...payload,
-            style_reference_ids,
-            user_id: context.user_id,
-          }));
-        });
-
-      } catch (error: any) {
-        options.onError(
-          error instanceof Error ? error : new Error(String(error))
-        );
+      if (payload.anchor_item_id !== undefined) {
+        params.append('anchor_item_id', String(payload.anchor_item_id));
       }
+
+      if (style_reference_ids.length > 0) {
+        params.append('style_reference_ids', style_reference_ids.join(','));
+      }
+
+      const url = `${ENV.BACKEND_API_URL}/style/recommend/stream?${params.toString()}`;
+      console.log('📡 SSE 연결 시작:', url);
+
+      // react-native-sse는 GET SSE를 React Native에서 실시간으로 받을 수 있음
+      // XHR onprogress는 RN에서 실시간 청크 수신이 안 되는 알려진 문제가 있어
+      // EventSource가 이를 해결해주는 전용 라이브러리
+      const es = new EventSource(url, {
+        headers: {
+          Authorization: token ? `Bearer ${token}` : '',
+        },
+      });
+      esRef.current = es;
+
+      // SSE 기본 메시지 이벤트 수신
+      // NestJS @Sse()가 보내는 이벤트는 기본 "message" 타입
+      es.addEventListener('message', (event) => {
+        if (!event.data) return;
+
+        try {
+          const parsed = JSON.parse(event.data);
+          console.log('📡 SSE 이벤트:', parsed.type, parsed.message ?? '');
+
+          if (parsed.type === 'progress') {
+            options.onProgress(parsed.message);
+
+          } else if (parsed.type === 'result') {
+            options.onSuccess(parsed.data);
+            es.close();  // 결과 받으면 연결 종료
+
+          } else if (parsed.type === 'error') {
+            options.onError(new Error(parsed.message || 'AI pipeline error'));
+            es.close();
+          }
+        } catch {
+          // JSON 파싱 실패 무시
+        }
+      });
+
+      es.addEventListener('error', (event) => {
+        console.log('💥 SSE 에러:', event);
+        options.onError(new Error('SSE connection error'));
+        es.close();
+      });
     },
-    [savedStyles]
+    [savedStyles, token],
   );
 
   const abort = useCallback(() => {
-    xhrRef.current?.abort();
+    esRef.current?.close();
   }, []);
 
   return { mutate, abort };

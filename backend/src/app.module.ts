@@ -12,6 +12,7 @@ import { UsersModule } from './users/users.module.js';
 import { StyleModule } from './style/style.module.js';
 import { OutfitModule } from './outfit/outfit.module.js';
 import { StyleReferenceModule } from './style-reference/style-reference.module.js';
+import { FeedbackModule } from './feedback/feedback.module.js';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { StyleReferenceModule } from './style-reference/style-reference.module.j
     StyleModule,
     OutfitModule,
     StyleReferenceModule,
+    FeedbackModule,
   ],
   controllers: [AppController],
   providers: [AppService],
