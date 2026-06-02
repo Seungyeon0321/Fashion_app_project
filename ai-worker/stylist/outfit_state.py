@@ -10,6 +10,11 @@ Step 37 변경:
 Step 38 변경:
   - session_id 필드 추가 (추천 세션 추적, /feedback/like 연동용)
   - progress_callback 필드 추가 (SSE 주입값 타입 명시)
+
+Step 40-D 변경:
+  - user_style_context 필드 추가 (피드백 선호도 → composer 프롬프트 주입용)
+    main.py의 _build_initial_state에서 DB 조회 후 주입.
+    Cold start(total_likes < 3)면 None → composer가 주입 스킵.
 """
 
 from typing import TypedDict, Optional, List, Dict, Annotated, Callable
@@ -21,17 +26,6 @@ from operator import add
 # ──────────────────────────────────────────────────────────────────────────────
 
 class OutfitItemSpec(TypedDict, total=False):
-    """
-    Composer가 만든 한 카테고리의 아이템 사양.
-
-    primary:       composer가 추천한 1차 아이템명 (네이버 검색에 우선 사용)
-    fallback:      primary 검색 실패 시 시도할 2차 아이템명
-                   composer 프롬프트에서 "더 흔하고 일반적인 아이템"으로 생성됨
-    resolved_item: 검색·트리밍 완료된 실제 상품 dict (item_fetcher가 채움)
-                   None이면 아직 검색 안 됐거나 실패
-    status:        "pending" | "resolved" | "failed" | "skipped"
-                   skipped는 앵커 카테고리처럼 검색 자체를 건너뛴 경우
-    """
     primary:       str
     fallback:      str
     resolved_item: Optional[dict]
@@ -39,20 +33,6 @@ class OutfitItemSpec(TypedDict, total=False):
 
 
 class OutfitProposal(TypedDict, total=False):
-    """
-    Composer가 만든 코디 한 세트의 설계도.
-
-    mood:            "minimal" | "street" | "classic" | "rocker" | ...
-                     영어 키 (composer 프롬프트에서 정의된 무드 집합 중 하나)
-    items:           카테고리별 아이템 사양 dict
-                     예: {"TOP": OutfitItemSpec, "BOTTOM": OutfitItemSpec, ...}
-    anchor_category: 앵커 아이템이 차지하는 카테고리 (없으면 None)
-                     예: "OUTER" → item_fetcher가 OUTER 검색 스킵하고 앵커 그대로 사용
-    proposal_status: "pending" | "resolved" | "partial" | "failed"
-                     모든 카테고리 resolved → "resolved"
-                     일부만 resolved        → "partial"
-                     하나도 resolved 안 됨  → "failed"
-    """
     mood:            str
     items:           Dict[str, OutfitItemSpec]
     anchor_category: Optional[str]
@@ -68,23 +48,21 @@ class OutfitState(TypedDict):
     user_message:        str
     user_id:             str
     intent:              Optional[str]
-    source:              Optional[str]                # "closet" | "external"
+    source:              Optional[str]
     anchor_item_id:      Optional[int]
     style_reference_ids: Optional[List[int]]
-    gender:              Optional[str]                # "MALE" | "FEMALE"
+    gender:              Optional[str]
 
     # ── Step 38 추가 ─────────────────────────────────────────────────────────
-    # 추천 요청마다 main.py에서 생성되는 고유 ID (예: "rec_a3f2b8c1")
-    # 파이프라인 전체를 통과하며 변경되지 않음
-    # _build_response에서 꺼내서 응답에 포함 → 프론트가 저장 → 좋아요 시 전송
     session_id:          Optional[str]
-
-    # ── Step 38 추가 ─────────────────────────────────────────────────────────
-    # SSE 엔드포인트(/recommend)에서 주입하는 콜백 함수
-    # 타입: (message: str) -> None
-    # /recommend/sync에서는 None (동기 응답이라 실시간 전송 불필요)
-    # Optional[Callable]로 선언해야 None 허용 + 타입 힌트 정확
     progress_callback:   Optional[Callable]
+
+    # ── Step 40-D 추가 ───────────────────────────────────────────────────────
+    # main.py의 _build_initial_state에서 UserStylePreference를 조회해 주입.
+    # outfit_composer가 읽어서 프롬프트 힌트로 활용.
+    # 구조: { top_mood, preferred_colors, preferred_brands, total_likes }
+    # None이면 cold start 또는 조회 실패 → composer가 아무것도 주입 안 함.
+    user_style_context:  Optional[dict]                          # ← 추가
 
     # ── Planner ──────────────────────────────────────────────────────────────
     weather:           Optional[str]
@@ -95,20 +73,18 @@ class OutfitState(TypedDict):
 
     # ── Style Analyzer ───────────────────────────────────────────────────────
     anchor_item:        Optional[dict]
-    style_vector:       Optional[List[float]]         # 512차원, L2 정규화
+    style_vector:       Optional[List[float]]
     style_keywords:     Optional[List[str]]
     has_style_context:  Optional[bool]
 
-    # ── Query Builder (closet 흐름 전용으로 축소됨) ──────────────────────────
+    # ── Query Builder ────────────────────────────────────────────────────────
     search_queries:     Optional[dict]
     user_brand_profile: Optional[dict]
 
-    # ── Outfit Composer (Step 37 신규, external 흐름) ────────────────────────
+    # ── Outfit Composer (Step 37 신규) ───────────────────────────────────────
     outfit_proposals:   Optional[List[OutfitProposal]]
-    # 비고: Annotated[..., add] 처리 안 함.
-    # composer가 통째로 set하고 item_fetcher가 같은 list를 in-place로 채워서 반환.
 
-    # ── Retrieval (closet + external 공통 출력) ──────────────────────────────
+    # ── Retrieval ────────────────────────────────────────────────────────────
     retrieved_items:    Optional[List[dict]]
     relaxation_level:   Optional[int]
 
@@ -125,7 +101,7 @@ class OutfitState(TypedDict):
     final_response:           Optional[str]
     recommended_outfit_ids:   Optional[List[int]]
 
-    # ── Memory (LangGraph 자동 병합) ─────────────────────────────────────────
+    # ── Memory ───────────────────────────────────────────────────────────────
     session_history:    Annotated[List[dict], add]
     excluded_outfits:   Annotated[List[dict], add]
 

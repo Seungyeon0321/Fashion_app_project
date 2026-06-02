@@ -18,8 +18,8 @@ import { ScreenLayout } from '@/shared/ui/ScreenLayout';
 import type { RecommendSource, AnchorClosetItem } from '@/features/get-recommendation/model/sourcePickerStore';
 
 export function StylistPage() {
-  const selectedIntent  = useIntentStore((s) => s.selectedIntent);
-  const openSheet       = useSourcePickerStore((s) => s.openSheet);
+  const selectedIntent    = useIntentStore((s) => s.selectedIntent);
+  const openSheet         = useSourcePickerStore((s) => s.openSheet);
   const { mutate, abort } = useRecommendation();
 
   const [isPending,          setIsPending]          = useState(false);
@@ -69,11 +69,15 @@ export function StylistPage() {
     });
   };
 
-  const handleRetry = () => {
+  // ← session_id 추가: NO 재요청 시 Redis 캐시에서 다음 코디를 바로 꺼냄
+  const handleRetry = (sessionId?: string) => {
     if (!lastPayload) return;
     setModalVisible(false);
     setRecommendationData(null);
-    requestRecommendation(lastPayload);
+    requestRecommendation({
+      ...lastPayload,
+      session_id: sessionId,
+    });
   };
 
   return (

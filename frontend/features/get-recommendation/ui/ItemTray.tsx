@@ -8,6 +8,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
+  Linking,                         // ← 추가
 } from 'react-native';
 import { useCanvasStore } from '../model/canvasStore';
 import { colors, fonts, spacing } from '@/shared/lib/tokens';
@@ -16,6 +17,19 @@ const CARD_SIZE = { width: 100, height: 125 };
 
 type Props = {
   onAddPress: () => void;
+};
+
+// ── purchaseUrl 외부 브라우저 열기 ──────────────────────────────────────────
+// http:// → https:// 강제 변환: Android는 http URL을 기본 차단
+// purchaseUrl이 null/undefined이면 조용히 무시
+const handleShopPress = async (url: string | null | undefined) => {
+  if (!url) return;
+  const safeUrl = url.replace(/^http:\/\//, 'https://');
+  try {
+    await Linking.openURL(safeUrl);
+  } catch (error) {
+    console.error('[ItemTray] 구매 링크 열기 실패:', error);
+  }
 };
 
 export function ItemTray({ onAddPress }: Props) {
@@ -35,38 +49,38 @@ export function ItemTray({ onAddPress }: Props) {
 
           return (
             <TouchableOpacity
-              key={String(item.id)}   // 변경: id가 string일 수 있으므로 String() 변환
+              key={String(item.id)}
               style={[styles.card, isOnCanvas && styles.cardActive]}
               onPress={() => addToCanvas(item)}
               activeOpacity={0.8}
             >
               <Image
                 source={{ uri: item.imageUrl }}
-                style={[
-                  styles.cardImage,
-                  !isOnCanvas && styles.cardImageDim,
-                ]}
+                style={[styles.cardImage, !isOnCanvas && styles.cardImageDim]}
                 resizeMode="cover"
               />
 
-              {/* 캔버스 추가 체크 배지 */}
               {isOnCanvas && (
                 <View style={styles.checkBadge}>
                   <Text style={styles.checkText}>✓</Text>
                 </View>
               )}
 
-              {/* SHOP 배지 — external 아이템(네이버 쇼핑)에만 표시 */}
+              {/* SHOP 배지 — TouchableOpacity로 교체, purchaseUrl이 있을 때만 탭 가능 */}
               {item.is_external && (
-                <View style={styles.shopBadge}>
+                <TouchableOpacity
+                  style={styles.shopBadge}
+                  onPress={() => handleShopPress(item.purchaseUrl)}
+                  activeOpacity={item.purchaseUrl ? 0.6 : 1}   // URL 없으면 피드백 없음
+                  disabled={!item.purchaseUrl}
+                >
                   <Text style={styles.shopBadgeText}>SHOP</Text>
-                </View>
+                </TouchableOpacity>
               )}
             </TouchableOpacity>
           );
         })}
 
-        {/* + 버튼 — 항상 마지막 */}
         <TouchableOpacity
           style={styles.addButton}
           onPress={onAddPress}
@@ -80,18 +94,12 @@ export function ItemTray({ onAddPress }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    gap: 10,
-  },
-  label: {
-    ...fonts.tab,
-    color: colors.hint,
-    letterSpacing: 2,
-  },
+  container:    { gap: 10 },
+  label:        { ...fonts.tab, color: colors.hint, letterSpacing: 2 },
   scrollContent: {
-    gap: spacing.cardGap,
+    gap:          spacing.cardGap,
     paddingRight: spacing.outerMargin,
-    alignItems: 'center',
+    alignItems:   'center',
   },
   card: {
     width:           CARD_SIZE.width,
@@ -102,16 +110,9 @@ const styles = StyleSheet.create({
     borderWidth:     2,
     borderColor:     'transparent',
   },
-  cardActive: {
-    borderColor: colors.primary,
-  },
-  cardImage: {
-    width:  '100%',
-    height: '100%',
-  },
-  cardImageDim: {
-    opacity: 0.35,
-  },
+  cardActive:    { borderColor: colors.primary },
+  cardImage:     { width: '100%', height: '100%' },
+  cardImageDim:  { opacity: 0.35 },
   checkBadge: {
     position:        'absolute',
     top:             4,
@@ -123,41 +124,25 @@ const styles = StyleSheet.create({
     alignItems:      'center',
     justifyContent:  'center',
   },
-  checkText: {
-    fontSize:   10,
-    color:      colors.background,
-    fontWeight: 'bold',
-  },
-
-  // external 아이템 SHOP 배지
-  // 좌하단 배치 — checkBadge(우상단)와 겹치지 않도록
+  checkText:  { fontSize: 10, color: colors.background, fontWeight: 'bold' },
   shopBadge: {
-    position:        'absolute',
-    bottom:          4,
-    left:            4,
-    backgroundColor: colors.accentRed,  // 디자인 시스템 강조 컬러 사용
+    position:          'absolute',
+    bottom:            4,
+    left:              4,
+    backgroundColor:   colors.accentRed,
     paddingHorizontal: 5,
     paddingVertical:   2,
   },
-  shopBadgeText: {
-    ...fonts.caption,
-    color:       colors.primary,
-    fontSize:    8,
-    letterSpacing: 1,
-  },
-
+  shopBadgeText: { ...fonts.caption, color: colors.primary, fontSize: 8, letterSpacing: 1 },
   addButton: {
-    width:       CARD_SIZE.width,
-    height:      CARD_SIZE.height,
-    borderWidth: 1.5,
-    borderColor: colors.divider,
-    borderStyle: 'dashed',
-    borderRadius: 4,
-    alignItems:  'center',
+    width:          CARD_SIZE.width,
+    height:         CARD_SIZE.height,
+    borderWidth:    1.5,
+    borderColor:    colors.divider,
+    borderStyle:    'dashed',
+    borderRadius:   4,
+    alignItems:     'center',
     justifyContent: 'center',
   },
-  addIcon: {
-    fontSize: 24,
-    color:    colors.hint,
-  },
+  addIcon: { fontSize: 24, color: colors.hint },
 });

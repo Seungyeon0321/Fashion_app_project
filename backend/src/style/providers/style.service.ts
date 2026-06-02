@@ -12,9 +12,9 @@ export class StylesService {
     async recommend(
         userId: number,
         body: {
-            intent: string;
-            source: RecommendSource;
-            anchor_item_id?: number;
+            intent:              string;
+            source:              RecommendSource;
+            anchor_item_id?:     number;
             style_reference_ids?: number[];
         }
     ) {
@@ -39,15 +39,16 @@ export class StylesService {
     recommendStream(
         userId: number,
         body: {
-            intent: string;
-            source: RecommendSource;
-            anchor_item_id?: number;
+            intent:               string;
+            source:               RecommendSource;
+            anchor_item_id?:      number;
             style_reference_ids?: number[];
+            session_id?:          string;   // ← 추가
         },
     ): Observable<MessageEvent> {
         const fastapiUrl = process.env.FASTAPI_URL ?? 'http://localhost:8000';
-        const url = `${fastapiUrl}/recommend`;
-        const payload = { user_id: userId, ...body };
+        const url        = `${fastapiUrl}/recommend`;
+        const payload    = { user_id: userId, ...body };  // session_id 자동 포함
 
         console.log('📡 [SSE] FastAPI 연결 시작:', url);
         console.log('📡 [SSE] payload:', JSON.stringify(payload));

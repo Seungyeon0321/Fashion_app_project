@@ -1,12 +1,10 @@
-// features/get-recommendation/ui/RecommendationModal.tsx
-
 import React, { useCallback, useEffect, useState } from 'react';
 import { Modal, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RecommendationResponse } from '../api/useRecommendation';
 import { useCanvasStore } from '../model/canvasStore';
 import { useConflictBanner, ConflictWarning } from '../model/useConflictBanner';
-import { useFeedback } from '../api/useFeedback';          // ← 추가
+import { useFeedback } from '../api/useFeedback';
 import { MoodboardCanvas } from './MoodboardCanvas';
 import { ConflictBanner } from './ConflictBanner';
 import { OutfitComment } from './OutfitComment';
@@ -14,10 +12,10 @@ import { OutfitActionBar } from './OutfitActionBar';
 import { colors, fonts } from '@/shared/lib/tokens';
 
 type Props = {
-  visible: boolean;
-  onClose: () => void;
-  onRetry: () => void;
-  data:    RecommendationResponse | null;
+  visible:  boolean;
+  onClose:  () => void;
+  onRetry:  (sessionId?: string) => void;   // ← 시그니처 변경
+  data:     RecommendationResponse | null;
 };
 
 export function RecommendationModal({ visible, onClose, onRetry, data }: Props) {
@@ -25,15 +23,15 @@ export function RecommendationModal({ visible, onClose, onRetry, data }: Props) 
   const { visible: bannerVisible, show: showBanner, hide: hideBanner, animatedStyle } =
     useConflictBanner();
 
-  const [proposalIndex, setProposalIndex] = useState(0);   // ← 추가
-  const { like, dislike } = useFeedback(data, proposalIndex); // ← 추가
+  const [proposalIndex, setProposalIndex] = useState(0);
+  const { like, dislike } = useFeedback(data, proposalIndex);
 
   useEffect(() => {
     if (visible && data) {
       console.log('🔍 ranked_items:', JSON.stringify(data.ranked_items, null, 2));
       initFromResponse(data);
       showBanner();
-      setProposalIndex(0); // 새 추천마다 인덱스 초기화
+      setProposalIndex(0);
     }
     return () => { reset(); };
   }, [visible, data]);
@@ -42,18 +40,16 @@ export function RecommendationModal({ visible, onClose, onRetry, data }: Props) 
 
   const conflictWarning = (data.conflict_warning ?? null) as ConflictWarning;
 
-  // YES: 피드백 저장 → 배너 닫기 (기존 동작 유지)
   const handleYes = useCallback(async () => {
     await like();
     hideBanner();
   }, [like, hideBanner]);
 
-  // NO: 피드백 저장 → proposalIndex +1 → 새 추천 (기존 동작 유지)
   const handleNo = useCallback(async () => {
     await dislike();
     setProposalIndex((prev) => prev + 1);
-    onRetry();
-  }, [dislike, onRetry]);
+    onRetry(data.session_id);   // ← session_id 전달
+  }, [dislike, onRetry, data]);
 
   return (
     <Modal
@@ -75,8 +71,8 @@ export function RecommendationModal({ visible, onClose, onRetry, data }: Props) 
           <ConflictBanner
             conflictWarning={conflictWarning}
             animatedStyle={animatedStyle}
-            onYes={handleYes}   // ← 변경
-            onNo={handleNo}     // ← 변경
+            onYes={handleYes}
+            onNo={handleNo}
           />
         )}
 

@@ -42,33 +42,20 @@ export class StyleController {
     // (NestJS @Sse는 GET이라 @Body 사용 불가)
     @Sse('recommend/stream')
     @UseGuards(JwtAuthGuard)
-    recommendStream(
-        @Req() req: any,
-    ): Observable<MessageEvent> {
-        const userId = req.user.id;
+    recommendStream(@Req() req: any): Observable<MessageEvent> {
+    const userId = req.user.id;
+    const query  = req.query;
 
-        // query string에서 파라미터 추출
-        // 예: /style/recommend/stream?intent=formal&source=external&anchor_item_id=12
-        const query = req.query;
+    const body = {
+      intent:              query.intent,
+      source:              query.source,
+      anchor_item_id:      query.anchor_item_id ? Number(query.anchor_item_id) : undefined,
+      style_reference_ids: query.style_reference_ids
+        ? String(query.style_reference_ids).split(',').map(Number).filter(n => !isNaN(n))
+        : [],
+      session_id: query.session_id ?? undefined,   // ← 추가
+    };
 
-        console.log('Received query parameters:', query);
-
-        const body = {
-            intent: query.intent,
-            source: query.source,
-            anchor_item_id: query.anchor_item_id
-                ? Number(query.anchor_item_id)
-                : undefined,
-            style_reference_ids: query.style_reference_ids
-                ? String(query.style_reference_ids)
-                    .split(',')
-                    .map((id: string) => Number(id))
-                    .filter((n) => !isNaN(n))
-                : [],
-        };
-
-        console.log('Recommend (SSE) request:', { userId, body });
-
-        return this.stylesService.recommendStream(userId, body);
-    }
+    return this.stylesService.recommendStream(userId, body);
+  }
 }

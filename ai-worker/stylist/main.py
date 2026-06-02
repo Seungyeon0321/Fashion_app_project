@@ -48,10 +48,6 @@ app = FastAPI(title="Fashion Stylist API")
 _clip_encoder = CLIPEncoder()
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# 헬퍼
-# ──────────────────────────────────────────────────────────────────────────────
-
 def get_db_connection():
     return psycopg2.connect(os.getenv("DATABASE_URL"))
 
@@ -64,10 +60,6 @@ def get_s3_client():
     )
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# 스키마
-# ──────────────────────────────────────────────────────────────────────────────
-
 class RecommendRequest(BaseModel):
     user_id:             int
     user_message:        Optional[str] = ""
@@ -76,10 +68,9 @@ class RecommendRequest(BaseModel):
     anchor_item_id:      Optional[int] = None
     style_reference_ids: Optional[List[int]] = []
     excluded_outfits:    Optional[List[dict]] = []
-    session_id:          Optional[str] = None   # ← Step 38-pre 추가
+    session_id:          Optional[str] = None
 
 
-# BaseModel로 정의된 응답 스키마는 FastAPI의 response_model로 활용되어
 class RecommendItemResponse(BaseModel):
     id:          object
     category:    str
@@ -99,7 +90,7 @@ class RecommendItemResponse(BaseModel):
 class RecommendResponse(BaseModel):
     session_id:       str
     intent:           Optional[str] = None
-    proposal_mood:    Optional[str] = None   # ← 추가
+    proposal_mood:    Optional[str] = None
     calendar_events:  Optional[List[str]] = []
     weather:          Optional[str] = None
     ranked_items:     List[RecommendItemResponse] = []
@@ -119,26 +110,14 @@ class EncodeReferenceResponse(BaseModel):
     message:      Optional[str] = None
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# 헬스체크
-# ──────────────────────────────────────────────────────────────────────────────
-
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# 공통: initial_state 생성
-# ──────────────────────────────────────────────────────────────────────────────
-
 def _build_initial_state(request: RecommendRequest) -> dict:
-    # Step 38-pre:
-    # 기존 session_id가 있으면 재사용, 없으면 새로 발급.
-    # 소진 후 새 파이프라인 실행 시에는 recommend_sync에서
-    # session_id=None으로 초기화한 뒤 넘겨주므로 여기선 그냥 받은 값 사용.
     session_id = request.session_id or f"rec_{uuid.uuid4().hex[:8]}"
-
+    user_style_context = _get_user_style_context(request.user_id)  # ← 추가
     return {
         "session_id":             session_id,
         "user_message":           request.user_message,
@@ -169,6 +148,7 @@ def _build_initial_state(request: RecommendRequest) -> dict:
         "excluded_outfits":       request.excluded_outfits or [],
         "errors":                 [],
         "progress_callback":      None,
+        "user_style_context":     user_style_context,   # ← 추가
     }
 
 
@@ -177,6 +157,7 @@ def _build_response(result: dict) -> RecommendResponse:
     proposal_mood = (
         outfit_proposals[0].get("mood") if outfit_proposals else None
     ) or result.get("intent")
+
     ranked_items = [
         RecommendItemResponse(
             id=item.get("id"),
@@ -207,21 +188,117 @@ def _build_response(result: dict) -> RecommendResponse:
         relaxation_level=result.get("relaxation_level"),
     )
 
+# ──────────────────────────────────────────────────────────────────────────────
+# 유저 스타일 선호도 조회 (Step 40-D 추가)
+# ──────────────────────────────────────────────────────────────────────────────
 
-# ──────────────────────────────────────────────────────────────────────────────
-# POST /recommend  — SSE 스트리밍
-# ──────────────────────────────────────────────────────────────────────────────
+def _get_user_style_context(user_id: int) -> Optional[dict]:
+    """
+    UserStylePreference에서 취향 데이터를 읽어 outfit_composer 프롬프트용으로 반환.
+
+    Cold start 처리:
+      total_likes < 3이면 None 반환 → composer가 아무것도 주입 안 함.
+      데이터가 충분히 쌓이기 전에 잘못된 힌트를 주지 않기 위함.
+
+    실패 처리:
+      DB 조회 실패 시 None 반환 → 피드백 반영 없이 기본 추천으로 폴백.
+      피드백 시스템 장애가 추천 서비스 전체를 멈추지 않도록.
+    """
+    try:
+        conn = get_db_connection()
+        cur  = conn.cursor()
+        cur.execute("""
+            SELECT top_mood, preferred_colors, preferred_brands, total_likes
+            FROM user_style_preferences
+            WHERE user_id = %s
+        """, (user_id,))
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+
+        if not row:
+            return None
+
+        top_mood, preferred_colors, preferred_brands, total_likes = row
+
+        # cold start: 최소 3번 이상 좋아요가 쌓여야 반영
+        if (total_likes or 0) < 3:
+            print(f"[StyleContext] cold start (likes={total_likes}) → 미반영")
+            return None
+
+        print(f"[StyleContext] 로드 완료: top_mood={top_mood}, likes={total_likes}")
+        return {
+            "top_mood":          top_mood,
+            "preferred_colors":  preferred_colors or [],
+            "preferred_brands":  preferred_brands or [],
+            "total_likes":       total_likes,
+        }
+
+    except Exception as e:
+        print(f"[StyleContext] 조회 실패, 기본 추천으로 폴백: {e}")
+        return None
+
+
+def _build_cached_response(session_id: str, cached: dict) -> RecommendResponse:
+    """Redis 캐시에서 꺼낸 proposal로 RecommendResponse 구성"""
+    ranked_items = [
+        RecommendItemResponse(
+            id=item.get("id"),
+            category=item.get("category", ""),
+            subCategory=item.get("subCategory"),
+            name=item.get("name"),
+            brand=item.get("brand"),
+            colors=item.get("colors") or [],
+            material=item.get("material"),
+            fit=item.get("fit"),
+            imageUrl=item.get("imageUrl"),
+            purchaseUrl=item.get("purchaseUrl"),
+            similarity=item.get("similarity"),
+            is_anchor=item.get("is_anchor", False),
+            is_external=item.get("is_external", False),
+        )
+        for item in (cached.get("ranked_items") or [])
+    ]
+    return RecommendResponse(
+        session_id=session_id,
+        intent=cached.get("intent"),
+        proposal_mood=cached.get("proposal_mood"),
+        calendar_events=cached.get("calendar_events") or [],
+        weather=cached.get("weather"),
+        ranked_items=ranked_items,
+        final_response=cached.get("final_response") or "Next look ready!",
+        conflict_warning=cached.get("conflict_warning"),
+        relaxation_level=cached.get("relaxation_level"),
+    )
+
 
 @app.post("/recommend")
 def recommend(request: RecommendRequest):
-    """
-    SSE 스트리밍 코디 추천 엔드포인트.
+    # ── Redis 캐시 분기 (NO 재요청 시 파이프라인 없이 즉시 반환) ──────────
+    if request.session_id:
+        try:
+            cached = pop_next_proposal(str(request.user_id), request.session_id)
+            if cached is not None:
+                print(f"[SSE Cache HIT] session={request.session_id}")
+                response_data = _build_cached_response(request.session_id, cached)
 
-    이벤트 형식:
-      data: {"type": "progress", "message": "상의를 고르고 있어요..."}
-      data: {"type": "result",   "data": { ...RecommendResponse... }}
-      data: {"type": "error",    "message": "..."}
-    """
+                def cached_stream():
+                    yield f"data: {json.dumps({'type': 'result', 'data': response_data.model_dump()}, ensure_ascii=False)}\n\n"
+
+                return StreamingResponse(
+                    cached_stream(),
+                    media_type="text/event-stream",
+                    headers={
+                        "Cache-Control":               "no-cache",
+                        "X-Accel-Buffering":           "no",
+                        "Access-Control-Allow-Origin": "*",
+                    },
+                )
+            print(f"[SSE Cache MISS] session={request.session_id} → 파이프라인 실행")
+        except Exception as e:
+            print(f"[SSE Cache ERROR] fallback to pipeline: {e}")
+    # ── 캐시 분기 끝 ──────────────────────────────────────────────────────
+
     msg_queue: queue.Queue = queue.Queue()
 
     def progress_callback(message: str):
@@ -240,8 +317,6 @@ def recommend(request: RecommendRequest):
                 return
 
             response_data = _build_response(result)
-            # model_dump()은 _build_response에서 받은 결과물에서 사용하는 pydantic의 내장 기능이다.
-            # .model_dump()은 pydantic 모델 인스턴스를 dict로 변환해준다. FastAPI의 StreamingResponse로 보낼 때 JSON 직렬화가 가능하도록 하기 위해 사용한다.
             msg_queue.put({"type": "result", "data": response_data.model_dump()})
 
         except Exception as e:
@@ -249,8 +324,6 @@ def recommend(request: RecommendRequest):
         finally:
             msg_queue.put(None)
 
-    # graph 실행을 별도 스레드에서 수행하여 SSE 스트리밍과 병행 처리 (해당 graph는 메인 스레드가 아닌 별도 스레드에서 실행됨)
-    # daemon=True로 설정하여 메인 스레드 종료 시 자동으로 종료되도록 함
     thread = threading.Thread(target=run_graph, daemon=True)
     thread.start()
 
@@ -272,72 +345,22 @@ def recommend(request: RecommendRequest):
     )
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# POST /recommend/sync  — JSON 응답
-# ──────────────────────────────────────────────────────────────────────────────
-
 @app.post("/recommend/sync", response_model=RecommendResponse)
 def recommend_sync(request: RecommendRequest):
-    """
-    기존 방식 (JSON 응답).
-    Postman 테스트 또는 SSE 미지원 환경용.
-
-    Step 38-pre:
-      session_id 있음 → Redis 캐시 조회 먼저 시도
-      캐시 HIT       → 파이프라인 실행 없이 즉시 반환 (~0.5초)
-      캐시 MISS/소진  → 새 파이프라인 실행
-      Redis 장애      → 파이프라인으로 자동 fallback
-    """
     user_id = str(request.user_id)
 
-    # ── Step 38-pre: Redis 캐시 분기 ──────────────────────────────────────
     if request.session_id:
         try:
             cached = pop_next_proposal(user_id, request.session_id)
-
             if cached is not None:
-                # 캐시 HIT: Redis에서 꺼낸 proposal을 바로 응답으로 변환
                 print(f"[Cache HIT] session={request.session_id}")
-                ranked_items = [
-                    RecommendItemResponse(
-                        id=item.get("id"),
-                        category=item.get("category", ""),
-                        subCategory=item.get("subCategory"),
-                        name=item.get("name"),
-                        brand=item.get("brand"),
-                        colors=item.get("colors") or [],
-                        material=item.get("material"),
-                        fit=item.get("fit"),
-                        imageUrl=item.get("imageUrl"),
-                        purchaseUrl=item.get("purchaseUrl"),
-                        similarity=item.get("similarity"),
-                        is_anchor=item.get("is_anchor", False),
-                        is_external=item.get("is_external", False),
-                    )
-                    for item in (cached.get("ranked_items") or [])
-                ]
-                return RecommendResponse(
-                    session_id=request.session_id,
-                    intent=cached.get("intent"),
-                    calendar_events=cached.get("calendar_events") or [],
-                    weather=cached.get("weather"),
-                    ranked_items=ranked_items,
-                    final_response=cached.get("final_response") or "코디를 준비했어요!",
-                    conflict_warning=cached.get("conflict_warning"),
-                    relaxation_level=cached.get("relaxation_level"),
-                )
-
-            # 캐시 MISS (소진): session_id 초기화 후 새 파이프라인 실행
+                return _build_cached_response(request.session_id, cached)
             print(f"[Cache MISS] session={request.session_id} 소진 → 새 파이프라인 실행")
             request = request.model_copy(update={"session_id": None})
-
         except Exception as e:
-            # Redis 장애: 파이프라인으로 fallback (서비스 중단 방지)
             print(f"[Cache ERROR] Redis 조회 실패, fallback to pipeline: {e}")
             request = request.model_copy(update={"session_id": None})
-    # ── 캐시 분기 끝 ──────────────────────────────────────────────────────
 
-    # 파이프라인 실행 (첫 요청 or 소진 or Redis 장애)
     initial_state = _build_initial_state(request)
     config        = {"configurable": {"thread_id": str(request.user_id)}}
 
@@ -356,10 +379,6 @@ def recommend_sync(request: RecommendRequest):
 
     return _build_response(result)
 
-
-# ──────────────────────────────────────────────────────────────────────────────
-# POST /encode/reference
-# ──────────────────────────────────────────────────────────────────────────────
 
 @app.post("/encode/reference", response_model=EncodeReferenceResponse)
 def encode_reference(request: EncodeReferenceRequest):

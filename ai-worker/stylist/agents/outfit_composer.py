@@ -37,6 +37,22 @@ Step 38-pre 변경:
   _build_excluded_section 함수 추가
 """
 
+# ai-worker/stylist/agents/outfit_composer.py
+"""
+Outfit Composer — Step 37 신규 에이전트
+
+역할:
+  Bottom-up 검색이 아닌 Top-down 코디 설계.
+  LLM이 사용자 컨텍스트(스타일/날씨/계절/intent/gender/앵커)를 종합해
+  서로 다른 무드의 코디 3개를 한 번에 생성한다.
+
+Step 40-D 변경:
+  _build_preference_section 함수 추가.
+  COMPOSER_HUMAN에 {preference_section} 추가.
+  outfit_composer에서 user_style_context를 state에서 읽어 프롬프트에 주입.
+  Cold start(total_likes < 3)면 아무것도 주입 안 함.
+"""
+
 import json
 from typing import Optional, List, Dict
 
@@ -52,13 +68,13 @@ from stylist.outfit_state import OutfitState, OutfitProposal, OutfitItemSpec
 
 _llm = ChatAnthropic(
     model="claude-sonnet-4-20250514",
-    temperature=0.9,   # Step 38-pre: 0.6 → 0.9 (다양성 향상)
+    temperature=0.9,
     max_tokens=2000,
 )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# 한국어 매핑 (LLM 프롬프트용)
+# 한국어 매핑
 # ──────────────────────────────────────────────────────────────────────────────
 
 INTENT_KR = {
@@ -164,6 +180,7 @@ COMPOSER_HUMAN = """다음 컨텍스트로 코디 3개를 설계해주세요.
 날씨: {weather}
 일정: {calendar_str}
 {anchor_section}
+{preference_section}
 {excluded_section}
 
 위 컨텍스트에 맞는 서로 다른 무드의 코디 3개를 JSON으로 출력하세요."""
@@ -175,14 +192,15 @@ COMPOSER_HUMAN = """다음 컨텍스트로 코디 3개를 설계해주세요.
 
 def outfit_composer(state: OutfitState) -> dict:
     try:
-        gender         = state.get("gender") or "MALE"
-        intent         = state.get("intent") or "casual"
-        season         = state.get("season") or "spring"
-        style_keywords = state.get("style_keywords") or []
-        weather        = state.get("weather") or "정보 없음"
-        calendar       = state.get("calendar_events") or []
-        anchor_item    = state.get("anchor_item")
-        excluded       = state.get("excluded_outfits") or []   # Step 38-pre 추가
+        gender              = state.get("gender") or "MALE"
+        intent              = state.get("intent") or "casual"
+        season              = state.get("season") or "spring"
+        style_keywords      = state.get("style_keywords") or []
+        weather             = state.get("weather") or "정보 없음"
+        calendar            = state.get("calendar_events") or []
+        anchor_item         = state.get("anchor_item")
+        excluded            = state.get("excluded_outfits") or []
+        user_style_context  = state.get("user_style_context")   # ← Step 40-D 추가
 
         gender_kr          = GENDER_KR.get(gender, "남성")
         intent_kr          = INTENT_KR.get(intent, intent)
@@ -190,7 +208,8 @@ def outfit_composer(state: OutfitState) -> dict:
         style_keywords_str = ", ".join(style_keywords) if style_keywords else "특정 키워드 없음"
         calendar_str       = ", ".join(calendar) if calendar else "특별한 일정 없음"
         anchor_section     = _build_anchor_section(anchor_item)
-        excluded_section   = _build_excluded_section(excluded)   # Step 38-pre 추가
+        excluded_section   = _build_excluded_section(excluded)
+        preference_section = _build_preference_section(user_style_context)  # ← Step 40-D 추가
 
         human_prompt = COMPOSER_HUMAN.format(
             gender_kr=gender_kr,
@@ -200,7 +219,8 @@ def outfit_composer(state: OutfitState) -> dict:
             weather=weather,
             calendar_str=calendar_str,
             anchor_section=anchor_section,
-            excluded_section=excluded_section,   # Step 38-pre 추가
+            preference_section=preference_section,   # ← Step 40-D 추가
+            excluded_section=excluded_section,
         )
 
         print("[OutfitComposer] LLM 코디 생성 시작")
@@ -261,15 +281,51 @@ def _build_anchor_section(anchor_item: Optional[dict]) -> str:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# 헬퍼: 제외 코디 섹션 빌드 (Step 38-pre 추가)
+# 헬퍼: 유저 선호도 섹션 빌드 (Step 40-D 추가)
+# ──────────────────────────────────────────────────────────────────────────────
+
+def _build_preference_section(user_style_context: Optional[dict]) -> str:
+    """
+    UserStylePreference 데이터를 프롬프트 텍스트로 변환.
+
+    None이면 빈 문자열 반환 (cold start 또는 조회 실패 시).
+
+    Exploration 방지:
+      "힌트로만 활용, 새로운 조합도 포함" 문구를 명시해서
+      LLM이 좋아요 데이터만 반복 추천하는 것을 방지.
+      (같은 색상/무드만 계속 나오면 유저가 질림)
+
+    색상 상위 5개, 브랜드 상위 3개만 주입:
+      너무 많은 힌트는 LLM 판단을 방해함.
+    """
+    if not user_style_context:
+        return ""
+
+    lines = ["사용자 취향 정보 (이전 좋아요 이력 기반):"]
+
+    top_mood = user_style_context.get("top_mood")
+    if top_mood:
+        lines.append(f"  - 선호 무드: {top_mood}")
+
+    colors = user_style_context.get("preferred_colors", [])
+    if colors:
+        lines.append(f"  - 선호 색상: {', '.join(colors[:5])}")
+
+    brands = user_style_context.get("preferred_brands", [])
+    if brands:
+        lines.append(f"  - 선호 브랜드: {', '.join(brands[:3])}")
+
+    # Exploration 방지 지시문
+    lines.append("→ 위 취향을 참고하되 힌트로만 활용하세요. 3개 코디 중 1개는 새로운 무드로 구성하세요.")
+
+    return "\n".join(lines)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# 헬퍼: 제외 코디 섹션 빌드
 # ──────────────────────────────────────────────────────────────────────────────
 
 def _build_excluded_section(excluded_outfits: list) -> str:
-    """
-    이전에 추천했던 코디 목록을 프롬프트 텍스트로 변환.
-    LLM이 같은 조합을 반복하지 않도록 명시적으로 알려줌.
-    excluded_outfits가 없으면 빈 안내 문구만 반환.
-    """
     if not excluded_outfits:
         return "이전 추천 이력: 없음"
 
