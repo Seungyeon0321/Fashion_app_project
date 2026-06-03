@@ -13,6 +13,7 @@ import { StyleModule } from './style/style.module.js';
 import { OutfitModule } from './outfit/outfit.module.js';
 import { StyleReferenceModule } from './style-reference/style-reference.module.js';
 import { FeedbackModule } from './feedback/feedback.module.js';
+import { TryonModule } from './tryon/tryon.module.js';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { FeedbackModule } from './feedback/feedback.module.js';
     OutfitModule,
     StyleReferenceModule,
     FeedbackModule,
+    TryonModule,
   ],
   controllers: [AppController],
   providers: [AppService],

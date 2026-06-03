@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { S3Service } from '../../s3/s3.service.js';
 import { AuthProvider } from '../../generated/prisma/client.js';
@@ -9,6 +11,7 @@ export class UsersService {
   constructor(
     private prisma: PrismaService,
     private s3: S3Service,
+    private readonly httpService: HttpService, // ← 추가
   ) {}
 
   async findByEmail(email: string) {
@@ -71,8 +74,7 @@ export class UsersService {
     });
   }
 
-  // ── Step 41: Try-On 사진 업로드/교체 ─────────────────────────
-  // 캐시 무효화는 FastAPI /tryon 구현 시 같이 추가 예정
+  // ── Step 41/42: Try-On 사진 업로드/교체 ──────────────────────
   async updateTryonPhoto(
     userId: number,
     imageBuffer: Buffer,
@@ -90,6 +92,19 @@ export class UsersService {
       where: { id: userId },
       data: { tryonPhotoUrl: url },
     });
+
+    // 3. FastAPI에 캐시 무효화 요청 (Step 42-B)
+    // 실패해도 사진 업로드는 성공 처리 — 캐시는 부가기능
+    // FastAPI가 다운 = Try-On 자체도 안 되는 상황 → TTL(24h) 만료로 자연 해소
+    try {
+      const fastapiUrl = process.env.FASTAPI_URL ?? 'http://localhost:8000';
+      await firstValueFrom(
+        this.httpService.delete(`${fastapiUrl}/tryon/cache/${userId}`),
+      );
+      console.log(`[TryOn Cache] 무효화 완료 user=${userId}`);
+    } catch (e: any) {
+      console.error(`[TryOn Cache] 무효화 실패, 무시하고 계속: ${e?.message}`);
+    }
 
     return { tryonPhotoUrl: url };
   }

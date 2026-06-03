@@ -2,18 +2,11 @@
 """
 Fashion Stylist FastAPI 엔드포인트
 
-/recommend        → SSE 스트리밍 (진행 상태 실시간 전달)
-/recommend/sync   → 기존 JSON 응답 (하위 호환용)
-/encode/reference → CLIP 벡터 인코딩
-/tryon            → Virtual Try-On (Fashn.ai)
-
-Step 41 변경:
-  asyncio import 추가.
-  httpx import 추가.
-  hashlib import 추가.
-  TryonRequest, TryonResponse 모델 추가.
-  _tryon_cache_key, _get_tryon_photo_presigned_url, _run_fashn_tryon 헬퍼 추가.
-  POST /tryon 엔드포인트 추가.
+Step 42 변경:
+  CATEGORY_MAP 추가 (DB 내부 값 → Fashn.ai 값 변환).
+  TryonRequest.category 타입을 DB 값 기준으로 변경.
+  /tryon 엔드포인트에서 category 변환 로직 추가.
+  DELETE /tryon/cache/{user_id} 엔드포인트 추가 (캐시 무효화).
 """
 
 import os
@@ -111,25 +104,34 @@ class EncodeReferenceResponse(BaseModel):
     message:      Optional[str] = None
 
 
-# ── Step 41: Try-On ───────────────────────────────────────────
+# ── Step 41/42: Try-On ────────────────────────────────────────
+CATEGORY_MAP = {
+    "TOP":    "tops",
+    "BOTTOM": "bottoms",
+    "OUTER":  "tops",
+    "FULL":   "one-pieces",
+}
+
 class TryonRequest(BaseModel):
     user_id:     int
     garment_url: str
-    category:    Optional[str] = "tops"
-    # "tops" | "bottoms" | "one-pieces"
-    # Fashn.ai가 자동 감지하지만 명시하면 더 정확
+    category:    str = "TOP"
 
 
 class TryonResponse(BaseModel):
     result_url: str
-    cached:     bool = False  # True면 Redis 캐시에서 반환된 것
+    cached:     bool = False
+
+
+class TryonCacheInvalidateResponse(BaseModel):
+    deleted: int  # 실제로 삭제된 키 개수
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 상수
 # ──────────────────────────────────────────────────────────────────────────────
 
-TRYON_CACHE_TTL = 60 * 60 * 24  # 24시간 (Fashn CDN 72h 안에 충분히 여유)
+TRYON_CACHE_TTL = 60 * 60 * 24  # 24시간
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -216,11 +218,6 @@ def _build_response(result: dict) -> RecommendResponse:
 
 
 def _get_user_style_context(user_id: int) -> Optional[dict]:
-    """
-    UserStylePreference에서 취향 데이터를 읽어 outfit_composer 프롬프트용으로 반환.
-    cold start (total_likes < 3): None 반환
-    실패 시: None 반환 (피드백 장애가 추천 전체를 멈추지 않도록)
-    """
     try:
         conn = get_db_connection()
         cur  = conn.cursor()
@@ -256,7 +253,6 @@ def _get_user_style_context(user_id: int) -> Optional[dict]:
 
 
 def _build_cached_response(session_id: str, cached: dict) -> RecommendResponse:
-    """Redis 캐시에서 꺼낸 proposal로 RecommendResponse 구성"""
     ranked_items = [
         RecommendItemResponse(
             id=item.get("id"),
@@ -291,24 +287,11 @@ def _build_cached_response(session_id: str, cached: dict) -> RecommendResponse:
 # ── Step 41: Try-On 헬퍼 ──────────────────────────────────────
 
 def _tryon_cache_key(user_id: int, garment_url: str) -> str:
-    """
-    캐시 키 생성.
-    garment_url이 길어서 MD5 해시 앞 12자리로 줄임.
-    형식: tryon:{user_id}:{url_hash}
-    예시: tryon:1:a3f2b8c1d9e0
-    """
     url_hash = hashlib.md5(garment_url.encode()).hexdigest()[:12]
     return f"tryon:{user_id}:{url_hash}"
 
 
 def _get_tryon_photo_presigned_url(s3_key: str) -> str:
-    """
-    S3 key → presigned URL (유효시간 1시간)
-
-    Fashn.ai는 외부 서비스라서 프라이빗 S3 URL에 직접 접근 불가.
-    presigned URL로 변환해야 Fashn.ai가 이미지를 읽을 수 있음.
-    유효시간 1시간: Fashn.ai 처리 5~17초보다 충분히 여유있음.
-    """
     s3     = get_s3_client()
     bucket = os.getenv("AWS_S3_BUCKET")
     return s3.generate_presigned_url(
@@ -323,16 +306,6 @@ async def _run_fashn_tryon(
     garment_url:     str,
     category:        str,
 ) -> str:
-    """
-    Fashn.ai API 호출 → polling → 결과 URL 반환.
-
-    동작 순서:
-      1. POST /v1/run → prediction_id 즉시 반환 (예약 완료)
-      2. GET /v1/status/{id} 반복 (2초 간격, 최대 30회 = 60초)
-      3. completed → output[0] URL 반환
-      4. failed    → HTTPException 발생
-      5. 60초 초과 → 504 타임아웃
-    """
     api_key = os.getenv("FASHN_API_KEY")
     if not api_key:
         raise HTTPException(status_code=500, detail="FASHN_API_KEY가 설정되지 않았습니다")
@@ -342,7 +315,6 @@ async def _run_fashn_tryon(
         "Content-Type":  "application/json",
     }
 
-    # 1. 생성 요청
     async with httpx.AsyncClient(timeout=30) as client:
         run_res = await client.post(
             "https://api.fashn.ai/v1/run",
@@ -360,7 +332,6 @@ async def _run_fashn_tryon(
         prediction_id = run_res.json()["id"]
         print(f"[Fashn] 요청 완료 prediction_id={prediction_id}")
 
-    # 2. polling (최대 60초)
     for attempt in range(30):
         await asyncio.sleep(2)
 
@@ -395,7 +366,6 @@ async def _run_fashn_tryon(
 
 @app.post("/recommend")
 def recommend(request: RecommendRequest):
-    # ── Redis 캐시 분기 ───────────────────────────────────────────
     if request.session_id:
         try:
             cached = pop_next_proposal(str(request.user_id), request.session_id)
@@ -543,17 +513,7 @@ def encode_reference(request: EncodeReferenceRequest):
 
 @app.post("/tryon", response_model=TryonResponse)
 async def tryon(request: TryonRequest):
-    """
-    Virtual Try-On 엔드포인트 (Step 41)
-
-    1. Redis 캐시 확인 → HIT이면 즉시 반환 (비용 0)
-    2. MISS → DB에서 tryonPhotoUrl 조회
-    3. S3 key 추출 → presigned URL 생성 (Fashn.ai 접근용)
-    4. Fashn.ai 호출 + polling (5~17초)
-    5. 결과 URL → Redis 저장 (TTL 24h)
-    6. 결과 반환
-    """
-    redis  = get_redis_client()
+    redis     = get_redis_client()
     cache_key = _tryon_cache_key(request.user_id, request.garment_url)
 
     # 1. 캐시 확인
@@ -570,9 +530,9 @@ async def tryon(request: TryonRequest):
         conn = get_db_connection()
         cur  = conn.cursor()
         cur.execute(
-        'SELECT tryon_photo_url FROM "User" WHERE id = %s',
-        (request.user_id,),
-)
+            'SELECT tryon_photo_url FROM "User" WHERE id = %s',
+            (request.user_id,),
+        )
         row = cur.fetchone()
         cur.close()
         conn.close()
@@ -586,8 +546,6 @@ async def tryon(request: TryonRequest):
         )
 
     tryon_photo_url = row[0]
-    # URL에서 S3 key 추출
-    # "https://bucket.s3.region.amazonaws.com/tryon/1.jpg" → "tryon/1.jpg"
     s3_key = "/".join(tryon_photo_url.split("/")[-2:])
     print(f"[TryOn] user={request.user_id} s3_key={s3_key}")
 
@@ -597,11 +555,14 @@ async def tryon(request: TryonRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"presigned URL 생성 실패: {e}")
 
-    # 4. Fashn.ai 호출
+    # 4. DB 카테고리 → Fashn.ai 카테고리 변환 후 호출
+    fashn_category = CATEGORY_MAP.get(request.category, "tops")
+    print(f"[TryOn] category 변환: {request.category} → {fashn_category}")
+
     result_url = await _run_fashn_tryon(
         model_image_url=presigned_url,
         garment_url=request.garment_url,
-        category=request.category or "tops",
+        category=fashn_category,
     )
 
     # 5. Redis 캐시 저장
@@ -612,3 +573,37 @@ async def tryon(request: TryonRequest):
         print(f"[TryOn Cache ERROR] 저장 실패, 무시하고 계속: {e}")
 
     return TryonResponse(result_url=result_url, cached=False)
+
+
+@app.delete("/tryon/cache/{user_id}", response_model=TryonCacheInvalidateResponse)
+async def invalidate_tryon_cache(user_id: int):
+    """
+    Try-On 캐시 무효화 (Step 42-B)
+
+    사용 시점: NestJS에서 PATCH /users/me/tryon-photo 처리 후 호출
+    삭제 대상: tryon:{user_id}:* 패턴의 모든 키
+
+    KEYS 대신 SCAN 사용 이유:
+      KEYS는 전체 키스페이스를 한 번에 스캔 → Redis 블로킹
+      SCAN은 커서 기반으로 조금씩 → 논블로킹 → 운영 환경에서 안전
+    """
+    redis = get_redis_client()
+    pattern = f"tryon:{user_id}:*"
+    keys_to_delete: list[str] = []
+
+    # SCAN으로 논블로킹 키 수집
+    cursor = 0
+    while True:
+        cursor, keys = redis.scan(cursor, match=pattern, count=100)
+        keys_to_delete.extend(keys)
+        if cursor == 0:  # cursor가 0으로 돌아오면 전체 순회 완료
+            break
+
+    # 수집된 키 일괄 삭제
+    if keys_to_delete:
+        redis.delete(*keys_to_delete)
+        print(f"[TryOn Cache] {len(keys_to_delete)}개 키 무효화 완료 user={user_id}")
+    else:
+        print(f"[TryOn Cache] 무효화할 캐시 없음 user={user_id}")
+
+    return TryonCacheInvalidateResponse(deleted=len(keys_to_delete))
