@@ -1,28 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { S3Service } from '../../s3/s3.service.js';
 import { AuthProvider } from '../../generated/prisma/client.js';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private s3: S3Service,
+  ) {}
 
-  // 이메일로 유저 찾기
   async findByEmail(email: string) {
     return this.prisma.user.findUnique({ where: { email } });
   }
 
-  // Google ID로 유저 찾기
   async findByGoogleId(googleId: string) {
     return this.prisma.user.findFirst({ where: { googleId } });
   }
 
-  // ID로 유저 찾기
   async findById(id: number) {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
-  // 로컬 회원가입 (이메일 + 비밀번호)
   async createLocalUser(email: string, password: string, nickname?: string, gender?: 'MALE' | 'FEMALE' | 'UNISEX') {
     const hashedPassword = await bcrypt.hash(password, 10);
     return this.prisma.user.create({
@@ -36,30 +36,23 @@ export class UsersService {
     });
   }
 
-  // Google 유저 생성 (또는 기존 유저 반환)
   async findOrCreateGoogleUser(profile: {
     googleId: string;
     email: string;
     nickname?: string;
     avatarUrl?: string;
   }) {
-    // 1. googleId로 먼저 찾기
     const existingByGoogle = await this.findByGoogleId(profile.googleId);
     if (existingByGoogle) return existingByGoogle;
 
-    // 2. 같은 이메일로 로컬 가입한 유저가 있으면 Google 정보 연결
     const existingByEmail = await this.findByEmail(profile.email);
     if (existingByEmail) {
       return this.prisma.user.update({
         where: { id: existingByEmail.id },
-        data: {
-          googleId: profile.googleId,
-          avatarUrl: profile.avatarUrl,
-        },
+        data: { googleId: profile.googleId, avatarUrl: profile.avatarUrl },
       });
     }
 
-    // 3. 완전히 새로운 유저 생성
     return this.prisma.user.create({
       data: {
         email: profile.email,
@@ -72,9 +65,32 @@ export class UsersService {
   }
 
   async updateGender(userId: number, gender: 'MALE' | 'FEMALE' | 'UNISEX') {
-  return this.prisma.user.update({
-    where: { id: userId },
-    data: { gender },
-  });
-}
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { gender },
+    });
+  }
+
+  // ── Step 41: Try-On 사진 업로드/교체 ─────────────────────────
+  // 캐시 무효화는 FastAPI /tryon 구현 시 같이 추가 예정
+  async updateTryonPhoto(
+    userId: number,
+    imageBuffer: Buffer,
+    mimeType: string,
+  ): Promise<{ tryonPhotoUrl: string }> {
+    // 1. S3 업로드 (고정 경로 → 자동 덮어쓰기)
+    const { url } = await this.s3.uploadTryonPhoto(
+      imageBuffer,
+      String(userId),
+      mimeType,
+    );
+
+    // 2. DB 업데이트
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { tryonPhotoUrl: url },
+    });
+
+    return { tryonPhotoUrl: url };
+  }
 }

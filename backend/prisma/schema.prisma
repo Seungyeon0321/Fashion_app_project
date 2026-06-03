@@ -28,11 +28,17 @@ model User {
   closetItems   ClosetItem[]
   styleRefs     StyleReference[]
   outfits       Outfit[]
-  externalItems ExternalItem[]   // ← WishlistItem에서 교체
+  externalItems ExternalItem[]
 
-    // ── Step 38: 피드백 시스템 ────────────────────────
+  // ── Step 38: 피드백 시스템 ────────────────────────
   outfitFeedbacks   OutfitFeedback[]
   stylePreference   UserStylePreference?
+
+  // ── Step 41: Virtual Try-On ───────────────────────
+  tryonPhotoUrl String?   @map("tryon_photo_url")
+  // 갤러리에서 선택한 셀피 S3 URL
+  // null = 아직 사진 미등록 (Try-On 불가 상태)
+  // 변경 시: S3 덮어쓰기 + Redis tryon:{userId}:* 전체 삭제
 
   location  String?
 

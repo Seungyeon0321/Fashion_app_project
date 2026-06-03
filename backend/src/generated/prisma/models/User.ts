@@ -43,6 +43,7 @@ export type UserMinAggregateOutputType = {
   provider: $Enums.AuthProvider | null
   googleId: string | null
   avatarUrl: string | null
+  tryonPhotoUrl: string | null
   location: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -57,6 +58,7 @@ export type UserMaxAggregateOutputType = {
   provider: $Enums.AuthProvider | null
   googleId: string | null
   avatarUrl: string | null
+  tryonPhotoUrl: string | null
   location: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -71,6 +73,7 @@ export type UserCountAggregateOutputType = {
   provider: number
   googleId: number
   avatarUrl: number
+  tryonPhotoUrl: number
   location: number
   createdAt: number
   updatedAt: number
@@ -95,6 +98,7 @@ export type UserMinAggregateInputType = {
   provider?: true
   googleId?: true
   avatarUrl?: true
+  tryonPhotoUrl?: true
   location?: true
   createdAt?: true
   updatedAt?: true
@@ -109,6 +113,7 @@ export type UserMaxAggregateInputType = {
   provider?: true
   googleId?: true
   avatarUrl?: true
+  tryonPhotoUrl?: true
   location?: true
   createdAt?: true
   updatedAt?: true
@@ -123,6 +128,7 @@ export type UserCountAggregateInputType = {
   provider?: true
   googleId?: true
   avatarUrl?: true
+  tryonPhotoUrl?: true
   location?: true
   createdAt?: true
   updatedAt?: true
@@ -224,6 +230,7 @@ export type UserGroupByOutputType = {
   provider: $Enums.AuthProvider
   googleId: string | null
   avatarUrl: string | null
+  tryonPhotoUrl: string | null
   location: string | null
   createdAt: Date
   updatedAt: Date
@@ -261,6 +268,7 @@ export type UserWhereInput = {
   provider?: Prisma.EnumAuthProviderFilter<"User"> | $Enums.AuthProvider
   googleId?: Prisma.StringNullableFilter<"User"> | string | null
   avatarUrl?: Prisma.StringNullableFilter<"User"> | string | null
+  tryonPhotoUrl?: Prisma.StringNullableFilter<"User"> | string | null
   location?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -281,6 +289,7 @@ export type UserOrderByWithRelationInput = {
   provider?: Prisma.SortOrder
   googleId?: Prisma.SortOrderInput | Prisma.SortOrder
   avatarUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  tryonPhotoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -304,6 +313,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   gender?: Prisma.EnumGenderNullableFilter<"User"> | $Enums.Gender | null
   provider?: Prisma.EnumAuthProviderFilter<"User"> | $Enums.AuthProvider
   avatarUrl?: Prisma.StringNullableFilter<"User"> | string | null
+  tryonPhotoUrl?: Prisma.StringNullableFilter<"User"> | string | null
   location?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -324,6 +334,7 @@ export type UserOrderByWithAggregationInput = {
   provider?: Prisma.SortOrder
   googleId?: Prisma.SortOrderInput | Prisma.SortOrder
   avatarUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  tryonPhotoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -346,6 +357,7 @@ export type UserScalarWhereWithAggregatesInput = {
   provider?: Prisma.EnumAuthProviderWithAggregatesFilter<"User"> | $Enums.AuthProvider
   googleId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   avatarUrl?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  tryonPhotoUrl?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   location?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -359,6 +371,7 @@ export type UserCreateInput = {
   provider?: $Enums.AuthProvider
   googleId?: string | null
   avatarUrl?: string | null
+  tryonPhotoUrl?: string | null
   location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -379,6 +392,7 @@ export type UserUncheckedCreateInput = {
   provider?: $Enums.AuthProvider
   googleId?: string | null
   avatarUrl?: string | null
+  tryonPhotoUrl?: string | null
   location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -398,6 +412,7 @@ export type UserUpdateInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tryonPhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -418,6 +433,7 @@ export type UserUncheckedUpdateInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tryonPhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -438,6 +454,7 @@ export type UserCreateManyInput = {
   provider?: $Enums.AuthProvider
   googleId?: string | null
   avatarUrl?: string | null
+  tryonPhotoUrl?: string | null
   location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -451,6 +468,7 @@ export type UserUpdateManyMutationInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tryonPhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -465,6 +483,7 @@ export type UserUncheckedUpdateManyInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tryonPhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -479,6 +498,7 @@ export type UserCountOrderByAggregateInput = {
   provider?: Prisma.SortOrder
   googleId?: Prisma.SortOrder
   avatarUrl?: Prisma.SortOrder
+  tryonPhotoUrl?: Prisma.SortOrder
   location?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -497,6 +517,7 @@ export type UserMaxOrderByAggregateInput = {
   provider?: Prisma.SortOrder
   googleId?: Prisma.SortOrder
   avatarUrl?: Prisma.SortOrder
+  tryonPhotoUrl?: Prisma.SortOrder
   location?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -511,6 +532,7 @@ export type UserMinOrderByAggregateInput = {
   provider?: Prisma.SortOrder
   googleId?: Prisma.SortOrder
   avatarUrl?: Prisma.SortOrder
+  tryonPhotoUrl?: Prisma.SortOrder
   location?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -645,6 +667,7 @@ export type UserCreateWithoutClosetItemsInput = {
   provider?: $Enums.AuthProvider
   googleId?: string | null
   avatarUrl?: string | null
+  tryonPhotoUrl?: string | null
   location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -664,6 +687,7 @@ export type UserUncheckedCreateWithoutClosetItemsInput = {
   provider?: $Enums.AuthProvider
   googleId?: string | null
   avatarUrl?: string | null
+  tryonPhotoUrl?: string | null
   location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -698,6 +722,7 @@ export type UserUpdateWithoutClosetItemsInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tryonPhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -717,6 +742,7 @@ export type UserUncheckedUpdateWithoutClosetItemsInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tryonPhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -735,6 +761,7 @@ export type UserCreateWithoutStyleRefsInput = {
   provider?: $Enums.AuthProvider
   googleId?: string | null
   avatarUrl?: string | null
+  tryonPhotoUrl?: string | null
   location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -754,6 +781,7 @@ export type UserUncheckedCreateWithoutStyleRefsInput = {
   provider?: $Enums.AuthProvider
   googleId?: string | null
   avatarUrl?: string | null
+  tryonPhotoUrl?: string | null
   location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -788,6 +816,7 @@ export type UserUpdateWithoutStyleRefsInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tryonPhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -807,6 +836,7 @@ export type UserUncheckedUpdateWithoutStyleRefsInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tryonPhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -825,6 +855,7 @@ export type UserCreateWithoutExternalItemsInput = {
   provider?: $Enums.AuthProvider
   googleId?: string | null
   avatarUrl?: string | null
+  tryonPhotoUrl?: string | null
   location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -844,6 +875,7 @@ export type UserUncheckedCreateWithoutExternalItemsInput = {
   provider?: $Enums.AuthProvider
   googleId?: string | null
   avatarUrl?: string | null
+  tryonPhotoUrl?: string | null
   location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -878,6 +910,7 @@ export type UserUpdateWithoutExternalItemsInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tryonPhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -897,6 +930,7 @@ export type UserUncheckedUpdateWithoutExternalItemsInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tryonPhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -915,6 +949,7 @@ export type UserCreateWithoutOutfitsInput = {
   provider?: $Enums.AuthProvider
   googleId?: string | null
   avatarUrl?: string | null
+  tryonPhotoUrl?: string | null
   location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -934,6 +969,7 @@ export type UserUncheckedCreateWithoutOutfitsInput = {
   provider?: $Enums.AuthProvider
   googleId?: string | null
   avatarUrl?: string | null
+  tryonPhotoUrl?: string | null
   location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -968,6 +1004,7 @@ export type UserUpdateWithoutOutfitsInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tryonPhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -987,6 +1024,7 @@ export type UserUncheckedUpdateWithoutOutfitsInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tryonPhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1005,6 +1043,7 @@ export type UserCreateWithoutOutfitFeedbacksInput = {
   provider?: $Enums.AuthProvider
   googleId?: string | null
   avatarUrl?: string | null
+  tryonPhotoUrl?: string | null
   location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1024,6 +1063,7 @@ export type UserUncheckedCreateWithoutOutfitFeedbacksInput = {
   provider?: $Enums.AuthProvider
   googleId?: string | null
   avatarUrl?: string | null
+  tryonPhotoUrl?: string | null
   location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1058,6 +1098,7 @@ export type UserUpdateWithoutOutfitFeedbacksInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tryonPhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1077,6 +1118,7 @@ export type UserUncheckedUpdateWithoutOutfitFeedbacksInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tryonPhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1095,6 +1137,7 @@ export type UserCreateWithoutStylePreferenceInput = {
   provider?: $Enums.AuthProvider
   googleId?: string | null
   avatarUrl?: string | null
+  tryonPhotoUrl?: string | null
   location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1114,6 +1157,7 @@ export type UserUncheckedCreateWithoutStylePreferenceInput = {
   provider?: $Enums.AuthProvider
   googleId?: string | null
   avatarUrl?: string | null
+  tryonPhotoUrl?: string | null
   location?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1148,6 +1192,7 @@ export type UserUpdateWithoutStylePreferenceInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tryonPhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1167,6 +1212,7 @@ export type UserUncheckedUpdateWithoutStylePreferenceInput = {
   provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tryonPhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1253,6 +1299,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   provider?: boolean
   googleId?: boolean
   avatarUrl?: boolean
+  tryonPhotoUrl?: boolean
   location?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1274,6 +1321,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   provider?: boolean
   googleId?: boolean
   avatarUrl?: boolean
+  tryonPhotoUrl?: boolean
   location?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1288,6 +1336,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   provider?: boolean
   googleId?: boolean
   avatarUrl?: boolean
+  tryonPhotoUrl?: boolean
   location?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1302,12 +1351,13 @@ export type UserSelectScalar = {
   provider?: boolean
   googleId?: boolean
   avatarUrl?: boolean
+  tryonPhotoUrl?: boolean
   location?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "password" | "nickname" | "gender" | "provider" | "googleId" | "avatarUrl" | "location" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "password" | "nickname" | "gender" | "provider" | "googleId" | "avatarUrl" | "tryonPhotoUrl" | "location" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   closetItems?: boolean | Prisma.User$closetItemsArgs<ExtArgs>
   styleRefs?: boolean | Prisma.User$styleRefsArgs<ExtArgs>
@@ -1339,6 +1389,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     provider: $Enums.AuthProvider
     googleId: string | null
     avatarUrl: string | null
+    tryonPhotoUrl: string | null
     location: string | null
     createdAt: Date
     updatedAt: Date
@@ -1779,6 +1830,7 @@ export interface UserFieldRefs {
   readonly provider: Prisma.FieldRef<"User", 'AuthProvider'>
   readonly googleId: Prisma.FieldRef<"User", 'String'>
   readonly avatarUrl: Prisma.FieldRef<"User", 'String'>
+  readonly tryonPhotoUrl: Prisma.FieldRef<"User", 'String'>
   readonly location: Prisma.FieldRef<"User", 'String'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>

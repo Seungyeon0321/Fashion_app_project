@@ -21,3 +21,4 @@ onnxruntime==1.19.2
 nest_asyncio==1.6.0
 # Step 38-pre 추가: Redis 캐싱 (코디 순차 반환용)
 redis==7.4.0
+httpx

@@ -1,6 +1,6 @@
 // src/s3/s3.service.ts
 import { Injectable } from '@nestjs/common';
-import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'crypto';
 
@@ -20,10 +20,7 @@ export class S3Service {
 
     this.client = new S3Client({
       region: this.region,
-      credentials: {
-        accessKeyId,
-        secretAccessKey,
-      },
+      credentials: { accessKeyId, secretAccessKey },
     });
   }
 
@@ -36,70 +33,88 @@ export class S3Service {
     const ext = mimeType.split('/')[1];
     const key = `originals/${userId}/${jobId}/original.${ext}`;
 
-    const command = new PutObjectCommand({
+    await this.client.send(new PutObjectCommand({
       Bucket: this.bucket,
       Key: key,
       Body: imageBuffer,
       ContentType: mimeType,
-    });
+    }));
 
-    await this.client.send(command);
-
-    const url = `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
-    return { key, url };
+    return {
+      key,
+      url: `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`,
+    };
   }
 
   async uploadReferenceImage(
-    imageBuffer: Buffer, // 이미 리사이즈된 버퍼
+    imageBuffer: Buffer,
     userId: string,
     referenceId: string,
     mimeType: string = 'image/jpeg',
   ): Promise<{ key: string; url: string }> {
-    const ext = mimeType.split('/')[1] || 'jpg'
-    
-    const date = new Date().toISOString().slice(0, 10)  // "2026-05-19"
-    const uuid = randomUUID().slice(0, 8)               // 짧게 앞 8자리만
-    const key  = `${userId}/references/${date}_${uuid}.${ext}`
+    const ext = mimeType.split('/')[1] || 'jpg';
+    const date = new Date().toISOString().slice(0, 10);
+    const uuid = randomUUID().slice(0, 8);
+    const key = `${userId}/references/${date}_${uuid}.${ext}`;
 
     await this.client.send(new PutObjectCommand({
-      Bucket: this.referenceBucket,  // ← 별도 버킷
+      Bucket: this.referenceBucket,
       Key: key,
       Body: imageBuffer,
       ContentType: mimeType,
-    }))
+    }));
 
     return {
       key,
       url: `https://${this.referenceBucket}.s3.${this.region}.amazonaws.com/${key}`,
-    }
+    };
   }
 
-  // S3 키 → Presigned URL 변환 (유효시간 1시간)
-  async getPresignedUrl(s3Key: string): Promise<string> {
-    const command = new GetObjectCommand({
+  // ── Step 41: Virtual Try-On 사진 업로드 ──────────────────────
+  // 유저당 1장 고정 → 경로 고정으로 자동 덮어쓰기
+  // 변경 시 이전 파일 별도 삭제 불필요 (같은 key로 덮어씀)
+  async uploadTryonPhoto(
+    imageBuffer: Buffer,
+    userId: string,
+    mimeType: string = 'image/jpeg',
+  ): Promise<{ key: string; url: string }> {
+    const ext = mimeType.split('/')[1] || 'jpg';
+    const key = `tryon/${userId}.jpg`;
+    // 경로 고정: tryon/123.jpg
+    // → 같은 유저가 사진 바꿔도 동일 key로 PutObject → 자동 덮어쓰기
+
+    await this.client.send(new PutObjectCommand({
       Bucket: this.bucket,
-      Key: s3Key,
-    });
+      Key: key,
+      Body: imageBuffer,
+      ContentType: mimeType,
+    }));
 
-    return getSignedUrl(this.client, command, {
-      expiresIn: 60 * 60, // 1시간 (초 단위)
-    });
+    return {
+      key,
+      url: `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`,
+    };
   }
 
-    // 신규 — presigned URL (레퍼런스 버킷용)
+  async getPresignedUrl(s3Key: string): Promise<string> {
+    return getSignedUrl(
+      this.client,
+      new GetObjectCommand({ Bucket: this.bucket, Key: s3Key }),
+      { expiresIn: 60 * 60 },
+    );
+  }
+
   async getReferencePresignedUrl(s3Key: string): Promise<string> {
     return getSignedUrl(
       this.client,
       new GetObjectCommand({ Bucket: this.referenceBucket, Key: s3Key }),
       { expiresIn: 60 * 60 },
-    )
+    );
   }
 
   private getRequiredEnv(name: string): string {
     const value = process.env[name];
-    if (!value) {
-      throw new Error(`Missing required environment variable: ${name}`);
-    }
+    if (!value) throw new Error(`Missing required environment variable: ${name}`);
     return value;
   }
 }

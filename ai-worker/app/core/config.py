@@ -77,6 +77,8 @@ class Settings(BaseSettings):
     NAVER_CLIENT_ID: str = Field(default="")
     NAVER_CLIENT_SECRET: str = Field(default="")
 
+    FASHN_API_KEY: str = Field(default="")
+
     WORKER_URL: str = Field(
     default="http://worker:8001"
 )

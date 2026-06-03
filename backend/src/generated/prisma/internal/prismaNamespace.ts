@@ -1126,6 +1126,7 @@ export const UserScalarFieldEnum = {
   provider: 'provider',
   googleId: 'googleId',
   avatarUrl: 'avatarUrl',
+  tryonPhotoUrl: 'tryonPhotoUrl',
   location: 'location',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
