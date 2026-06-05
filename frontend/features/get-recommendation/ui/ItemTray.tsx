@@ -8,20 +8,29 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  Linking,                         // ← 추가
+  Linking,
 } from 'react-native';
 import { useCanvasStore } from '../model/canvasStore';
 import { colors, fonts, spacing } from '@/shared/lib/tokens';
 
 const CARD_SIZE = { width: 100, height: 125 };
 
-type Props = {
-  onAddPress: () => void;
+// ── TrayItem 타입 명시 ─────────────────────────────────────────────────────
+// canvasStore에서 오는 아이템 — Try-On에 필요한 category 포함
+type TrayItem = {
+  id:          number | string;
+  imageUrl:    string;
+  category:    string;
+  is_external: boolean;
+  purchaseUrl: string | null | undefined;
 };
 
-// ── purchaseUrl 외부 브라우저 열기 ──────────────────────────────────────────
-// http:// → https:// 강제 변환: Android는 http URL을 기본 차단
-// purchaseUrl이 null/undefined이면 조용히 무시
+type Props = {
+  onAddPress:     () => void;
+  onTryOnPress?:  (item: TrayItem) => void;  // ← 추가: 없으면 TRY 뱃지 숨김
+};
+
+// ── 외부 링크 열기 ─────────────────────────────────────────────────────────
 const handleShopPress = async (url: string | null | undefined) => {
   if (!url) return;
   const safeUrl = url.replace(/^http:\/\//, 'https://');
@@ -32,7 +41,7 @@ const handleShopPress = async (url: string | null | undefined) => {
   }
 };
 
-export function ItemTray({ onAddPress }: Props) {
+export function ItemTray({ onAddPress, onTryOnPress }: Props) {
   const { trayItems, canvasItems, addToCanvas } = useCanvasStore();
 
   return (
@@ -60,27 +69,42 @@ export function ItemTray({ onAddPress }: Props) {
                 resizeMode="cover"
               />
 
+              {/* 캔버스 추가 표시 */}
               {isOnCanvas && (
                 <View style={styles.checkBadge}>
                   <Text style={styles.checkText}>✓</Text>
                 </View>
               )}
 
-              {/* SHOP 배지 — TouchableOpacity로 교체, purchaseUrl이 있을 때만 탭 가능 */}
+              {/* SHOP 뱃지 — 외부 아이템만 */}
               {item.is_external && (
                 <TouchableOpacity
                   style={styles.shopBadge}
                   onPress={() => handleShopPress(item.purchaseUrl)}
-                  activeOpacity={item.purchaseUrl ? 0.6 : 1}   // URL 없으면 피드백 없음
+                  activeOpacity={item.purchaseUrl ? 0.6 : 1}
                   disabled={!item.purchaseUrl}
                 >
                   <Text style={styles.shopBadgeText}>SHOP</Text>
+                </TouchableOpacity>
+              )}
+
+              {/* TRY 뱃지 — onTryOnPress가 주입된 경우만 노출 */}
+              {/* 우하단 배치: SHOP(좌하단)과 대칭, checkBadge(우상단)와 비충돌 */}
+              {onTryOnPress && (
+                <TouchableOpacity
+                  style={styles.tryBadge}
+                  onPress={() => onTryOnPress(item as TrayItem)}
+                  activeOpacity={0.7}
+                  // RN 중첩 터치: 내부 TouchableOpacity가 이벤트 캡처 → addToCanvas 미호출
+                >
+                  <Text style={styles.tryBadgeText}>TRY</Text>
                 </TouchableOpacity>
               )}
             </TouchableOpacity>
           );
         })}
 
+        {/* 아이템 추가 버튼 */}
         <TouchableOpacity
           style={styles.addButton}
           onPress={onAddPress}
@@ -94,13 +118,15 @@ export function ItemTray({ onAddPress }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container:    { gap: 10 },
-  label:        { ...fonts.tab, color: colors.hint, letterSpacing: 2 },
+  container: { gap: 10 },
+  label:     { ...fonts.tab, color: colors.hint, letterSpacing: 2 },
   scrollContent: {
     gap:          spacing.cardGap,
     paddingRight: spacing.outerMargin,
     alignItems:   'center',
   },
+
+  // 카드
   card: {
     width:           CARD_SIZE.width,
     height:          CARD_SIZE.height,
@@ -110,9 +136,11 @@ const styles = StyleSheet.create({
     borderWidth:     2,
     borderColor:     'transparent',
   },
-  cardActive:    { borderColor: colors.primary },
-  cardImage:     { width: '100%', height: '100%' },
-  cardImageDim:  { opacity: 0.35 },
+  cardActive:   { borderColor: colors.primary },
+  cardImage:    { width: '100%', height: '100%' },
+  cardImageDim: { opacity: 0.35 },
+
+  // 캔버스 추가 체크
   checkBadge: {
     position:        'absolute',
     top:             4,
@@ -124,7 +152,9 @@ const styles = StyleSheet.create({
     alignItems:      'center',
     justifyContent:  'center',
   },
-  checkText:  { fontSize: 10, color: colors.background, fontWeight: 'bold' },
+  checkText: { fontSize: 10, color: colors.background, fontWeight: 'bold' },
+
+  // SHOP 뱃지 (좌하단)
   shopBadge: {
     position:          'absolute',
     bottom:            4,
@@ -133,7 +163,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingVertical:   2,
   },
-  shopBadgeText: { ...fonts.caption, color: colors.primary, fontSize: 8, letterSpacing: 1 },
+  shopBadgeText: {
+    ...fonts.caption,
+    color:       colors.primary,
+    fontSize:    8,
+    letterSpacing: 1,
+  },
+
+  // TRY 뱃지 (우하단) ← 신규
+  tryBadge: {
+    position:          'absolute',
+    bottom:            4,
+    right:             4,
+    backgroundColor:   colors.primary,
+    paddingHorizontal: 5,
+    paddingVertical:   2,
+  },
+  tryBadgeText: {
+    ...fonts.caption,
+    color:         colors.background,
+    fontSize:      8,
+    letterSpacing: 1,
+  },
+
+  // 추가 버튼
   addButton: {
     width:          CARD_SIZE.width,
     height:         CARD_SIZE.height,

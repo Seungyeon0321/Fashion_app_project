@@ -1,12 +1,19 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class TryonRequestDto {
-  
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  garment_url!: string;
+  garment_url?: string;
 
-  @IsString()
+  @IsOptional()
+  @IsNumber()
+  closet_item_id?: number;
+
   @IsNotEmpty()
-  category!: 'TOP' | 'BOTTOM' | 'OUTER' | 'FULL'; ;
+  @IsString()
+  category!: string;
+
+  @IsOptional()
+  @IsString()
+  model_image_url?: string;
 }

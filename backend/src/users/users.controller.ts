@@ -9,6 +9,7 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  Get,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
@@ -60,4 +61,14 @@ export class UsersController {
       file.mimetype,
     );
   }
+  
+  @UseGuards(JwtAuthGuard)
+  @Get('me/tryon-photo-url')
+  async getTryonPhotoUrl(@Req() req: any) {
+    if (!req.user.tryonPhotoUrl) return { presignedUrl: null };
+    const presignedUrl = await this.usersService.getTryonPhotoPresignedUrl(
+      req.user.tryonPhotoUrl,
+    );
+    return { presignedUrl };
+  } 
 }

@@ -9,7 +9,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.simonji.frontend"
+      "bundleIdentifier": "com.simonji.frontend",
+      "infoPlist": {
+        "NSPhotoLibraryAddUsageDescription": "Atelier Noir saves your Try-On results to your photo library."
+      }
     },
     "android": {
       "edgeToEdgeEnabled": true,
@@ -21,7 +24,10 @@
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
-        "android.permission.ACCESS_FINE_LOCATION"
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
       ],
       "package": "com.simonji.frontend"
     },
@@ -33,7 +39,16 @@
       "expo-router",
       "expo-font",
       "expo-secure-store",
-      "@react-native-google-signin/google-signin" ],
+      "@react-native-google-signin/google-signin",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Atelier Noir saves your Try-On results to your photo library.",
+          "savePhotosPermission": "Atelier Noir saves your Try-On results to your photo library.",
+          "isAccessMediaLocationEnabled": false
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true

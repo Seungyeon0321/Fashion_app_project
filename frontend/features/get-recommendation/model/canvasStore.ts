@@ -47,25 +47,47 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
   canvasItems: [],
   trayItems:   [],
 
-  initFromResponse: (data) => {
-    const items: CanvasItem[] = data.ranked_items
-      // 변경: id 타입 체크 제거 → imageUrl만 체크
-      // 이유: external 아이템은 id가 string("naver_XXXXX")이라
-      //       typeof id === 'number' 조건에 걸려 전부 누락됐었음
-      .filter((item) => item.imageUrl != null)
-      .map((item, index) => ({
-        id:          item.id,
-        imageUrl:    item.imageUrl as string,
-        category:    item.category,
-        is_anchor:   item.is_anchor,
-        is_external: item.is_external,    // 추가
-        purchaseUrl: item.purchaseUrl,    // 추가
-        name:        item.name,           // 추가
-        ...getInitialPosition(item.category, index),
-      }));
+ initFromResponse: (data) => {
+  const items: CanvasItem[] = data.ranked_items
+    .filter((item) => item.imageUrl != null)
+    .map((item, index) => ({
+      id:          item.id,
+      imageUrl:    item.imageUrl as string,
+      category:    item.category,
+      is_anchor:   item.is_anchor,
+      is_external: item.is_external,
+      purchaseUrl: item.purchaseUrl,
+      name:        item.name,
+      ...getInitialPosition(item.category, index),
+    }));
 
-    set({ trayItems: items, canvasItems: [] });
-  },
+  set((state) => {
+    // 새 응답에서 앵커 아이템 추출
+    const newAnchorItems = items.filter((i) => i.is_anchor === true);
+
+    // 이전 캔버스에서 앵커 보존 (retry 시)
+    const preservedAnchorItems = state.canvasItems.filter(
+      (c) => c.is_anchor === true,
+    );
+
+    // 병합: 기존 앵커 + 새 앵커 (중복 제거)
+    // → 첫 로드든 retry든 앵커는 항상 캔버스에 자동 추가
+    const mergedAnchorItems = [
+      ...preservedAnchorItems,
+      ...newAnchorItems.filter(
+        (n) => !preservedAnchorItems.some((p) => p.id === n.id)
+      ),
+    ];
+
+    console.log('[Canvas] anchor items on canvas:', mergedAnchorItems.map(i => i.id));
+    console.log('[Canvas] tray items:', items.length, 'anchor count:', newAnchorItems.length);
+
+    return {
+      trayItems:   items,
+      canvasItems: mergedAnchorItems,
+    };
+  });
+},
 
   addToCanvas: (item) =>
     set((state) => {

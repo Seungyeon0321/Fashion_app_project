@@ -26,15 +26,23 @@ export function RecommendationModal({ visible, onClose, onRetry, data }: Props) 
   const [proposalIndex, setProposalIndex] = useState(0);
   const { like, dislike } = useFeedback(data, proposalIndex);
 
-  useEffect(() => {
-    if (visible && data) {
-      console.log('🔍 ranked_items:', JSON.stringify(data.ranked_items, null, 2));
-      initFromResponse(data);
-      showBanner();
-      setProposalIndex(0);
-    }
-    return () => { reset(); };
-  }, [visible, data]);
+  // 수정 후: useEffect 두 개로 분리
+  // 1. data 변경 처리 — cleanup 없음 (앵커 보존)
+ // 1. data 변경 처리 — cleanup 없음 (앵커 보존)
+useEffect(() => {
+  if (visible && data) {
+    initFromResponse(data);
+    showBanner();
+    setProposalIndex(0);
+  }
+}, [visible, data]);
+
+// 2. 모달이 닫힐 때 (visible=false) 완전 초기화
+useEffect(() => {
+  if (!visible) {
+    reset();
+  }
+}, [visible]);
 
   if (!data) return null;
 

@@ -14,12 +14,12 @@ import {
 } from '@expo-google-fonts/manrope';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { router } from 'expo-router';                    // 추가
+import { router } from 'expo-router';
 import { useAuthStore } from '@/shared/store/authStore';
 import { ToastProvider } from '@/shared/ui/ToastProvider';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -51,33 +51,37 @@ export default function RootLayout() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isInitialized   = useAuthStore((s) => s.isInitialized);
 
+  // 현재 라우트 세그먼트 — 어느 화면에 있는지 알 수 있음
+  const segments = useSegments();
+
   // 앱 시작 시 저장된 토큰 복원
   useEffect(() => {
     initialize();
   }, []);
 
-  // ── 핵심 추가 부분 ──────────────────────────────────────
-  // isAuthenticated가 false로 바뀌는 순간 감지 → 로그인 화면으로
+  // ── 인증 가드 ────────────────────────────────────────────────
+  // 핵심: 이미 index(/)에 있으면 리다이렉트 안 함 → 루프 차단
   //
-  // 왜 _layout에서 처리하는가?
-  //   api.ts interceptor는 Zustand store만 건드릴 수 있고
-  //   React Navigation에 직접 접근이 불가능함.
-  //   _layout은 앱 전체를 감싸는 루트 컴포넌트라
-  //   어느 화면에 있든 상태 변화를 감지할 수 있는 유일한 위치.
+  // 기존 문제:
+  //   router.replace('/') → 리마운트 → isAuthenticated false 재평가
+  //   → 또 replace → 무한루프
   //
-  // 왜 isInitialized 체크가 필요한가?
-  //   앱 시작 직후 initialize() 실행 전에는 token=null, isAuthenticated=false 상태.
-  //   이 시점에 바로 router.replace('/')를 부르면
-  //   토큰이 있는 유저도 로그인 화면으로 튕겨나감.
-  //   isInitialized=true가 된 후에만 실행해야 안전함.
+  // 해결:
+  //   segments로 현재 위치를 확인하고
+  //   보호된 라우트(tabs, closet, camera)에 있을 때만 리다이렉트
+  //   이미 '/'에 있으면 아무것도 안 함
   useEffect(() => {
     if (!isInitialized) return;
 
-    if (!isAuthenticated) {
+    // 보호된 라우트 목록
+    const protectedRoutes = ['(tabs)', 'closet', 'camera'];
+    const inProtectedRoute = protectedRoutes.includes(segments[0] as string);
+
+    if (!isAuthenticated && inProtectedRoute) {
+      // 보호된 화면에 있는데 미인증 → 로그인으로
       router.replace('/');
     }
-  }, [isInitialized, isAuthenticated]);
-  // ────────────────────────────────────────────────────────
+  }, [isInitialized, isAuthenticated, segments]);
 
   useEffect(() => {
     if (fontsLoaded || fontError) {

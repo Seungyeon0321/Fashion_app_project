@@ -71,6 +71,12 @@ def _respond_external(state: OutfitState) -> dict:
       4. 2~3순위를 Redis에 저장
       5. 1순위만 ranked_items로 반환
     """
+    # ── 디버그: anchor 상태 확인 ──────────────────────────────────
+    print(f"[DEBUG] anchor_item in state: {state.get('anchor_item')}", flush=True)
+    print(f"[DEBUG] anchor_item_id in state: {state.get('anchor_item_id')}", flush=True)
+    # ─────────────────────────────────────────────────────────────
+    
+
     proposals: list[OutfitProposal] = state.get("outfit_proposals") or []
     user_id         = state.get("user_id") or "unknown"
     session_id      = state.get("session_id") or ""

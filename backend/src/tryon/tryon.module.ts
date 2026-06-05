@@ -1,13 +1,15 @@
 import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { TryonController } from './tryon.controller.js';
-import { TryonService } from './tryon.service.js';
+import { TryonService } from './providers/tryon.service.js';
+import { PrismaModule } from '../prisma/prisma.module.js';  // ← 추가
+import { S3Module } from '../s3/s3.module.js';               // ← 추가
 
 @Module({
   imports: [
-    HttpModule.register({
-      timeout: 40_000,   // 모듈 기본값도 설정 (서비스 옵션과 이중 보호)
-    }),
+    HttpModule.register({ timeout: 40_000 }),
+    PrismaModule,  // ← closetItem 조회용
+    S3Module,      // ← cropS3Key presigned URL 생성용
   ],
   controllers: [TryonController],
   providers:   [TryonService],

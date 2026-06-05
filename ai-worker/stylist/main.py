@@ -1,12 +1,9 @@
 # ai-worker/stylist/main.py
 """
-Fashion Stylist FastAPI 엔드포인트
-
-Step 42 변경:
-  CATEGORY_MAP 추가 (DB 내부 값 → Fashn.ai 값 변환).
-  TryonRequest.category 타입을 DB 값 기준으로 변경.
-  /tryon 엔드포인트에서 category 변환 로직 추가.
-  DELETE /tryon/cache/{user_id} 엔드포인트 추가 (캐시 무효화).
+Step 42-E 변경:
+  TryonRequest에 model_image_url 필드 추가.
+  /tryon 엔드포인트에 레이어드 모드 분기 추가.
+  레이어드 모드: DB 조회 / presigned URL / 캐시 전부 건너뜀.
 """
 
 import os
@@ -104,7 +101,7 @@ class EncodeReferenceResponse(BaseModel):
     message:      Optional[str] = None
 
 
-# ── Step 41/42: Try-On ────────────────────────────────────────
+# ── Step 41/42: Try-On ────────────────────────────────────────────
 CATEGORY_MAP = {
     "TOP":    "tops",
     "BOTTOM": "bottoms",
@@ -113,9 +110,13 @@ CATEGORY_MAP = {
 }
 
 class TryonRequest(BaseModel):
-    user_id:     int
-    garment_url: str
-    category:    str = "TOP"
+    user_id:            int
+    garment_url:        str
+    category:           str = "TOP"
+    garment_photo_type: Optional[str] = "auto"  # ← 추가: "flat-lay" | "model" | "auto"
+    model_image_url:    Optional[str] = None
+    # None  → 일반 모드: DB에서 원본 사진 조회 후 presigned URL 생성
+    # 값 있음 → 레이어드 모드: 이전 결과를 model_image로 사용, 캐시 건너뜀
 
 
 class TryonResponse(BaseModel):
@@ -124,7 +125,7 @@ class TryonResponse(BaseModel):
 
 
 class TryonCacheInvalidateResponse(BaseModel):
-    deleted: int  # 실제로 삭제된 키 개수
+    deleted: int
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -144,6 +145,7 @@ def health():
 
 
 def _build_initial_state(request: RecommendRequest) -> dict:
+    print(f"[DEBUG] anchor_item_id 수신: {request.anchor_item_id}", flush=True)  # ← 추가
     session_id = request.session_id or f"rec_{uuid.uuid4().hex[:8]}"
     user_style_context = _get_user_style_context(request.user_id)
     return {
@@ -284,7 +286,7 @@ def _build_cached_response(session_id: str, cached: dict) -> RecommendResponse:
     )
 
 
-# ── Step 41: Try-On 헬퍼 ──────────────────────────────────────
+# ── Try-On 헬퍼 ───────────────────────────────────────────────────
 
 def _tryon_cache_key(user_id: int, garment_url: str) -> str:
     url_hash = hashlib.md5(garment_url.encode()).hexdigest()[:12]
@@ -305,6 +307,7 @@ async def _run_fashn_tryon(
     model_image_url: str,
     garment_url:     str,
     category:        str,
+    garment_photo_type: str = "auto",
 ) -> str:
     api_key = os.getenv("FASHN_API_KEY")
     if not api_key:
@@ -325,6 +328,7 @@ async def _run_fashn_tryon(
                     "model_image":   model_image_url,
                     "garment_image": garment_url,
                     "category":      category,
+                    "garment_photo_type": garment_photo_type,
                 },
             },
         )
@@ -513,6 +517,37 @@ def encode_reference(request: EncodeReferenceRequest):
 
 @app.post("/tryon", response_model=TryonResponse)
 async def tryon(request: TryonRequest):
+    """
+    Virtual Try-On 엔드포인트
+
+    ── 레이어드 모드 (model_image_url 있음) ──────────────────────
+    이전 합성 결과를 model_image로 사용.
+    DB 조회 / presigned URL / 캐시 전부 건너뜀.
+    → 결과를 캐시에 저장하지 않음
+      (model_image_url이 매번 달라서 캐시 효율 없음)
+
+    ── 일반 모드 (model_image_url 없음) ─────────────────────────
+    1. Redis 캐시 확인 → HIT이면 즉시 반환
+    2. DB에서 tryonPhotoUrl 조회
+    3. S3 key → presigned URL 생성 (Fashn.ai 접근용)
+    4. Fashn.ai 호출 + polling
+    5. 결과 → Redis 저장 (TTL 24h)
+    """
+    fashn_category = CATEGORY_MAP.get(request.category, "tops")
+
+    # ── 레이어드 모드 ─────────────────────────────────────────────
+    if request.model_image_url:
+        print(f"[TryOn] 레이어드 모드 user={request.user_id} category={fashn_category}")
+        result_url = await _run_fashn_tryon(
+            model_image_url=request.model_image_url,
+            garment_url=request.garment_url,
+            category=fashn_category,
+            garment_photo_type=request.garment_photo_type or "auto",  # ← 추가
+        )
+        # 레이어드 결과는 캐시 저장 안 함
+        return TryonResponse(result_url=result_url, cached=False)
+
+    # ── 일반 모드 ─────────────────────────────────────────────────
     redis     = get_redis_client()
     cache_key = _tryon_cache_key(request.user_id, request.garment_url)
 
@@ -547,7 +582,7 @@ async def tryon(request: TryonRequest):
 
     tryon_photo_url = row[0]
     s3_key = "/".join(tryon_photo_url.split("/")[-2:])
-    print(f"[TryOn] user={request.user_id} s3_key={s3_key}")
+    print(f"[TryOn] 일반 모드 user={request.user_id} s3_key={s3_key}")
 
     # 3. presigned URL 생성
     try:
@@ -555,14 +590,13 @@ async def tryon(request: TryonRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"presigned URL 생성 실패: {e}")
 
-    # 4. DB 카테고리 → Fashn.ai 카테고리 변환 후 호출
-    fashn_category = CATEGORY_MAP.get(request.category, "tops")
+    # 4. Fashn.ai 호출
     print(f"[TryOn] category 변환: {request.category} → {fashn_category}")
-
     result_url = await _run_fashn_tryon(
         model_image_url=presigned_url,
         garment_url=request.garment_url,
         category=fashn_category,
+        garment_photo_type=request.garment_photo_type or "auto",
     )
 
     # 5. Redis 캐시 저장
@@ -579,27 +613,19 @@ async def tryon(request: TryonRequest):
 async def invalidate_tryon_cache(user_id: int):
     """
     Try-On 캐시 무효화 (Step 42-B)
-
-    사용 시점: NestJS에서 PATCH /users/me/tryon-photo 처리 후 호출
-    삭제 대상: tryon:{user_id}:* 패턴의 모든 키
-
-    KEYS 대신 SCAN 사용 이유:
-      KEYS는 전체 키스페이스를 한 번에 스캔 → Redis 블로킹
-      SCAN은 커서 기반으로 조금씩 → 논블로킹 → 운영 환경에서 안전
+    NestJS PATCH /users/me/tryon-photo 처리 후 호출됨
     """
-    redis = get_redis_client()
+    redis   = get_redis_client()
     pattern = f"tryon:{user_id}:*"
     keys_to_delete: list[str] = []
 
-    # SCAN으로 논블로킹 키 수집
     cursor = 0
     while True:
         cursor, keys = redis.scan(cursor, match=pattern, count=100)
         keys_to_delete.extend(keys)
-        if cursor == 0:  # cursor가 0으로 돌아오면 전체 순회 완료
+        if cursor == 0:
             break
 
-    # 수집된 키 일괄 삭제
     if keys_to_delete:
         redis.delete(*keys_to_delete)
         print(f"[TryOn Cache] {len(keys_to_delete)}개 키 무효화 완료 user={user_id}")

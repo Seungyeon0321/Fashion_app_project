@@ -62,6 +62,8 @@ export function StylistPage() {
     source:     RecommendSource;
     anchorItem: AnchorClosetItem | null;
   }) => {
+    console.log('🎯 [Anchor] anchorItem:', anchorItem);  // ← 추가
+    console.log('🎯 [Anchor] anchor_item_id:', anchorItem?.id);  // ← 추가
     requestRecommendation({
       intent:         selectedIntent!,
       source,

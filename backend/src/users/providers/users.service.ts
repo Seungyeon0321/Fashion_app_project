@@ -108,4 +108,13 @@ export class UsersService {
 
     return { tryonPhotoUrl: url };
   }
+
+  // 기존 updateTryonPhoto 아래에 추가
+ async getTryonPhotoPresignedUrl(tryonPhotoUrl: string): Promise<string | null> {
+    if (!tryonPhotoUrl) return null;
+    // "https://bucket.s3.region.amazonaws.com/tryon/2.jpg" → "tryon/2.jpg"
+    const key = tryonPhotoUrl.split('.amazonaws.com/')[1];
+    if (!key) return null;
+    return this.s3.getPresignedUrl(key); // 이미 있는 메서드 그대로 사용
+}
 }

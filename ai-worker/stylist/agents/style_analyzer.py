@@ -20,16 +20,6 @@ Style Analyzer 노드
      - 앵커 O + 레퍼런스 X → 앵커 100%
      - 앵커 X + 레퍼런스 O → 레퍼런스 100%
      - 앵커 X + 레퍼런스 X → has_style_context = False (태그 fallback)
-
-  ※ NCP conflict 체크 제거:
-     앵커가 NCP 조합에 포함돼 있어도 conflict가 아님.
-     NCP는 "조합 단위" 싫어요이고, 앵커가 포함된 조합은
-     Retrieval/Ranker가 다른 아이템으로 교체해서 새 조합을 만들면 됨.
-     conflict_warning은 Planner의 날씨/캘린더 충돌만 처리.
-
-DB 접근 방식:
-  psycopg2 직접 연결 (기존 retrieval.py 패턴과 통일)
-  embedding 필드는 vector 타입이므로 ::text 캐스팅으로 문자열로 읽어옴
 """
 
 import os
@@ -43,14 +33,10 @@ from shared.clip_encoder import CLIPEncoder
 
 load_dotenv()
 
-
-# 싱글톤 패턴: 모듈 로드 시 한 번만 인스턴스 생성
-# encode_text() 호출 시점에 모델이 lazy load됨
 _clip_encoder = CLIPEncoder()
 
 
 def get_connection():
-    """psycopg2 DB 연결. 기존 retrieval.py와 동일한 패턴."""
     return psycopg2.connect(os.getenv("DATABASE_URL"))
 
 
@@ -59,21 +45,11 @@ def get_connection():
 # ──────────────────────────────────────────────────────────────────────────────
 
 def style_analyzer(state: OutfitState) -> dict:
-    """
-    Style Analyzer 노드 메인 함수.
-
-    Args:
-        state: 현재 OutfitState (Planner가 채운 상태)
-
-    Returns:
-        dict: State에 병합될 업데이트 딕셔너리
-    """
+    print(f"[StyleAnalyzer] anchor_item_id: {state.get('anchor_item_id')}", flush=True)
     errors = []
 
     try:
-        # ──────────────────────────────────────────────────────────────────
         # ① 앵커 아이템 로드
-        # ──────────────────────────────────────────────────────────────────
         anchor_item = None
         anchor_vector: Optional[np.ndarray] = None
 
@@ -84,10 +60,11 @@ def style_analyzer(state: OutfitState) -> dict:
             )
             if anchor_item is None:
                 errors.append(f"anchor_item_id={state['anchor_item_id']} 로드 실패")
+            else:
+                print(f"[StyleAnalyzer] 앵커 로드 완료: id={anchor_item['id']}, "
+                      f"category={anchor_item['category']}, is_anchor=True", flush=True)
 
-        # ──────────────────────────────────────────────────────────────────
         # ② 스타일 레퍼런스 벡터 계산
-        # ──────────────────────────────────────────────────────────────────
         reference_vector: Optional[np.ndarray] = None
         style_keywords: list[str] = []
 
@@ -97,9 +74,7 @@ def style_analyzer(state: OutfitState) -> dict:
                 user_id=int(state["user_id"]),
             )
 
-        # ──────────────────────────────────────────────────────────────────
         # ③ 가중 합산
-        # ──────────────────────────────────────────────────────────────────
         style_vector, has_style_context = _compute_style_vector(
             anchor_vector=anchor_vector,
             reference_vector=reference_vector,
@@ -114,6 +89,7 @@ def style_analyzer(state: OutfitState) -> dict:
         }
 
     except Exception as e:
+        print(f"[StyleAnalyzer] 예외 발생: {e}", flush=True)
         return {
             "has_style_context": False,
             "errors":            [f"style_analyzer 예외: {str(e)}"],
@@ -128,24 +104,11 @@ def _load_anchor_item(
     anchor_item_id: int,
     user_id: int,
 ) -> tuple[Optional[dict], Optional[np.ndarray]]:
-    """
-    앵커 아이템을 DB에서 로드하고 embedding 벡터를 반환.
-
-    embedding::text 캐스팅:
-        pgvector의 vector 타입은 psycopg2가 기본적으로 파싱 못함.
-        ::text로 캐스팅하면 "[0.1,0.2,...]" 문자열로 받아올 수 있음.
-        이후 numpy 배열로 변환.
-
-    보안:
-        user_id 검증 포함 → 다른 유저의 아이템 접근 차단
-
-    Returns:
-        (anchor_item_dict, embedding_numpy_array) 또는 (None, None)
-    """
     conn = get_connection()
     cur  = conn.cursor()
 
     try:
+        # ── 메인 쿼리: 기존 쿼리 그대로 유지 (SQL 변경 없음) ──────────────
         cur.execute("""
             SELECT
                 id,
@@ -166,50 +129,70 @@ def _load_anchor_item(
 
         row = cur.fetchone()
 
+        if row is None:
+            return None, None
+
+        embedding_vector = None
+        if row[9]:
+            embedding_vector = np.array(
+                [float(x) for x in row[9].strip("[]").split(",")],
+                dtype=np.float32,
+            )
+
+        anchor_item = {
+            "id":          row[0],
+            "name":        row[1],
+            "category":    row[2],
+            "subCategory": row[3],
+            "colors":      row[4],
+            "brand":       row[5],
+            "material":    row[6],
+            "fit":         row[7],
+            "style":       row[8],
+            "is_anchor":   True,   # ← 앵커 식별 플래그
+        }
+
+        # ── cropS3Key 별도 조회: 실패해도 앵커 기능에 영향 없음 ────────────
+        # 성공하면 response_agent에서 presigned URL 생성에 사용
+        # 컬럼명이 다를 경우를 대비해 두 가지 형식 모두 시도
+        try:
+            cur.execute(
+                'SELECT "cropS3Key" FROM closet_items WHERE id = %s',
+                (anchor_item_id,)
+            )
+            crop_row = cur.fetchone()
+            if crop_row and crop_row[0]:
+                anchor_item["crop_s3_key"] = crop_row[0]
+                print(f"[StyleAnalyzer] 앵커 cropS3Key 조회 성공: {crop_row[0]}", flush=True)
+        except Exception:
+            try:
+                # snake_case 컬럼명 fallback
+                conn2 = get_connection()
+                cur2  = conn2.cursor()
+                cur2.execute(
+                    'SELECT crop_s3_key FROM closet_items WHERE id = %s',
+                    (anchor_item_id,)
+                )
+                crop_row = cur2.fetchone()
+                if crop_row and crop_row[0]:
+                    anchor_item["crop_s3_key"] = crop_row[0]
+                    print(f"[StyleAnalyzer] 앵커 cropS3Key(snake) 조회 성공: {crop_row[0]}", flush=True)
+                cur2.close()
+                conn2.close()
+            except Exception as e2:
+                print(f"[StyleAnalyzer] cropS3Key 조회 실패 (무시): {e2}", flush=True)
+
+        return anchor_item, embedding_vector
+
     finally:
         cur.close()
         conn.close()
-
-    if row is None:
-        return None, None
-
-    embedding_vector = None
-    if row[9]:
-        embedding_vector = np.array(
-            [float(x) for x in row[9].strip("[]").split(",")],
-            dtype=np.float32,
-        )
-
-    anchor_item = {
-        "id":          row[0],
-        "name":        row[1],
-        "category":    row[2],
-        "subCategory": row[3],
-        "colors":      row[4],
-        "brand":       row[5],
-        "material":    row[6],
-        "fit":         row[7],
-        "style":       row[8],
-    }
-
-    return anchor_item, embedding_vector
 
 
 def _compute_reference_vector(
     style_reference_ids: list[int],
     user_id: int,
 ) -> tuple[Optional[np.ndarray], list[str]]:
-    """
-    스타일 레퍼런스 목록에서 대표 벡터와 키워드를 계산.
-
-    CUSTOM 우선 정책:
-        CUSTOM이 하나라도 있으면 CUSTOM만 사용
-        CUSTOM이 없으면 PRESET 사용
-
-    Lazy 임베딩:
-        PRESET embedding이 null이면 즉석 encode_text() + DB 저장
-        다음 요청부터 DB에서 바로 읽음 (첫 요청만 느림)
-    """
     conn = get_connection()
     cur  = conn.cursor()
 
@@ -277,11 +260,6 @@ def _compute_reference_vector(
 
 
 def _save_preset_embedding(reference_id: int, vector: np.ndarray) -> None:
-    """
-    PRESET의 embedding을 DB에 저장 (lazy 업데이트).
-
-    vector → "[0.1,0.2,...]" 문자열 변환 후 ::vector 캐스팅으로 저장.
-    """
     vector_str = "[" + ",".join(str(float(x)) for x in vector) + "]"
 
     conn = get_connection()
@@ -304,13 +282,6 @@ def _compute_style_vector(
     anchor_vector: Optional[np.ndarray],
     reference_vector: Optional[np.ndarray],
 ) -> tuple[Optional[np.ndarray], bool]:
-    """
-    앵커 벡터와 레퍼런스 벡터를 가중 합산해서 최종 style_vector 계산.
-
-    앵커 70% + 레퍼런스 30%:
-        앵커 = 사용자가 직접 지정한 옷 → 가장 강한 신호
-        레퍼런스 = 평소 좋아하는 스타일 → 보조 신호
-    """
     has_anchor    = anchor_vector is not None
     has_reference = reference_vector is not None
 
