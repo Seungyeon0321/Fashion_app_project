@@ -17,6 +17,7 @@ export interface OutfitItemPayload {
 
 interface CreateOutfitPayload {
   items:           OutfitItemPayload[];
+recommendSource?: string; 
   recordedTemp?:   number;
   recordedWeather?: string;
 }

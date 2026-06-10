@@ -19,9 +19,10 @@ type Props = {
   onClose:  () => void;
   onRetry:  (sessionId?: string) => void;
   data:     RecommendationResponse | null;
+  source:   string | null;  // ← 추가
 };
 
-export function RecommendationModal({ visible, onClose, onRetry, data }: Props) {
+export function RecommendationModal({ visible, onClose, onRetry, data, source }: Props) {
   const { initFromResponse, reset } = useCanvasStore();
   const { visible: bannerVisible, show: showBanner, hide: hideBanner, animatedStyle } =
     useConflictBanner();
@@ -31,7 +32,7 @@ export function RecommendationModal({ visible, onClose, onRetry, data }: Props) 
 
   useEffect(() => {
     if (visible && data) {
-      initFromResponse(data);
+      initFromResponse(data, source ?? 'external');  // source가 없으면 'external'로 기본값 설정
       showBanner();
       setProposalIndex(0);
     }

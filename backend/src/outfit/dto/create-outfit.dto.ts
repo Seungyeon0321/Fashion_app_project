@@ -42,6 +42,11 @@ export class CreateOutfitDto {
   items!: OutfitItemDto[];
 
   @IsOptional()
+  @IsString()
+  recommendSource?: string;   // ← 추가
+
+
+  @IsOptional()
   @IsNumber()
   recordedTemp?: number;
 

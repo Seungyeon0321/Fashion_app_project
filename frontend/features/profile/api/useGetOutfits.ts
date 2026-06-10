@@ -33,6 +33,8 @@ export interface SavedOutfit {
   createdAt:       string;
   recordedTemp:    number | null;
   recordedWeather: string | null;
+  intent:          string | null;           // ← 추가
+  recommendSource: string | null;           // ← 추가
   items:           OutfitItem[];
 }
 

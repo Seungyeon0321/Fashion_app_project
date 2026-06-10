@@ -50,6 +50,7 @@ export type RecommendItem = {
 export type RecommendationResponse = {
   session_id:        string;
   intent?:           string;
+  source?:           string;   // ← 추가: 'closet' | 'external'
   proposal_mood?:    string;
   calendar_events?:  string[];
   weather?:          string;

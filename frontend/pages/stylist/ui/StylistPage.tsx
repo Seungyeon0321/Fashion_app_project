@@ -30,7 +30,7 @@ export function StylistPage() {
   const [modalVisible,       setModalVisible]       = useState(false);
   const [recommendationData, setRecommendationData] = useState<RecommendationResponse | null>(null);
   const [lastPayload,        setLastPayload]        = useState<RecommendPayload | null>(null);
-  // toast state 제거 ← 글로벌 toastStore로 대체
+  const [currentSource,      setCurrentSource]      = useState<string | null>(null);  // ← 추가
 
   useEffect(() => {
     return () => abort();
@@ -40,6 +40,7 @@ export function StylistPage() {
 
   const requestRecommendation = (payload: RecommendPayload) => {
     setLastPayload(payload);
+    setCurrentSource(payload.source);
     setIsPending(true);
     setProgressMessage(null);
 
@@ -106,6 +107,7 @@ export function StylistPage() {
         onClose={() => setModalVisible(false)}
         onRetry={handleRetry}
         data={recommendationData}
+        source={currentSource}  // ← source 전달
       />
       {/* 로컬 Toast 제거 — 글로벌 ToastProvider가 처리 */}
     </ScreenLayout>

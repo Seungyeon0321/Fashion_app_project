@@ -18,6 +18,8 @@ export type CanvasItem = {
 type CanvasStore = {
   canvasItems: CanvasItem[];
   trayItems:   CanvasItem[];
+  recommendSource:  string | null;  // ← 추가
+
 
   initFromResponse: (data: RecommendationResponse) => void;
   addToCanvas:      (item: CanvasItem) => void;
@@ -46,8 +48,9 @@ function getInitialPosition(category: string, index: number): { x: number; y: nu
 export const useCanvasStore = create<CanvasStore>((set) => ({
   canvasItems: [],
   trayItems:   [],
+  recommendSource: null,
 
- initFromResponse: (data) => {
+ initFromResponse: (data, source) => {
   const items: CanvasItem[] = data.ranked_items
     .filter((item) => item.imageUrl != null)
     .map((item, index) => ({
@@ -85,6 +88,7 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
     return {
       trayItems:   items,
       canvasItems: mergedAnchorItems,
+      recommendSource: source,
     };
   });
 },

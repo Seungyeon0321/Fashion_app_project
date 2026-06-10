@@ -46,6 +46,7 @@ export class OutfitService {
       data: {
         userId,
         source:          'AI_SUGGEST',
+        recommendSource: dto.recommendSource,
         recordedTemp:    dto.recordedTemp,
         recordedWeather: dto.recordedWeather,
         items: {

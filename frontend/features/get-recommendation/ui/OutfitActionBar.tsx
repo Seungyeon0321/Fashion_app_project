@@ -18,7 +18,7 @@ type Props = {
 };
 
 export function OutfitActionBar({ onSaveSuccess }: Props) {
-  const { canvasItems } = useCanvasStore();
+  const { canvasItems, recommendSource } = useCanvasStore();
   const { mutate: saveOutfit, isPending } = useSaveOutfit();
   const toast = useToastStore();                            // ← 추가
 
@@ -115,8 +115,9 @@ export function OutfitActionBar({ onSaveSuccess }: Props) {
         // 내부 아이템 — closetItemId만 전달
         return {
           closetItemId: item.id as number,
-        };
+        }; // source도 함께 전달
       }),
+      recommendSource: recommendSource ?? 'external', 
     },
     {
       onSuccess: () => {
