@@ -1,4 +1,9 @@
-import { View, Text, ScrollView, Alert, StyleSheet } from 'react-native'
+// pages/result/ui/ResultPage.tsx  ← 기존 파일 수정
+
+import {
+  View, Text, ScrollView, Alert, StyleSheet,
+  KeyboardAvoidingView, Platform,  // ← 추가
+} from 'react-native'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Button } from '@/shared/ui/Button'
@@ -59,36 +64,47 @@ export const ResultPage = ({ items }: Props) => {
     }
   }
 
-  // footer 높이 = 버튼 padding(24) + 버튼 높이(대략 52) + 하단 여백(16) + 제스처 바
   const footerHeight = 24 + 52 + 16 + insets.bottom
 
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
 
-      <ScrollView
-        contentContainerStyle={[
-          styles.scroll,
-          // footer가 absolute라서 마지막 아이템이 가려지지 않도록 하단 여백 확보
-          { paddingBottom: footerHeight },
-        ]}
+      {/* KeyboardAvoidingView: 키보드가 올라오면 컨텐츠를 위로 밀어올림
+          iOS: padding 방식 — 키보드 높이만큼 하단 패딩 추가
+          Android: height 방식 — 전체 높이를 줄여서 스크롤 가능하게
+          footer가 absolute라 keyboardVerticalOffset으로 footer 높이 보정 */}
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={footerHeight}
       >
-        <View style={styles.header}>
-          <Text style={styles.title}>ANALYSIS RESULT</Text>
-          <Text style={styles.subtitle}>{items.length} items detected</Text>
-        </View>
+        <ScrollView
+          contentContainerStyle={[
+            styles.scroll,
+            { paddingBottom: footerHeight },
+          ]}
+          // 키보드 열린 상태에서 다른 곳 탭 시 키보드 닫힘
+          keyboardShouldPersistTaps="handled"
+          // input이 포커스될 때 자동으로 스크롤해서 보이게
+          keyboardDismissMode="on-drag"
+        >
+          <View style={styles.header}>
+            <Text style={styles.title}>ANALYSIS RESULT</Text>
+            <Text style={styles.subtitle}>{items.length} items detected</Text>
+          </View>
 
-        {items.map((item) => (
-          <ReviewItemCard
-            key={item.id}
-            item={item}
-            state={states[item.id]}
-            onUpdate={(patch) => update(item.id, patch)}
-            onCategoryChange={(cat) => setCategory(item.id, cat)}
-          />
-        ))}
-      </ScrollView>
+          {items.map((item) => (
+            <ReviewItemCard
+              key={item.id}
+              item={item}
+              state={states[item.id]}
+              onUpdate={(patch) => update(item.id, patch)}
+              onCategoryChange={(cat) => setCategory(item.id, cat)}
+            />
+          ))}
+        </ScrollView>
+      </KeyboardAvoidingView>
 
-      {/* footer: absolute로 하단 고정. 제스처 바 높이는 insets.bottom으로 처리 */}
       <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         <Button
           label={savedItems.length > 0 ? `CONFIRM (${savedItems.length} SAVED)` : 'CONFIRM'}
@@ -113,33 +129,36 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#1a1a1a',
   },
+  flex: {
+    flex: 1,  // ← KeyboardAvoidingView가 전체 공간 차지
+  },
   scroll: {
-    padding: 24,
+    padding:    24,
     paddingTop: 60,
   },
   header: {
     marginBottom: 32,
   },
   title: {
-    fontFamily: 'Epilogue_700Bold',
-    fontSize: 28,
-    color: '#faf9f6',
+    fontFamily:    'Epilogue_700Bold',
+    fontSize:      28,
+    color:         '#faf9f6',
     letterSpacing: 2,
   },
   subtitle: {
-    fontFamily: 'Manrope_400Regular',
-    fontSize: 12,
-    color: 'rgba(250,249,246,0.4)',
+    fontFamily:    'Manrope_400Regular',
+    fontSize:      12,
+    color:         'rgba(250,249,246,0.4)',
     letterSpacing: 1,
-    marginTop: 4,
+    marginTop:     4,
   },
   footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    position:          'absolute',
+    bottom:            0,
+    left:              0,
+    right:             0,
     paddingHorizontal: 24,
-    paddingTop: 16,
-    backgroundColor: '#1a1a1a',
+    paddingTop:        16,
+    backgroundColor:   '#1a1a1a',
   },
 })

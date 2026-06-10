@@ -1,4 +1,4 @@
-// features/virtual-tryon/ui/PhotoRegisterSheet.tsx
+// features/virtual-tryon/ui/PhotoRegisterSheet.tsx  ← 기존 파일 수정
 
 import React from 'react';
 import {
@@ -25,7 +25,7 @@ export function PhotoRegisterSheet({
   onSelectPhoto,
   onDismiss,
 }: Props) {
-  const bottomInset = useBottomInset(24); // 최소 24px (다른 바텀시트 컴포넌트와 통일)
+  const bottomInset = useBottomInset(24);
 
   return (
     <Modal
@@ -42,7 +42,6 @@ export function PhotoRegisterSheet({
           activeOpacity={1}
         />
 
-        {/* bottomInset을 paddingBottom으로 직접 주입 */}
         <View style={[styles.sheet, { paddingBottom: bottomInset }]}>
           <View style={styles.handle} />
 
@@ -53,19 +52,19 @@ export function PhotoRegisterSheet({
           </View>
 
           <Text style={styles.headline}>
-            TRY-ON을 시작하려면{'\n'}내 사진이 필요해요
+            YOUR PHOTO IS NEEDED{'\n'}TO START TRY-ON
           </Text>
           <Text style={styles.subtext}>
-            전신이 잘 보이는 사진을 등록하면{'\n'}어떤 옷이든 입혀볼 수 있어요
+            Register a full-body photo and{'\n'}try on any outfit you like
           </Text>
 
           {/* Fashn.ai 공식 권장사항 기반 포토 팁 */}
           <View style={styles.tipsBox}>
-            <Text style={styles.tipsTitle}>사진 잘 찍는 법</Text>
-            <Text style={styles.tipItem}>✓  머리부터 발끝까지 전신이 나오게</Text>
-            <Text style={styles.tipItem}>✓  팔을 몸에서 살짝 떼고 정면 포즈</Text>
-            <Text style={styles.tipItem}>✓  밝고 단순한 배경</Text>
-            <Text style={styles.tipItem}>✗  코트·후드 등 두꺼운 겉옷 피하기</Text>
+            <Text style={styles.tipsTitle}>TIPS FOR BEST RESULTS</Text>
+            <Text style={styles.tipItem}>✓  Full body visible from head to toe</Text>
+            <Text style={styles.tipItem}>✓  Arms slightly away, facing forward</Text>
+            <Text style={styles.tipItem}>✓  Bright and simple background</Text>
+            <Text style={styles.tipItem}>✗  Avoid thick outerwear like coats or hoodies</Text>
           </View>
 
           <TouchableOpacity
@@ -77,7 +76,7 @@ export function PhotoRegisterSheet({
             {isUploading ? (
               <ActivityIndicator color={colors.background} size="small" />
             ) : (
-              <Text style={styles.primaryBtnText}>갤러리에서 사진 선택</Text>
+              <Text style={styles.primaryBtnText}>SELECT FROM GALLERY</Text>
             )}
           </TouchableOpacity>
 
@@ -107,17 +106,16 @@ const styles = StyleSheet.create({
     backgroundColor:   colors.background,
     paddingHorizontal: spacing.outerMargin,
     alignItems:        'center',
-    // paddingBottom: bottomInset (동적 주입)
   },
 
   handle: {
-    width:        36,
-    height:       3,
+    width:           36,
+    height:          3,
     backgroundColor: '#afb3ae',
-    opacity:      0.35,
-    borderRadius: 2,
-    marginTop:    14,
-    marginBottom: 44,
+    opacity:         0.35,
+    borderRadius:    2,
+    marginTop:       14,
+    marginBottom:    44,
   },
 
   iconWrap: {
@@ -143,9 +141,8 @@ const styles = StyleSheet.create({
   },
 
   headline: {
-    fontFamily:    'Epilogue',
+    fontFamily:    'Epilogue_700Bold',
     fontSize:      20,
-    fontWeight:    '800',
     color:         colors.primary,
     textAlign:     'center',
     textTransform: 'uppercase',
@@ -154,7 +151,7 @@ const styles = StyleSheet.create({
     marginBottom:  12,
   },
   subtext: {
-    fontFamily:   'Manrope',
+    fontFamily:   'Manrope_400Regular',
     fontSize:     13,
     color:        '#777c77',
     textAlign:    'center',
@@ -170,16 +167,15 @@ const styles = StyleSheet.create({
     gap:             6,
   },
   tipsTitle: {
-    fontFamily:    'Manrope',
+    fontFamily:    'Manrope_700Bold',
     fontSize:      10,
-    fontWeight:    '700',
     color:         '#5c605c',
     letterSpacing: 2,
     textTransform: 'uppercase',
     marginBottom:  4,
   },
   tipItem: {
-    fontFamily: 'Manrope',
+    fontFamily: 'Manrope_400Regular',
     fontSize:   12,
     color:      '#5c605c',
     lineHeight: 18,
@@ -195,9 +191,8 @@ const styles = StyleSheet.create({
   },
   primaryBtnDisabled: { opacity: 0.55 },
   primaryBtnText: {
-    fontFamily:    'Manrope',
+    fontFamily:    'Manrope_700Bold',
     fontSize:      11,
-    fontWeight:    '700',
     color:         colors.background,
     letterSpacing: 2.5,
     textTransform: 'uppercase',
@@ -208,7 +203,7 @@ const styles = StyleSheet.create({
     alignItems:      'center',
   },
   ghostBtnText: {
-    fontFamily:    'Manrope',
+    fontFamily:    'Manrope_500Medium',
     fontSize:      10,
     color:         '#afb3ae',
     letterSpacing: 3,

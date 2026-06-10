@@ -127,14 +127,18 @@ def _move_to_failed(r: redis_lib.Redis, raw: bytes, reason: str = "") -> None:
     logger.warning("job을 failed로 이동 | reason=%s", reason)
 
 
-def run_worker() -> None:
+def run_worker(pipeline: 'ClothingPipeline | None' = None) -> None:
     """메인 루프 — Ctrl+C 또는 SIGTERM으로 정상 종료"""
     from app.db.database import init_db
+    from app.workers.pipeline import ClothingPipeline  # ← 타입 힌트용 import
+   
     init_db()
 
     #decode_responses는 데이터를 바이너리 상태 그대로 가져오겠다는 뜻임
     r = redis_lib.from_url(settings.REDIS_URL, decode_responses=False)
-    pipeline = ClothingPipeline()
+
+    if pipeline is None:
+        pipeline = ClothingPipeline()
 
     # Graceful shutdown 처리
     shutdown = {"flag": False}

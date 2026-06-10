@@ -1,4 +1,7 @@
+// features/take_photo/ui/PhotoPreview.tsx  ← 기존 파일 수정
+
 import { Pressable, Image, View, Text, ActivityIndicator, StyleSheet, useWindowDimensions } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'  // ← 추가
 import { Photo } from '@/entities/media/model/types'
 import type { ValidationStatus } from '@/features/take_photo/model/useTakePhoto'
 import { CameraType } from 'expo-camera'
@@ -8,8 +11,8 @@ import Svg, { Path } from 'react-native-svg'
 type PhotoPreviewProps = {
   photo: Photo | null
   onClear: () => void
-  onConfirm: () => void       // ← width/height 제거, 단순 콜백
-  isUploading: boolean        // ← 부모에서 내려받음
+  onConfirm: () => void
+  isUploading: boolean
   facing: CameraType
   validationStatus?: ValidationStatus | null
   validationMessage?: string | null
@@ -28,6 +31,7 @@ export const PhotoPreview = ({
 }: PhotoPreviewProps) => {
   const { getFrameRect } = useCameraFrame()
   const { width, height } = useWindowDimensions()
+  const insets = useSafeAreaInsets()  // ← 추가
   const frameRect = getFrameRect()
   const isInvalid = validationStatus === 'invalid'
   const isPending = validationStatus === 'pending'
@@ -45,7 +49,6 @@ export const PhotoPreview = ({
         resizeMode="cover"
       />
 
-      {/* ── 분석 중 ── */}
       {isPending && (
         <View style={styles.overlay}>
           <ActivityIndicator size="large" color="rgba(250,249,246,0.9)" />
@@ -53,7 +56,6 @@ export const PhotoPreview = ({
         </View>
       )}
 
-      {/* ── 유효하지 않은 사진 ── */}
       {isInvalid && (
         <View style={styles.overlay}>
           <Text style={styles.errorTitle}>{RETRY_MESSAGE}</Text>
@@ -69,7 +71,6 @@ export const PhotoPreview = ({
         </View>
       )}
 
-      {/* ── 유효한 사진 ── */}
       {validationStatus === 'valid' && frameRect && (
         <>
           <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
@@ -79,7 +80,8 @@ export const PhotoPreview = ({
               fill="rgba(0,0,0,0.5)"
             />
           </Svg>
-          <View style={styles.actions}>
+          {/* insets.bottom으로 동적 패딩 적용 */}
+          <View style={[styles.actions, { bottom: insets.bottom + 24 }]}>
             <Pressable
               style={({ pressed }) => [styles.button, styles.buttonPrimary, { opacity: pressed ? 0.7 : 1 }]}
               onPress={onConfirm}
@@ -108,8 +110,6 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
   },
-
-  // ── 오버레이 ──
   overlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.6)',
@@ -138,11 +138,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
-
-  // ── 하단 액션 버튼 ──
   actions: {
     position: 'absolute',
-    bottom: 40,
+    // bottom은 인라인으로 동적 처리 ← 고정값 제거
     left: 24,
     right: 24,
     flexDirection: 'row',

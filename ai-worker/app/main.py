@@ -22,6 +22,7 @@ from pydantic import BaseModel
 
 from app.core.config import settings
 from app.models.segformer import SegFormerSegmenter
+from shared.clip_encoder import CLIPEncoder  
 from app.workers.clothing_worker import run_worker
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -29,6 +30,7 @@ from app.workers.clothing_worker import run_worker
 # ──────────────────────────────────────────────────────────────────────────────
 
 _segmenter = SegFormerSegmenter()
+_encoder   = CLIPEncoder()   
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -37,7 +39,14 @@ _segmenter = SegFormerSegmenter()
 
 def _start_queue_worker():
     """Redis 큐 워커를 별도 스레드에서 실행."""
-    t = threading.Thread(target=run_worker, daemon=True)
+    from app.workers.pipeline import ClothingPipeline
+    # 싱글톤 모델을 Pipeline에 주입 — 재로드 없이 공유
+    pipeline = ClothingPipeline(segmenter=_segmenter, encoder=_encoder)  # ← 수정
+    t = threading.Thread(
+        target=run_worker,
+        args=(pipeline,),                            # ← pipeline 전달
+        daemon=True,
+    )
     t.start()
     print("[Worker] Redis 큐 워커 background thread 시작")
 

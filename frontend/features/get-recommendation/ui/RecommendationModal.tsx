@@ -13,6 +13,7 @@ import { OutfitComment } from './OutfitComment';
 import { OutfitActionBar } from './OutfitActionBar';
 import { ToastProvider } from '@/shared/ui/ToastProvider';  // ← 추가
 import { colors, fonts } from '@/shared/lib/tokens';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';  // ← 추가
 
 type Props = {
   visible:  boolean;
@@ -66,34 +67,37 @@ export function RecommendationModal({ visible, onClose, onRetry, data, source }:
       presentationStyle="fullScreen"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
 
-        <View style={styles.header}>
-          <Text style={styles.title}>STUDIO CANVAS</Text>
-          <TouchableOpacity onPress={onClose}>
-            <Text style={styles.closeBtn}>✕</Text>
-          </TouchableOpacity>
-        </View>
+          <View style={styles.header}>
+            <Text style={styles.title}>STUDIO CANVAS</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Text style={styles.closeBtn}>✕</Text>
+            </TouchableOpacity>
+          </View>
 
-        {bannerVisible && (
-          <ConflictBanner
-            conflictWarning={conflictWarning}
-            animatedStyle={animatedStyle}
-            onYes={handleYes}
-            onNo={handleNo}
-          />
-        )}
+          {bannerVisible && (
+            <ConflictBanner
+              conflictWarning={conflictWarning}
+              animatedStyle={animatedStyle}
+              onYes={handleYes}
+              onNo={handleNo}
+            />
+          )}
 
-        <OutfitComment rawText={data.final_response} />
-        <MoodboardCanvas />
-        <OutfitActionBar onSaveSuccess={onClose} />
+          <OutfitComment rawText={data.final_response} />
+          <MoodboardCanvas />
+          <OutfitActionBar onSaveSuccess={onClose} />
 
-        {/* Modal은 별도 네이티브 레이어라 _layout.tsx의 ToastProvider가 안 보임
-            그래서 Modal 안에 직접 ToastProvider를 마운트해야 함
-            같은 toastStore를 구독하므로 어디서 toast.error()를 호출해도 여기서 뜸 */}
-        <ToastProvider />
+          {/* Modal은 별도 네이티브 레이어라 _layout.tsx의 ToastProvider가 안 보임
+              그래서 Modal 안에 직접 ToastProvider를 마운트해야 함
+              같은 toastStore를 구독하므로 어디서 toast.error()를 호출해도 여기서 뜸 */}
+          <ToastProvider />
 
-      </SafeAreaView>
+        </SafeAreaView>
+      </GestureHandlerRootView>
+      
     </Modal>
   );
 }

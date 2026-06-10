@@ -34,10 +34,12 @@ class ClothingPipeline:
         ids = pipeline.run(s3_key="uploads/photo.jpg")
     """
 
-    def __init__(self):
+    def __init__(self,
+        segmenter: SegFormerSegmenter | None = None,
+        encoder: CLIPEncoder | None = None,):
         # 모델은 lazy loading — 처음 run() 호출 시 로드됨
-        self.segmenter = SegFormerSegmenter()
-        self.encoder = CLIPEncoder()
+        self.segmenter = segmenter if segmenter is not None else SegFormerSegmenter()
+        self.encoder   = encoder   if encoder   is not None else CLIPEncoder()
         self._s3 = None
 
     def _get_s3(self):

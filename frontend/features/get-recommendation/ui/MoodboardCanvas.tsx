@@ -5,7 +5,7 @@ import { StyleSheet, View, Image, Text } from 'react-native';
 import {
   Gesture,
   GestureDetector,
-  // GestureHandlerRootView 제거 ← _layout.tsx에 이미 있음
+  GestureHandlerRootView
 } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
