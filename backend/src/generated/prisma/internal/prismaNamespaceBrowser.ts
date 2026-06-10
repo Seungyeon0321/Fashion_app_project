@@ -159,6 +159,7 @@ export type StyleReferenceScalarFieldEnum = (typeof StyleReferenceScalarFieldEnu
 export const ExternalItemScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
+  externalId: 'externalId',
   name: 'name',
   brand: 'brand',
   category: 'category',

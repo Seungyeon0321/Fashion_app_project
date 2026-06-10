@@ -41,6 +41,7 @@ export type ExternalItemSumAggregateOutputType = {
 export type ExternalItemMinAggregateOutputType = {
   id: number | null
   userId: number | null
+  externalId: string | null
   name: string | null
   brand: string | null
   category: $Enums.Category | null
@@ -55,6 +56,7 @@ export type ExternalItemMinAggregateOutputType = {
 export type ExternalItemMaxAggregateOutputType = {
   id: number | null
   userId: number | null
+  externalId: string | null
   name: string | null
   brand: string | null
   category: $Enums.Category | null
@@ -69,6 +71,7 @@ export type ExternalItemMaxAggregateOutputType = {
 export type ExternalItemCountAggregateOutputType = {
   id: number
   userId: number
+  externalId: number
   name: number
   brand: number
   category: number
@@ -98,6 +101,7 @@ export type ExternalItemSumAggregateInputType = {
 export type ExternalItemMinAggregateInputType = {
   id?: true
   userId?: true
+  externalId?: true
   name?: true
   brand?: true
   category?: true
@@ -112,6 +116,7 @@ export type ExternalItemMinAggregateInputType = {
 export type ExternalItemMaxAggregateInputType = {
   id?: true
   userId?: true
+  externalId?: true
   name?: true
   brand?: true
   category?: true
@@ -126,6 +131,7 @@ export type ExternalItemMaxAggregateInputType = {
 export type ExternalItemCountAggregateInputType = {
   id?: true
   userId?: true
+  externalId?: true
   name?: true
   brand?: true
   category?: true
@@ -228,6 +234,7 @@ export type ExternalItemGroupByArgs<ExtArgs extends runtime.Types.Extensions.Int
 export type ExternalItemGroupByOutputType = {
   id: number
   userId: number
+  externalId: string
   name: string
   brand: string | null
   category: $Enums.Category
@@ -266,6 +273,7 @@ export type ExternalItemWhereInput = {
   NOT?: Prisma.ExternalItemWhereInput | Prisma.ExternalItemWhereInput[]
   id?: Prisma.IntFilter<"ExternalItem"> | number
   userId?: Prisma.IntFilter<"ExternalItem"> | number
+  externalId?: Prisma.StringFilter<"ExternalItem"> | string
   name?: Prisma.StringFilter<"ExternalItem"> | string
   brand?: Prisma.StringNullableFilter<"ExternalItem"> | string | null
   category?: Prisma.EnumCategoryFilter<"ExternalItem"> | $Enums.Category
@@ -283,6 +291,7 @@ export type ExternalItemWhereInput = {
 export type ExternalItemOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  externalId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   brand?: Prisma.SortOrderInput | Prisma.SortOrder
   category?: Prisma.SortOrder
@@ -299,10 +308,12 @@ export type ExternalItemOrderByWithRelationInput = {
 
 export type ExternalItemWhereUniqueInput = Prisma.AtLeast<{
   id?: number
+  userId_externalId?: Prisma.ExternalItemUserIdExternalIdCompoundUniqueInput
   AND?: Prisma.ExternalItemWhereInput | Prisma.ExternalItemWhereInput[]
   OR?: Prisma.ExternalItemWhereInput[]
   NOT?: Prisma.ExternalItemWhereInput | Prisma.ExternalItemWhereInput[]
   userId?: Prisma.IntFilter<"ExternalItem"> | number
+  externalId?: Prisma.StringFilter<"ExternalItem"> | string
   name?: Prisma.StringFilter<"ExternalItem"> | string
   brand?: Prisma.StringNullableFilter<"ExternalItem"> | string | null
   category?: Prisma.EnumCategoryFilter<"ExternalItem"> | $Enums.Category
@@ -315,11 +326,12 @@ export type ExternalItemWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"ExternalItem"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   outfitItems?: Prisma.OutfitItemListRelationFilter
-}, "id">
+}, "id" | "userId_externalId">
 
 export type ExternalItemOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  externalId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   brand?: Prisma.SortOrderInput | Prisma.SortOrder
   category?: Prisma.SortOrder
@@ -343,6 +355,7 @@ export type ExternalItemScalarWhereWithAggregatesInput = {
   NOT?: Prisma.ExternalItemScalarWhereWithAggregatesInput | Prisma.ExternalItemScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"ExternalItem"> | number
   userId?: Prisma.IntWithAggregatesFilter<"ExternalItem"> | number
+  externalId?: Prisma.StringWithAggregatesFilter<"ExternalItem"> | string
   name?: Prisma.StringWithAggregatesFilter<"ExternalItem"> | string
   brand?: Prisma.StringNullableWithAggregatesFilter<"ExternalItem"> | string | null
   category?: Prisma.EnumCategoryWithAggregatesFilter<"ExternalItem"> | $Enums.Category
@@ -356,6 +369,7 @@ export type ExternalItemScalarWhereWithAggregatesInput = {
 }
 
 export type ExternalItemCreateInput = {
+  externalId: string
   name: string
   brand?: string | null
   category: $Enums.Category
@@ -373,6 +387,7 @@ export type ExternalItemCreateInput = {
 export type ExternalItemUncheckedCreateInput = {
   id?: number
   userId: number
+  externalId: string
   name: string
   brand?: string | null
   category: $Enums.Category
@@ -387,6 +402,7 @@ export type ExternalItemUncheckedCreateInput = {
 }
 
 export type ExternalItemUpdateInput = {
+  externalId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
@@ -404,6 +420,7 @@ export type ExternalItemUpdateInput = {
 export type ExternalItemUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
+  externalId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
@@ -420,6 +437,7 @@ export type ExternalItemUncheckedUpdateInput = {
 export type ExternalItemCreateManyInput = {
   id?: number
   userId: number
+  externalId: string
   name: string
   brand?: string | null
   category: $Enums.Category
@@ -433,6 +451,7 @@ export type ExternalItemCreateManyInput = {
 }
 
 export type ExternalItemUpdateManyMutationInput = {
+  externalId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
@@ -448,6 +467,7 @@ export type ExternalItemUpdateManyMutationInput = {
 export type ExternalItemUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
+  externalId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
@@ -470,9 +490,15 @@ export type ExternalItemOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type ExternalItemUserIdExternalIdCompoundUniqueInput = {
+  userId: number
+  externalId: string
+}
+
 export type ExternalItemCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  externalId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   brand?: Prisma.SortOrder
   category?: Prisma.SortOrder
@@ -494,6 +520,7 @@ export type ExternalItemAvgOrderByAggregateInput = {
 export type ExternalItemMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  externalId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   brand?: Prisma.SortOrder
   category?: Prisma.SortOrder
@@ -508,6 +535,7 @@ export type ExternalItemMaxOrderByAggregateInput = {
 export type ExternalItemMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  externalId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   brand?: Prisma.SortOrder
   category?: Prisma.SortOrder
@@ -598,6 +626,7 @@ export type ExternalItemUpdateOneWithoutOutfitItemsNestedInput = {
 }
 
 export type ExternalItemCreateWithoutUserInput = {
+  externalId: string
   name: string
   brand?: string | null
   category: $Enums.Category
@@ -613,6 +642,7 @@ export type ExternalItemCreateWithoutUserInput = {
 
 export type ExternalItemUncheckedCreateWithoutUserInput = {
   id?: number
+  externalId: string
   name: string
   brand?: string | null
   category: $Enums.Category
@@ -658,6 +688,7 @@ export type ExternalItemScalarWhereInput = {
   NOT?: Prisma.ExternalItemScalarWhereInput | Prisma.ExternalItemScalarWhereInput[]
   id?: Prisma.IntFilter<"ExternalItem"> | number
   userId?: Prisma.IntFilter<"ExternalItem"> | number
+  externalId?: Prisma.StringFilter<"ExternalItem"> | string
   name?: Prisma.StringFilter<"ExternalItem"> | string
   brand?: Prisma.StringNullableFilter<"ExternalItem"> | string | null
   category?: Prisma.EnumCategoryFilter<"ExternalItem"> | $Enums.Category
@@ -671,6 +702,7 @@ export type ExternalItemScalarWhereInput = {
 }
 
 export type ExternalItemCreateWithoutOutfitItemsInput = {
+  externalId: string
   name: string
   brand?: string | null
   category: $Enums.Category
@@ -687,6 +719,7 @@ export type ExternalItemCreateWithoutOutfitItemsInput = {
 export type ExternalItemUncheckedCreateWithoutOutfitItemsInput = {
   id?: number
   userId: number
+  externalId: string
   name: string
   brand?: string | null
   category: $Enums.Category
@@ -716,6 +749,7 @@ export type ExternalItemUpdateToOneWithWhereWithoutOutfitItemsInput = {
 }
 
 export type ExternalItemUpdateWithoutOutfitItemsInput = {
+  externalId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
@@ -732,6 +766,7 @@ export type ExternalItemUpdateWithoutOutfitItemsInput = {
 export type ExternalItemUncheckedUpdateWithoutOutfitItemsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   userId?: Prisma.IntFieldUpdateOperationsInput | number
+  externalId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
@@ -746,6 +781,7 @@ export type ExternalItemUncheckedUpdateWithoutOutfitItemsInput = {
 
 export type ExternalItemCreateManyUserInput = {
   id?: number
+  externalId: string
   name: string
   brand?: string | null
   category: $Enums.Category
@@ -759,6 +795,7 @@ export type ExternalItemCreateManyUserInput = {
 }
 
 export type ExternalItemUpdateWithoutUserInput = {
+  externalId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
@@ -774,6 +811,7 @@ export type ExternalItemUpdateWithoutUserInput = {
 
 export type ExternalItemUncheckedUpdateWithoutUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  externalId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
@@ -789,6 +827,7 @@ export type ExternalItemUncheckedUpdateWithoutUserInput = {
 
 export type ExternalItemUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  externalId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumCategoryFieldUpdateOperationsInput | $Enums.Category
@@ -835,6 +874,7 @@ export type ExternalItemCountOutputTypeCountOutfitItemsArgs<ExtArgs extends runt
 export type ExternalItemSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
+  externalId?: boolean
   name?: boolean
   brand?: boolean
   category?: boolean
@@ -853,6 +893,7 @@ export type ExternalItemSelect<ExtArgs extends runtime.Types.Extensions.Internal
 export type ExternalItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
+  externalId?: boolean
   name?: boolean
   brand?: boolean
   category?: boolean
@@ -869,6 +910,7 @@ export type ExternalItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
 export type ExternalItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
+  externalId?: boolean
   name?: boolean
   brand?: boolean
   category?: boolean
@@ -885,6 +927,7 @@ export type ExternalItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
 export type ExternalItemSelectScalar = {
   id?: boolean
   userId?: boolean
+  externalId?: boolean
   name?: boolean
   brand?: boolean
   category?: boolean
@@ -897,7 +940,7 @@ export type ExternalItemSelectScalar = {
   createdAt?: boolean
 }
 
-export type ExternalItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "name" | "brand" | "category" | "price" | "currency" | "imageUrl" | "purchaseUrl" | "source" | "styleKeywords" | "createdAt", ExtArgs["result"]["externalItem"]>
+export type ExternalItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "externalId" | "name" | "brand" | "category" | "price" | "currency" | "imageUrl" | "purchaseUrl" | "source" | "styleKeywords" | "createdAt", ExtArgs["result"]["externalItem"]>
 export type ExternalItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   outfitItems?: boolean | Prisma.ExternalItem$outfitItemsArgs<ExtArgs>
@@ -919,6 +962,7 @@ export type $ExternalItemPayload<ExtArgs extends runtime.Types.Extensions.Intern
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
     userId: number
+    externalId: string
     name: string
     brand: string | null
     category: $Enums.Category
@@ -1356,6 +1400,7 @@ export interface Prisma__ExternalItemClient<T, Null = never, ExtArgs extends run
 export interface ExternalItemFieldRefs {
   readonly id: Prisma.FieldRef<"ExternalItem", 'Int'>
   readonly userId: Prisma.FieldRef<"ExternalItem", 'Int'>
+  readonly externalId: Prisma.FieldRef<"ExternalItem", 'String'>
   readonly name: Prisma.FieldRef<"ExternalItem", 'String'>
   readonly brand: Prisma.FieldRef<"ExternalItem", 'String'>
   readonly category: Prisma.FieldRef<"ExternalItem", 'Category'>

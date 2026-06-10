@@ -79,42 +79,33 @@ export function TryOnModal({
   const handleSave = async () => {
   if (!resultUrl || isSaving) return;
   setIsSaving(true);
-  setToast({ message: 'Saving...', type: 'pending' });
+  setToast({ message: 'SAVING TO GALLERY...', type: 'pending' }); // ← 대문자 통일
 
   try {
-    // 1. 권한 요청
     const { status } = await MediaLibrary.requestPermissionsAsync();
     if (status !== 'granted') {
-      setToast({ message: 'Gallery access permission is required.', type: 'error' });
+      setToast({ message: 'GALLERY PERMISSION REQUIRED', type: 'error' });
       return;
     }
 
-    // 2. 임시 파일로 다운로드
-    // @ts-ignore - SDK 54에서 타입 정의 누락
     const cacheDir: string = FileSystem.cacheDirectory
-      // @ts-ignore
       ?? FileSystem.documentDirectory
       ?? '';
 
     const localUri = `${cacheDir}tryon_${Date.now()}.jpg`;
-
     const downloadResult = await FileSystem.downloadAsync(resultUrl, localUri);
 
     if (downloadResult.status !== 200) {
       throw new Error(`Download failed: ${downloadResult.status}`);
     }
 
-    // 3. 갤러리에 저장
-    // saveToLibraryAsync 대신 createAssetAsync 사용 (Android 스코프 스토리지 호환)
     await MediaLibrary.createAssetAsync(downloadResult.uri);
-
-    // 4. 임시 파일 정리
     await FileSystem.deleteAsync(downloadResult.uri, { idempotent: true }).catch(() => {});
 
-    setToast({ message: 'Saved to your gallery.', type: 'success' });
+    setToast({ message: 'SAVED TO YOUR GALLERY', type: 'success' }); // ← 대문자 통일
   } catch (e: any) {
     console.error('[TryOn] Save error:', e);
-    setToast({ message: e.message ?? 'Save failed. Please try again.', type: 'error' });
+    setToast({ message: 'SAVE FAILED. PLEASE TRY AGAIN', type: 'error' }); // ← 대문자 통일
   } finally {
     setIsSaving(false);
   }

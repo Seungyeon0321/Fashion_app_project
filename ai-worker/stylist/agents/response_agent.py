@@ -101,7 +101,7 @@ def _respond_external(state: OutfitState) -> dict:
 
     if not valid_proposals:
         return {
-            "final_response":         "적합한 코디를 찾지 못했어요. 다시 시도해주세요.",
+            "final_response":         "Please try again. We couldn't prepare the outfit information.",
             "ranked_items":           [],
             "recommended_outfit_ids": [],
         }
@@ -159,7 +159,7 @@ def _respond_external(state: OutfitState) -> dict:
 
     if not serialized_list:
         return {
-            "final_response":         "코디 아이템 정보를 불러오지 못했어요.",
+            "final_response":         "Please try again. We couldn't prepare the outfit information.",
             "ranked_items":           [],
             "recommended_outfit_ids": [],
         }
@@ -186,7 +186,7 @@ Write a friendly outfit recommendation:"""),
         ])
         first_message = response.content.strip()
     except Exception:
-        first_message = "코디를 준비했어요. 마음에 드는 스타일을 골라보세요!"
+        first_message = "We couldn't prepare the outfit information. Please try again."
 
     serialized_list[0]["final_response"] = first_message
 
@@ -283,7 +283,7 @@ Write a friendly outfit recommendation:"""
 
     except Exception as e:
         return {
-            "final_response":         "추천을 생성하는 중 오류가 발생했어요. 다시 시도해주세요.",
+            "final_response":         "Please try again. We couldn't prepare the outfit information.",
             "recommended_outfit_ids": [],
             "errors":                 [f"response_agent 예외: {str(e)}"],
         }

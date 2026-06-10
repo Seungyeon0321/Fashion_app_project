@@ -159,14 +159,15 @@ model ExternalItem {
   userId       Int
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  externalId   String   @map("external_id")  // ← 추가: "naver_56445104219"
   name         String
   brand        String?
   category     Category
   price        Int?
   currency     String   @default("KRW")
 
-  imageUrl     String            // 원본 이미지 URL (S3 저장 X)
-  purchaseUrl  String            // 구매 링크
+  imageUrl     String
+  purchaseUrl  String
 
   source       String   @default("naver_shopping")
   styleKeywords String[]
@@ -175,8 +176,10 @@ model ExternalItem {
 
   createdAt    DateTime @default(now())
 
+  @@unique([userId, externalId])  // ← 추가: 같은 유저가 같은 아이템 중복 저장 방지
   @@index([userId])
   @@index([source])
+  @@map("external_items")
 }
 
 // ==========================================

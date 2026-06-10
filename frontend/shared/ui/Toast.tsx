@@ -1,5 +1,8 @@
+// shared/ui/Toast.tsx  ← 최종 버전
+
 import { useEffect, useRef } from 'react'
 import { Animated, Pressable, Text, StyleSheet, ViewStyle } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 export type ToastType = 'error' | 'warning' | 'success' | 'pending'
 
@@ -32,42 +35,40 @@ export const Toast = ({
   onDismiss,
   style,
 }: Props) => {
+  const insets     = useSafeAreaInsets()
   const translateY = useRef(new Animated.Value(-80)).current
-  const opacity = useRef(new Animated.Value(0)).current
+  const opacity    = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
     if (visible) {
-      // 슬라이드 인
       Animated.parallel([
         Animated.spring(translateY, {
-          toValue: 0,
+          toValue:         0,
           useNativeDriver: true,
-          tension: 80,
-          friction: 12,
+          tension:         80,
+          friction:        12,
         }),
         Animated.timing(opacity, {
-          toValue: 1,
-          duration: 200,
+          toValue:         1,
+          duration:        200,
           useNativeDriver: true,
         }),
       ]).start()
 
-      // pending이 아니면 3초 후 자동 dismiss
       if (type !== 'pending' && onDismiss) {
         const timer = setTimeout(onDismiss, 3000)
         return () => clearTimeout(timer)
       }
     } else {
-      // 슬라이드 아웃
       Animated.parallel([
         Animated.timing(translateY, {
-          toValue: -80,
-          duration: 200,
+          toValue:         -80,
+          duration:        200,
           useNativeDriver: true,
         }),
         Animated.timing(opacity, {
-          toValue: 0,
-          duration: 200,
+          toValue:         0,
+          duration:        200,
           useNativeDriver: true,
         }),
       ]).start()
@@ -80,6 +81,7 @@ export const Toast = ({
     <Animated.View
       style={[
         styles.container,
+        { top: insets.top + 16 },
         { backgroundColor: COLORS[type] },
         { transform: [{ translateY }], opacity },
         style,
@@ -98,32 +100,32 @@ export const Toast = ({
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    top: 60,
-    left: 24,
-    right: 24,
-    zIndex: 999,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
+    position:          'absolute',
+    left:              24,
+    right:             24,
+    zIndex:            9999,
+    elevation:         9999,
+    flexDirection:     'row',
+    alignItems:        'center',
+    paddingVertical:   16,
     paddingHorizontal: 16,
-    gap: 12,
+    gap:               12,
   },
   icon: {
     fontFamily: 'Manrope_500Medium',
-    fontSize: 14,
-    color: '#faf9f6',
+    fontSize:   14,
+    color:      '#faf9f6',
   },
   message: {
-    flex: 1,
-    fontFamily: 'Manrope_500Medium',
-    fontSize: 12,
+    flex:          1,
+    fontFamily:    'Manrope_500Medium',
+    fontSize:      12,
     letterSpacing: 1.5,
-    color: '#faf9f6',
+    color:         '#faf9f6',
   },
   close: {
     fontFamily: 'Manrope_500Medium',
-    fontSize: 12,
-    color: 'rgba(250,249,246,0.6)',
+    fontSize:   12,
+    color:      'rgba(250,249,246,0.6)',
   },
 })

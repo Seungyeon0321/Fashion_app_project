@@ -1,4 +1,4 @@
-// pages/stylist/ui/StylistPage.tsx
+// pages/stylist/ui/StylistPage.tsx  ← 기존 파일 수정
 
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
@@ -15,18 +15,22 @@ import { StylingOverlay } from '@/features/get-recommendation/ui/StylingOverlay'
 import { useSourcePickerStore } from '@/features/get-recommendation/model/sourcePickerStore';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { ScreenLayout } from '@/shared/ui/ScreenLayout';
+import { useToastStore } from '@/shared/store/toastStore';          // ← 추가
+// Toast import 제거 ← 글로벌 ToastProvider가 처리
 import type { RecommendSource, AnchorClosetItem } from '@/features/get-recommendation/model/sourcePickerStore';
 
 export function StylistPage() {
   const selectedIntent    = useIntentStore((s) => s.selectedIntent);
   const openSheet         = useSourcePickerStore((s) => s.openSheet);
   const { mutate, abort } = useRecommendation();
+  const toast             = useToastStore();                        // ← 추가
 
   const [isPending,          setIsPending]          = useState(false);
   const [progressMessage,    setProgressMessage]    = useState<string | null>(null);
   const [modalVisible,       setModalVisible]       = useState(false);
   const [recommendationData, setRecommendationData] = useState<RecommendationResponse | null>(null);
   const [lastPayload,        setLastPayload]        = useState<RecommendPayload | null>(null);
+  // toast state 제거 ← 글로벌 toastStore로 대체
 
   useEffect(() => {
     return () => abort();
@@ -51,6 +55,7 @@ export function StylistPage() {
         setIsPending(false);
         setProgressMessage(null);
         console.error('❌ error:', error.message);
+        toast.error('FAILED TO GET RECOMMENDATION');               // ← 글로벌 Toast
       },
     });
   };
@@ -62,8 +67,8 @@ export function StylistPage() {
     source:     RecommendSource;
     anchorItem: AnchorClosetItem | null;
   }) => {
-    console.log('🎯 [Anchor] anchorItem:', anchorItem);  // ← 추가
-    console.log('🎯 [Anchor] anchor_item_id:', anchorItem?.id);  // ← 추가
+    console.log('🎯 [Anchor] anchorItem:', anchorItem);
+    console.log('🎯 [Anchor] anchor_item_id:', anchorItem?.id);
     requestRecommendation({
       intent:         selectedIntent!,
       source,
@@ -71,7 +76,6 @@ export function StylistPage() {
     });
   };
 
-  // ← session_id 추가: NO 재요청 시 Redis 캐시에서 다음 코디를 바로 꺼냄
   const handleRetry = (sessionId?: string) => {
     if (!lastPayload) return;
     setModalVisible(false);
@@ -103,6 +107,7 @@ export function StylistPage() {
         onRetry={handleRetry}
         data={recommendationData}
       />
+      {/* 로컬 Toast 제거 — 글로벌 ToastProvider가 처리 */}
     </ScreenLayout>
   );
 }

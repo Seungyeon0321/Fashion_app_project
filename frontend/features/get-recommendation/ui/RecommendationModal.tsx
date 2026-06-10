@@ -1,3 +1,5 @@
+// features/get-recommendation/ui/RecommendationModal.tsx  ← 기존 파일 수정
+
 import React, { useCallback, useEffect, useState } from 'react';
 import { Modal, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,12 +11,13 @@ import { MoodboardCanvas } from './MoodboardCanvas';
 import { ConflictBanner } from './ConflictBanner';
 import { OutfitComment } from './OutfitComment';
 import { OutfitActionBar } from './OutfitActionBar';
+import { ToastProvider } from '@/shared/ui/ToastProvider';  // ← 추가
 import { colors, fonts } from '@/shared/lib/tokens';
 
 type Props = {
   visible:  boolean;
   onClose:  () => void;
-  onRetry:  (sessionId?: string) => void;   // ← 시그니처 변경
+  onRetry:  (sessionId?: string) => void;
   data:     RecommendationResponse | null;
 };
 
@@ -26,23 +29,19 @@ export function RecommendationModal({ visible, onClose, onRetry, data }: Props) 
   const [proposalIndex, setProposalIndex] = useState(0);
   const { like, dislike } = useFeedback(data, proposalIndex);
 
-  // 수정 후: useEffect 두 개로 분리
-  // 1. data 변경 처리 — cleanup 없음 (앵커 보존)
- // 1. data 변경 처리 — cleanup 없음 (앵커 보존)
-useEffect(() => {
-  if (visible && data) {
-    initFromResponse(data);
-    showBanner();
-    setProposalIndex(0);
-  }
-}, [visible, data]);
+  useEffect(() => {
+    if (visible && data) {
+      initFromResponse(data);
+      showBanner();
+      setProposalIndex(0);
+    }
+  }, [visible, data]);
 
-// 2. 모달이 닫힐 때 (visible=false) 완전 초기화
-useEffect(() => {
-  if (!visible) {
-    reset();
-  }
-}, [visible]);
+  useEffect(() => {
+    if (!visible) {
+      reset();
+    }
+  }, [visible]);
 
   if (!data) return null;
 
@@ -56,7 +55,7 @@ useEffect(() => {
   const handleNo = useCallback(async () => {
     await dislike();
     setProposalIndex((prev) => prev + 1);
-    onRetry(data.session_id);   // ← session_id 전달
+    onRetry(data.session_id);
   }, [dislike, onRetry, data]);
 
   return (
@@ -88,6 +87,11 @@ useEffect(() => {
         <MoodboardCanvas />
         <OutfitActionBar onSaveSuccess={onClose} />
 
+        {/* Modal은 별도 네이티브 레이어라 _layout.tsx의 ToastProvider가 안 보임
+            그래서 Modal 안에 직접 ToastProvider를 마운트해야 함
+            같은 toastStore를 구독하므로 어디서 toast.error()를 호출해도 여기서 뜸 */}
+        <ToastProvider />
+
       </SafeAreaView>
     </Modal>
   );
@@ -95,7 +99,7 @@ useEffect(() => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flex:            1,
     backgroundColor: colors.background,
   },
   header: {

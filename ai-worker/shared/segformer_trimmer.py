@@ -1,21 +1,9 @@
-# ai-worker/shared/segformer_trimmer.py
-"""
-rembg 배경 제거 + worker /crop API 크롭 + S3 업로드
-
-(기존 docstring 유지)
-
-Step 39 Bug Fix:
-  rembg 세션 초기화에 threading.Lock 추가.
-  이유: 여러 스레드가 동시에 _get_rembg_session()을 호출하면
-        new_session("u2net")이 같은 onnx 파일을 동시에 로드하면서
-        내부 파일 락 충돌로 deadlock 발생.
-        Lock으로 한 번에 하나만 초기화하도록 강제.
-"""
+# ai-worker/shared/segformer_trimmer.py  ← 기존 파일 수정
 
 import os
 import io
 import uuid
-import threading      # 추가: Lock용
+import threading
 import httpx
 import boto3
 from PIL import Image
@@ -23,22 +11,44 @@ from rembg import remove, new_session
 
 CANVAS_MAX_HEIGHT = 400
 WORKER_URL        = os.getenv("WORKER_URL", "http://worker:8001")
-
-CROP_CATEGORIES = {"TOP", "BOTTOM"}
+CROP_CATEGORIES   = {"TOP", "BOTTOM"}
 
 _rembg_session = None
-_rembg_lock    = threading.Lock()   # 추가: 세션 초기화 보호용
+_rembg_lock    = threading.Lock()
 
+# ── S3 클라이언트도 lazy init으로 변경 ──────────────────────────
+# 모듈 import 시점이 아닌 첫 사용 시점에 초기화
+# 이유: import 시 환경변수가 아직 없을 수 있음 → region=None으로 굳어버리는 버그 방지
+_s3      = None
+_s3_lock = threading.Lock()
+
+S3_BUCKET = None  # 마찬가지로 첫 사용 시점에 읽음
+
+
+def _get_s3_client():
+    """
+    S3 클라이언트를 lazy + thread-safe하게 초기화.
+    rembg 세션과 동일한 double-checked locking 패턴 사용.
+    """
+    global _s3, S3_BUCKET
+
+    if _s3 is not None:
+        return _s3
+
+    with _s3_lock:
+        if _s3 is None:
+            _s3 = boto3.client(
+                "s3",
+                region_name=os.getenv("AWS_REGION"),
+                aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+                aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+            )
+            S3_BUCKET = os.getenv("AWS_S3_BUCKET")
+            print(f"[Trimmer] S3 클라이언트 초기화 완료 (bucket={S3_BUCKET})")
+        return _s3
 
 
 def _get_rembg_session():
-    """
-    rembg 세션을 lazy + thread-safe하게 초기화.
-    
-    Double-checked locking:
-      - 이미 초기화됐으면 락 없이 즉시 반환 (fast path)
-      - None이면 락 잡고 한 번만 초기화
-    """
     global _rembg_session
 
     if _rembg_session is not None:
@@ -51,18 +61,6 @@ def _get_rembg_session():
             print("[Trimmer] rembg 세션 준비 완료")
         return _rembg_session
 
-
-# ⚠️ 모듈 import 시 prewarm 제거 — uvicorn 시작 전에 멈추는 문제 회피
-# 대신 첫 요청 시 Lock으로 보호되어 한 번만 초기화됨
-
-
-_s3 = boto3.client(
-    "s3",
-    region_name=os.getenv("AWS_REGION"),
-    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-)
-S3_BUCKET = os.getenv("AWS_S3_BUCKET")
 
 def _get_crop_bbox(image_url: str, category: str) -> tuple[int, int, int, int] | None:
     if category not in CROP_CATEGORIES:
@@ -137,9 +135,13 @@ def trim_and_upload(
         short_id = uuid.uuid4().hex[:4]
         s3_key   = f"external/{item_id}_{category}_{short_id}.png"
 
-        _s3.upload_fileobj(
+        # ← _s3 직접 사용 대신 _get_s3_client() 호출
+        s3     = _get_s3_client()
+        bucket = S3_BUCKET
+
+        s3.upload_fileobj(
             buf,
-            S3_BUCKET,
+            bucket,
             s3_key,
             ExtraArgs={"ContentType": "image/png"},
         )

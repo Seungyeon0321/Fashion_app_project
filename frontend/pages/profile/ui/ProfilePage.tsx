@@ -1,3 +1,5 @@
+// pages/profile/ui/ProfilePage.tsx  ← 기존 파일 수정
+
 import React from 'react';
 import {
   ScrollView,
@@ -5,15 +7,18 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ProfileHeader } from '@/features/profile/ui/ProfileHeader';
 import { SettingsSection } from '@/features/profile/ui/SettingsSection';
 import { LogoutButton } from '@/features/profile/ui/LogoutButton';
+import { SavedOutfitsGrid } from '@/features/profile/ui/SavedOutfitsGrid';
 import { useProfile } from '@/features/profile/api/useProfile';
 import { useLogout } from '@/features/profile/api/useLogout';
+import { colors, fonts, spacing } from '@/shared/lib/tokens';
 
 export function ProfilePage() {
+  const insets = useSafeAreaInsets();
   const { data: profile, isLoading } = useProfile();
   const { handleLogout } = useLogout();
 
@@ -46,17 +51,23 @@ export function ProfilePage() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator color="#5f5e5e" />
+      <SafeAreaView style={styles.loadingContainer} edges={['top']}>
+        <ActivityIndicator color={colors.primaryMuted} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    // edges={['top']} : 상단 노치/상태바만 SafeArea 처리
+    // 하단은 insets.bottom으로 직접 계산 → 더 정밀한 컨트롤 가능
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          // 하단 제스처 바 높이 + 여유 여백 확보
+          { paddingBottom: insets.bottom + 48 },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         <ProfileHeader
@@ -66,9 +77,20 @@ export function ProfilePage() {
           onEditPress={() => {}}
         />
 
-        <View style={styles.sections}>
+        {/* ── 저장된 아웃핏 섹션 ─────────────────────── */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>SAVED OUTFITS</Text>
+          <SavedOutfitsGrid />
+        </View>
+
+        {/* ── 설정 섹션 ──────────────────────────────── */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>GENERAL</Text>
           <SettingsSection items={generalSettings} />
-          <View style={styles.sectionGap} />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>LEGAL</Text>
           <SettingsSection items={legalSettings} />
         </View>
 
@@ -82,35 +104,36 @@ export function ProfilePage() {
 
 const styles = StyleSheet.create({
   safeArea: {
-    flex: 1,
-    backgroundColor: '#faf9f6',
+    flex:            1,
+    backgroundColor: colors.background,
   },
   loadingContainer: {
-    flex: 1,
-    backgroundColor: '#faf9f6',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flex:            1,
+    backgroundColor: colors.background,
+    alignItems:      'center',
+    justifyContent:  'center',
   },
   scroll: {
     flex: 1,
   },
   content: {
-    paddingHorizontal: 24,
-    paddingBottom: 48,
+    paddingHorizontal: spacing.outerMargin, // 24 — 전역 토큰 사용
+    paddingTop:        24,
   },
-  sections: {
-    gap: 0,
+  section: {
+    marginTop: 36,
+    gap:       16,
   },
-  sectionGap: {
-    height: 32,
+  sectionTitle: {
+    ...fonts.tab,
+    color:         colors.primaryMuted,
+    letterSpacing: 3,
   },
   version: {
-    fontFamily: 'Manrope_700Bold',
-    fontSize: 9,
+    ...fonts.tab,
+    color:         colors.hint,
     letterSpacing: 3.5,
-    textTransform: 'uppercase',
-    color: '#afb3ae',
-    textAlign: 'center',
-    marginTop: 56,
+    textAlign:     'center',
+    marginTop:     56,
   },
 });

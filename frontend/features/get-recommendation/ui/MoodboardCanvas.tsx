@@ -1,11 +1,11 @@
-// features/get-recommendation/ui/MoodboardCanvas.tsx
+// features/get-recommendation/ui/MoodboardCanvas.tsx  ← 기존 파일 수정
 
 import React from 'react';
 import { StyleSheet, View, Image, Text } from 'react-native';
 import {
   Gesture,
   GestureDetector,
-  GestureHandlerRootView,
+  // GestureHandlerRootView 제거 ← _layout.tsx에 이미 있음
 } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
@@ -73,7 +73,6 @@ function DraggableItem({
           resizeMode="contain"
         />
 
-        {/* ANCHOR 배지 — AI가 코디 기준으로 삼은 아이템 */}
         {item.is_anchor && (
           <View style={styles.anchorBadge}>
             <Text style={styles.anchorBadgeText}>ANCHOR</Text>
@@ -93,8 +92,11 @@ export function MoodboardCanvas() {
     removeFromCanvas(id);
   };
 
+  // GestureHandlerRootView 제거 → 그냥 View로 교체
+  // 이유: _layout.tsx 최상단에 이미 GestureHandlerRootView가 있음
+  //       중첩 시 독립 렌더링 컨텍스트가 생겨 글로벌 Toast가 안 보임
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <View style={{ flex: 1 }}>
       <View style={styles.canvas}>
         {canvasItems.map((item) => (
           <DraggableItem
@@ -111,7 +113,7 @@ export function MoodboardCanvas() {
           </View>
         )}
       </View>
-    </GestureHandlerRootView>
+    </View>
   );
 }
 

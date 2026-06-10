@@ -1,4 +1,4 @@
-// app/_layout.tsx
+// app/_layout.tsx  ← 기존 파일 수정
 
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import {
@@ -23,6 +23,7 @@ import { router } from 'expo-router';
 import { useAuthStore } from '@/shared/store/authStore';
 import { ToastProvider } from '@/shared/ui/ToastProvider';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { View, StyleSheet, Text } from 'react-native';             // ← 추가
 
 SplashScreen.preventAutoHideAsync();
 
@@ -50,35 +51,15 @@ export default function RootLayout() {
   const initialize      = useAuthStore((s) => s.initialize);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isInitialized   = useAuthStore((s) => s.isInitialized);
+  const segments        = useSegments();
 
-  // 현재 라우트 세그먼트 — 어느 화면에 있는지 알 수 있음
-  const segments = useSegments();
+  useEffect(() => { initialize(); }, []);
 
-  // 앱 시작 시 저장된 토큰 복원
-  useEffect(() => {
-    initialize();
-  }, []);
-
-  // ── 인증 가드 ────────────────────────────────────────────────
-  // 핵심: 이미 index(/)에 있으면 리다이렉트 안 함 → 루프 차단
-  //
-  // 기존 문제:
-  //   router.replace('/') → 리마운트 → isAuthenticated false 재평가
-  //   → 또 replace → 무한루프
-  //
-  // 해결:
-  //   segments로 현재 위치를 확인하고
-  //   보호된 라우트(tabs, closet, camera)에 있을 때만 리다이렉트
-  //   이미 '/'에 있으면 아무것도 안 함
   useEffect(() => {
     if (!isInitialized) return;
-
-    // 보호된 라우트 목록
     const protectedRoutes = ['(tabs)', 'closet', 'camera'];
     const inProtectedRoute = protectedRoutes.includes(segments[0] as string);
-
     if (!isAuthenticated && inProtectedRoute) {
-      // 보호된 화면에 있는데 미인증 → 로그인으로
       router.replace('/');
     }
   }, [isInitialized, isAuthenticated, segments]);
@@ -92,21 +73,36 @@ export default function RootLayout() {
   if (!fontsLoaded && !fontError) return null;
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    // GestureHandlerRootView를 상대 위치 컨테이너로 사용
+    <GestureHandlerRootView style={styles.root}>
+
       <QueryClientProvider client={queryClient}>
         <SafeAreaProvider>
           <ThemeProvider value={DefaultTheme}>
             <StatusBar style="dark" />
             <Stack>
-              <Stack.Screen name="index"  options={{ headerShown: false }} />
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="closet" options={{ headerShown: false }} />
-              <Stack.Screen name="camera" options={{ headerShown: false }} />
+              <Stack.Screen name="index"       options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)"      options={{ headerShown: false }} />
+              <Stack.Screen name="closet/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="camera"      options={{ headerShown: false }} />
             </Stack>
-            <ToastProvider />
           </ThemeProvider>
         </SafeAreaProvider>
       </QueryClientProvider>
+
+      {/* ── ToastProvider ──────────────────────────────────────────
+          GestureHandlerRootView 바로 안, 모든 Provider 밖에 위치
+          이유: Stack/ThemeProvider/SafeAreaProvider 레이어를
+                전부 벗어나야 absolute position이 최상단에서 작동함
+          폰트는 이미 로딩 완료 후 렌더링되므로 안전                */}
+      <ToastProvider />
+
     </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+});
