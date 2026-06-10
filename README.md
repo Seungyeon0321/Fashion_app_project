@@ -85,8 +85,11 @@ Integrates **Google Calendar OAuth** and **OpenWeatherMap API** to inject real-w
 ### 4. Virtual Try-On
 > *"Stack your look. Try the next piece on your virtual self."*
 
-- Powered by **Fashn.ai API** with Redis caching and AWS S3 presigned URLs
-- **Chained try-on sessions**: use the previous result as the model photo for the next item — enabling progressive outfit layering
+- Powered by **Fashn.ai API** with a full production-ready backend pipeline
+- **NestJS proxy layer** handles all Fashn.ai communication, with **Redis caching** to avoid redundant API calls and **AWS S3 presigned URLs** for secure garment image delivery
+- Closet items use `cropS3Key` with `garment_photo_type: flat-lay` — clean background removal for accurate overlay
+- External Naver items use direct URL with `garment_photo_type: model` — preserves natural draping on a model photo
+- **Chained try-on sessions**: the result image from one try-on becomes the model photo for the next item — enabling progressive outfit layering, just like getting dressed in real life
 
 ### 5. Feedback Loop
 - YES/NO feedback persists to `OutfitFeedback` and aggregates into `UserStylePreference`
@@ -185,6 +188,9 @@ Python bullmq v2 uses BLMOVE (list-based); NestJS bullmq v5 uses Streams — the
 
 **Singleton model loading**
 SegFormer and CLIP models are loaded once at startup and injected as constructor parameters, preventing re-instantiation on every job (which caused severe performance degradation).
+
+**Virtual Try-On pipeline design**
+Internal closet items and external Naver items require different `garment_photo_type` parameters (`flat-lay` vs `model`). The NestJS proxy centralizes this logic, keeping the mobile client simple while ensuring correct API calls to Fashn.ai.
 
 ---
 
