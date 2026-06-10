@@ -102,11 +102,10 @@ export class OutfitService {
                     : null,
                 }
               : null,
-            // 외부 아이템은 imageUrl 그대로 사용 (presigned 불필요)
             externalItem: item.externalItem ?? null,
           })),
         ),
       })),
-    );
+);
   }
 }

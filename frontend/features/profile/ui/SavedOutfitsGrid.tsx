@@ -47,17 +47,20 @@ export function SavedOutfitsGrid() {
         <View key={outfit.id} style={styles.card}>
           {/* 옷 이미지 가로 나열 */}
           <View style={styles.imageRow}>
-            {outfit.items.map((item) =>
-              item.closetItem.imageUrl ? (
+            {outfit.items.map((item) => {
+              // 내부 아이템이면 closetItem.imageUrl, 외부 아이템이면 externalItem.imageUrl
+              const imageUrl = item.closetItem?.imageUrl ?? item.externalItem?.imageUrl ?? null;
+
+              return imageUrl ? (
                 <Image
                   key={item.id}
-                  source={{ uri: item.closetItem.imageUrl }}
+                  source={{ uri: imageUrl }}
                   style={styles.itemImage}
                 />
               ) : (
                 <View key={item.id} style={[styles.itemImage, styles.imagePlaceholder]} />
-              ),
-            )}
+              );
+            })}
           </View>
 
           {/* 날짜 */}
